@@ -4,12 +4,17 @@ import 'package:dio/dio.dart';
 import 'package:e1547/client/client.dart';
 import 'package:e1547/identity/identity.dart';
 import 'package:e1547/logs/logs.dart';
+import 'package:e1547/query/query.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
 
 /// Create a default [Dio] instance for the given [Identity].
 /// Includes user agent, logging and caching.
-Dio createDefaultDio(Identity identity, {CacheStore? cache}) {
+Dio createDefaultDio(
+  Identity identity, {
+  CacheStore? cache,
+  CachedQuery? queryCache,
+}) {
   final dio = Dio(
     BaseOptions(
       baseUrl: normalizeHostUrl(identity.host),
@@ -33,6 +38,9 @@ Dio createDefaultDio(Identity identity, {CacheStore? cache}) {
         ),
       ),
     );
+  }
+  if (queryCache != null) {
+    dio.queryCache = queryCache;
   }
   return dio;
 }

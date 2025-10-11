@@ -1,6 +1,7 @@
 import 'package:e1547/client/client.dart';
 import 'package:e1547/comment/comment.dart';
 import 'package:e1547/markup/markup.dart';
+import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/ticket/ticket.dart';
 import 'package:e1547/user/user.dart';
@@ -125,57 +126,58 @@ class CommentVotes extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final client = context.watch<Client>();
     VoteInfo? vote = comment.vote;
     if (vote == null) return const SizedBox();
 
-    final controller = context.read<CommentController>();
+    final client = context.watch<Client>();
     final messenger = ScaffoldMessenger.of(context);
 
-    return Dimmed(
-      child: VoteDisplay(
-        padding: EdgeInsets.zero,
-        score: vote.score,
-        status: vote.status,
-        onUpvote: client.hasLogin
-            ? (isLiked) async {
-                controller
-                    .vote(comment: comment, upvote: true, replace: !isLiked)
-                    .then((value) {
-                      if (!value) {
-                        messenger.showSnackBar(
-                          SnackBar(
-                            duration: const Duration(seconds: 1),
-                            content: Text(
-                              'Failed to upvote comment #${comment.id}',
-                            ),
-                          ),
-                        );
-                      }
+    return MutationBuilder(
+      mutation: client.comments.useVote(id: comment.id),
+      builder: (context, state, mutate) {
+        final bool enabled = client.hasLogin || state.isLoading;
+        return Dimmed(
+          child: VoteDisplay(
+            padding: EdgeInsets.zero,
+            score: vote.score,
+            status: vote.status,
+            onUpvote: enabled
+                ? (isLiked) async {
+                    mutate((upvote: true, replace: !isLiked)).catchError((
+                      error,
+                    ) {
+                      SnackBar(
+                        duration: const Duration(seconds: 1),
+                        content: Text(
+                          'Failed to upvote comment #${comment.id}',
+                        ),
+                      );
+                      return error;
                     });
-                return !isLiked;
-              }
-            : null,
-        onDownvote: client.hasLogin
-            ? (isLiked) async {
-                controller
-                    .vote(comment: comment, upvote: false, replace: !isLiked)
-                    .then((value) {
-                      if (!value) {
-                        messenger.showSnackBar(
-                          SnackBar(
-                            duration: const Duration(seconds: 1),
-                            content: Text(
-                              'Failed to downvote comment #${comment.id}',
-                            ),
+                    return !isLiked;
+                  }
+                : null,
+            onDownvote: enabled
+                ? (isLiked) async {
+                    mutate((upvote: false, replace: !isLiked)).catchError((
+                      error,
+                    ) {
+                      messenger.showSnackBar(
+                        SnackBar(
+                          duration: const Duration(seconds: 1),
+                          content: Text(
+                            'Failed to downvote comment #${comment.id}',
                           ),
-                        );
-                      }
+                        ),
+                      );
+                      return error;
                     });
-                return !isLiked;
-              }
-            : null,
-      ),
+                    return !isLiked;
+                  }
+                : null,
+          ),
+        );
+      },
     );
   }
 }
@@ -217,15 +219,7 @@ class CommentMenu extends StatelessWidget {
             icon: Icons.edit,
             value: () => guardWithLogin(
               context: context,
-              callback: () {
-                CommentController controller = context
-                    .read<CommentController>();
-                editComment(context: context, comment: comment).then((value) {
-                  if (value) {
-                    controller.refresh(force: true);
-                  }
-                });
-              },
+              callback: () => editComment(context: context, comment: comment),
               error: 'You must be logged in to edit comments!',
             ),
           ),
@@ -234,14 +228,7 @@ class CommentMenu extends StatelessWidget {
           icon: Icons.reply,
           value: () => guardWithLogin(
             context: context,
-            callback: () {
-              CommentController controller = context.read<CommentController>();
-              replyComment(context: context, comment: comment).then((value) {
-                if (value) {
-                  controller.refresh(force: true);
-                }
-              });
-            },
+            callback: () => replyComment(context: context, comment: comment),
             error: 'You must be logged in to reply to comments!',
           ),
         ),

@@ -52,10 +52,32 @@ class TextFilterTag extends FilterTag {
   final Widget? icon;
 }
 
+/// A filter that has a number as value.
+///
+/// This is represented by a number input field.
+class NumberFilterTag extends FilterTag {
+  const NumberFilterTag({
+    required super.tag,
+    super.name,
+    this.min,
+    this.max,
+    this.icon,
+  });
+
+  /// The minimum value of the number.
+  final int? min;
+
+  /// The maximum value of the number.
+  final int? max;
+
+  /// The icon of this filter.
+  final Widget? icon;
+}
+
 /// A filter that is tied to a number or range of numbers.
 ///
 /// This is represented by a range dialog.
-class NumberRangeFilterTag extends FilterTag {
+class NumberRangeFilterTag extends NumberFilterTag {
   const NumberRangeFilterTag({
     required super.tag,
     super.name,
@@ -69,9 +91,11 @@ class NumberRangeFilterTag extends FilterTag {
   /// The minimum value of the number.
   ///
   /// Defaults to 0.
+  @override
   final int? min;
 
   /// The maximum value of the number.
+  @override
   final int max;
 
   /// The number of divisions of the slider.
@@ -81,6 +105,7 @@ class NumberRangeFilterTag extends FilterTag {
   final NumberRange? initial;
 
   /// The icon of this filter.
+  @override
   final Widget? icon;
 }
 
@@ -120,6 +145,99 @@ class ChoiceFilterTag extends FilterTag {
   final Widget? icon;
 }
 
+/// A multi-choice filter.
+///
+/// This is represented by a dropdown with checkboxes for multiple selection.
+class MultiChoiceFilterTag extends FilterTag {
+  const MultiChoiceFilterTag({
+    required super.tag,
+    super.name,
+    required this.options,
+    this.icon,
+  });
+
+  /// The options of this filter.
+  /// Options must be unique.
+  final List<ChoiceFilterTagValue> options;
+
+  /// The icon of this filter.
+  final Widget? icon;
+}
+
+class EnumFilterNullTagValue extends ChoiceFilterTagValue {
+  const EnumFilterNullTagValue({String? name})
+    : super(value: null, name: name ?? 'All');
+}
+
+/// A specialized choice filter for enums.
+///
+/// This provides type-safe enum handling with convenient get/set methods.
+class EnumFilterTag<T extends Enum> extends ChoiceFilterTag {
+  EnumFilterTag({
+    required super.tag,
+    super.name,
+    required this.values,
+    super.icon,
+    this.valueMapper,
+    this.nameMapper,
+    this.undefinedOption,
+  }) : super(
+         options: [
+           if (undefinedOption != null) undefinedOption,
+           ...values.map((value) {
+             return ChoiceFilterTagValue(
+               value: valueMapper?.call(value) ?? value.name,
+               name: nameMapper?.call(value) ?? value.name,
+             );
+           }),
+         ],
+       );
+
+  /// The enum values for this filter
+  final List<T> values;
+
+  /// Optional function to map enum values to API values
+  /// If not provided, uses enum.name as the value
+  final String Function(T)? valueMapper;
+
+  /// Optional function to map enum values to display names
+  final String? Function(T)? nameMapper;
+
+  /// Optional choice for the value `null`
+  final EnumFilterNullTagValue? undefinedOption;
+}
+
+/// A specialized multi-choice filter for enums.
+///
+/// This provides type-safe enum handling for selecting multiple enum values.
+class MultiEnumFilterTag<T extends Enum> extends MultiChoiceFilterTag {
+  MultiEnumFilterTag({
+    required super.tag,
+    super.name,
+    required this.values,
+    super.icon,
+    this.valueMapper,
+    this.nameMapper,
+  }) : super(
+         options: values.map((value) {
+           return ChoiceFilterTagValue(
+             value: valueMapper?.call(value) ?? value.name,
+             name: nameMapper?.call(value) ?? value.name,
+           );
+         }).toList(),
+       );
+
+  /// The enum values for this filter
+  final List<T> values;
+
+  /// Optional function to map enum values to API values
+  /// If not provided, uses enum.name as the value
+  final String Function(T)? valueMapper;
+
+  /// Optional function to map enum values to display names
+  final String? Function(T)? nameMapper;
+}
+
 /// A toggle filter value.
 /// This is represented by a checkbox.
 ///
@@ -147,6 +265,15 @@ class ToggleFilterTag extends FilterTag {
   /// A short description of this filter.
   /// Shown below the title.
   final String? description;
+}
+
+class BooleanFilterTag extends ToggleFilterTag {
+  const BooleanFilterTag({
+    required super.tag,
+    super.name,
+    super.description,
+    bool tristate = false,
+  }) : super(enabled: 'true', disabled: tristate ? 'false' : null);
 }
 
 extension FilterStateConfigExtension on FilterConfigState {

@@ -51,6 +51,7 @@ dependencies:
   # data
   app_links: ^6.3.3
   async: ^2.11.0
+  cached_query_flutter: ^3.0.1
   collection: ^1.19.0
   deep_pick: ^1.0.0
   dio: ^5.9.0
@@ -78,6 +79,7 @@ dependencies:
   pub_semver: ^2.1.5
   recase: ^4.1.0
   relative_time: ^5.0.0
+  runtime_type: ^1.1.0
   rxdart: ^0.28.0
   share_plus: ^11.0.0
   sqlite3_flutter_libs: ^0.5.39

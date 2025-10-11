@@ -1,7 +1,7 @@
 import 'package:e1547/client/client.dart';
 import 'package:e1547/comment/comment.dart';
 import 'package:e1547/shared/shared.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 class CommentLoadingPage extends StatefulWidget {
   const CommentLoadingPage(this.id, {super.key});

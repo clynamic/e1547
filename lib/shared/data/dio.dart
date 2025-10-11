@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
 
 export 'package:dio/dio.dart' show CancelToken;
@@ -167,4 +168,12 @@ class ClientCacheInterceptor extends DioCacheInterceptor {
 extension CacheStoreDioExtension on Dio {
   CacheStore? get cache =>
       (options.extra['@cache_options@'] as CacheOptions?)?.store;
+}
+
+extension QueryCacheDioExtension on Dio {
+  CachedQuery? get queryCache => options.extra['@query_cache@'] as CachedQuery?;
+
+  set queryCache(CachedQuery? value) {
+    options.extra['@query_cache@'] = value;
+  }
 }

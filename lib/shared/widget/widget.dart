@@ -14,6 +14,7 @@ export 'grouped.dart';
 export 'header.dart';
 export 'link.dart';
 export 'loading.dart';
+export 'multiselect.dart';
 export 'navigation.dart';
 export 'ontap.dart';
 export 'padding.dart';
