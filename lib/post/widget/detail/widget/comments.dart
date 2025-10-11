@@ -1,5 +1,7 @@
+import 'package:e1547/client/client.dart';
 import 'package:e1547/comment/comment.dart';
 import 'package:e1547/post/post.dart';
+import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
@@ -45,40 +47,43 @@ class CommentDisplay extends StatelessWidget {
 }
 
 class SliverPostCommentSection extends StatelessWidget {
-  const SliverPostCommentSection({super.key, required this.post});
+  const SliverPostCommentSection({super.key, required this.postId});
 
-  final Post post;
+  final int postId;
 
   @override
   Widget build(BuildContext context) {
-    return CommentProvider(
-      postId: post.id,
-      child: Consumer<CommentController>(
-        builder: (context, controller, child) => SliverMainAxisGroup(
+    final client = context.watch<Client>();
+    return FilterControllerProvider(
+      create: (_) => CommentFilter(client),
+      keys: (_) => [client],
+      child: ListenableProvider(
+        create: (_) => CommentParams()
+          ..postId = postId
+          ..groupBy = CommentGroupBy.comment
+          ..order = CommentOrder.oldest,
+        builder: (context, _) => SliverMainAxisGroup(
           slivers: [
-            SliverToBoxAdapter(
+            const SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 2,
-                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                       child: Row(
                         children: [
-                          const Expanded(
+                          Expanded(
                             child: Text(
                               'Comments',
                               style: TextStyle(fontSize: 16),
                             ),
                           ),
-                          CommentListDropdown(postId: post.id),
+                          CommentListDropdown(),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                   ],
                 ),
               ),

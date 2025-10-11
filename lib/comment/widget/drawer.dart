@@ -7,27 +7,26 @@ class CommentListDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<CommentController>(
-      builder: (context, controller, child) => ContextDrawer(
-        title: const Text('Comments'),
-        children: [
-          AnimatedBuilder(
-            animation: controller,
-            builder: (context, child) => SwitchListTile(
-              secondary: const Icon(Icons.sort),
-              title: const Text('Comment order'),
-              subtitle: Text(
-                controller.orderByOldest ? 'oldest first' : 'newest first',
-              ),
-              value: controller.orderByOldest,
-              onChanged: (value) {
-                controller.orderByOldest = value;
-                Scaffold.of(context).closeEndDrawer();
-              },
-            ),
-          ),
-        ],
-      ),
+    final controller = context.watch<CommentParams>();
+    return ContextDrawer(
+      title: const Text('Comments'),
+      children: [
+        SwitchListTile(
+          secondary: const Icon(Icons.sort),
+          title: const Text('Comment order'),
+          subtitle: Text(switch (controller.order) {
+            CommentOrder.oldest => 'oldest first',
+            CommentOrder.newest => 'newest first',
+          }),
+          value: controller.order == CommentOrder.oldest,
+          onChanged: (value) {
+            controller.order = value
+                ? CommentOrder.oldest
+                : CommentOrder.newest;
+            Scaffold.of(context).closeEndDrawer();
+          },
+        ),
+      ],
     );
   }
 }

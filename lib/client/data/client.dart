@@ -23,7 +23,11 @@ export 'package:dio/dio.dart' show CancelToken;
 
 class Client with Disposable {
   Client({required this.identity, required this.traits, required this.storage})
-    : dio = createDefaultDio(identity, cache: storage.httpCache);
+    : dio = createDefaultDio(
+        identity,
+        cache: storage.httpCache,
+        queryCache: storage.queryCache,
+      );
 
   final Dio dio;
   final AppStorage storage;

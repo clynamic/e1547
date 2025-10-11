@@ -1,8 +1,11 @@
 import 'package:collection/collection.dart';
+import 'package:runtime_type/runtime_type.dart';
+
+typedef ProtoMap = Map<String, Object?>;
 
 typedef QueryMap = Map<String, String>;
 
-extension QueryMapping on Map<String, dynamic> {
+extension QueryMapping on ProtoMap {
   String? _serialize(Object? value) {
     if (value == null) return null;
     switch (value) {
@@ -52,6 +55,104 @@ extension QueryMapHandling on QueryMap {
       this[key] = value;
     }
   }
+
+  void set(String key, Object? value) {
+    if (value == null) {
+      remove(key);
+      return;
+    }
+
+    switch (value) {
+      case Map _:
+        final serialized = <String, String>{};
+        _serializeNested(serialized, key, value);
+        remove(key);
+        addAll(serialized);
+      case Iterable i:
+        final serialized = i.map(_serialize).whereType<String>().join(',');
+        setOrRemove(key, serialized.isNotEmpty ? serialized : null);
+      default:
+        final serialized = _serialize(value);
+        if (serialized != null) {
+          this[key] = serialized;
+        } else {
+          remove(key);
+        }
+    }
+  }
+
+  String? getString(String key) => this[key];
+
+  int? getInt(String key) {
+    final value = this[key];
+    return value != null ? int.tryParse(value) : null;
+  }
+
+  bool? getBool(String key) {
+    final value = this[key];
+    return value != null ? value.toLowerCase() == 'true' : null;
+  }
+
+  List<String>? getStringList(String key) {
+    final value = this[key];
+    return value
+        ?.split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+  }
+
+  List<int>? getIntList(String key) {
+    final stringList = getStringList(key);
+    return stringList?.map(int.tryParse).whereType<int>().toList();
+  }
+
+  Set<String>? getStringSet(String key) {
+    final stringList = getStringList(key);
+    return stringList?.toSet();
+  }
+
+  Set<int>? getIntSet(String key) {
+    final intList = getIntList(key);
+    return intList?.toSet();
+  }
+
+  T? getEnum<T extends Enum>(String key, List<T> values) {
+    final value = getString(key);
+    if (value == null) return null;
+    return values.asNameMap()[value];
+  }
+
+  T? get<T>(String key) {
+    if (_isTypeOrNull<String, T>()) {
+      return getString(key) as T?;
+    }
+    if (_isTypeOrNull<int, T>()) {
+      return getInt(key) as T?;
+    }
+    if (_isTypeOrNull<bool, T>()) {
+      return getBool(key) as T?;
+    }
+    if (_isTypeOrNull<List<String>, T>()) {
+      return getStringList(key) as T?;
+    }
+    if (_isTypeOrNull<List<int>, T>()) {
+      return getIntList(key) as T?;
+    }
+    if (_isTypeOrNull<Set<String>, T>()) {
+      return getStringSet(key) as T?;
+    }
+    if (_isTypeOrNull<Set<int>, T>()) {
+      return getIntSet(key) as T?;
+    }
+    throw UnsupportedError('Type $T is not supported by QueryMap.get()');
+  }
+
+  static bool _isTypeOrNull<E, T>() =>
+      RuntimeType<T>().isSubtypeOf(RuntimeType<E?>());
+
+  QueryMap select(List<String> keys) =>
+      Map.fromEntries(entries.where((e) => keys.contains(e.key)));
 }
 
 extension MappableListExtension<K, V> on Iterable<MapEntry<K, V>> {

@@ -126,7 +126,7 @@ class PostDetail extends StatelessWidget {
                                   ],
                                 ),
                               ),
-                              SliverPostCommentSection(post: post),
+                              SliverPostCommentSection(postId: post.id),
                             ],
                           ),
                           SliverConstrainedCrossAxis(
