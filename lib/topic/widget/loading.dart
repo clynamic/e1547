@@ -1,4 +1,5 @@
 import 'package:e1547/client/client.dart';
+import 'package:e1547/query/query.dart';
 import 'package:e1547/reply/reply.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/topic/topic.dart';
@@ -15,17 +16,32 @@ class TopicLoadingPage extends StatefulWidget {
 }
 
 class _TopicLoadingPageState extends State<TopicLoadingPage> {
-  late Future<Topic> topic = context.read<Client>().topics.get(id: widget.id);
-
   @override
   Widget build(BuildContext context) {
-    return FutureLoadingPage<Topic>(
-      future: topic,
-      builder: (context, value) =>
-          TopicRepliesPage(topic: value, orderByOldest: widget.orderByOldest),
-      title: Text('Topic #${widget.id}'),
-      onError: const Text('Failed to load topic'),
-      onEmpty: const Text('Topic not found'),
+    final client = context.watch<Client>();
+    final query = client.topics.useGet(id: widget.id);
+
+    return QueryBuilder(
+      query: query,
+      builder: (context, state) {
+        if (state.data != null) {
+          return TopicRepliesPage(
+            topic: state.data!,
+            orderByOldest: widget.orderByOldest,
+          );
+        }
+
+        return Scaffold(
+          appBar: AppBar(title: Text('Topic #${widget.id}')),
+          body: Center(
+            child: state.isLoading
+                ? const CircularProgressIndicator()
+                : state.error != null
+                ? const Text('Failed to load topic')
+                : const Text('Topic not found'),
+          ),
+        );
+      },
     );
   }
 }
