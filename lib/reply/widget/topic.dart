@@ -1,4 +1,5 @@
-import 'package:e1547/history/history.dart';
+import 'package:e1547/client/client.dart';
+import 'package:e1547/query/query.dart';
 import 'package:e1547/reply/reply.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/topic/topic.dart';
@@ -12,32 +13,32 @@ class TopicRepliesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ReplyProvider(
-      topicId: topic.id,
-      orderByOldest: orderByOldest,
-      child: Consumer<ReplyController>(
-        builder: (context, controller, child) => ControllerHistoryConnector(
-          controller: controller,
-          addToHistory: (context, client, controller) => client.histories.add(
-            TopicHistoryRequest.item(topic: topic, replies: controller.items!),
+    final client = context.watch<Client>();
+    return FilterControllerProvider(
+      create: (_) => ReplyFilter(client),
+      keys: (_) => [client],
+      child: ListenableProvider(
+        create: (_) => ReplyParams()
+          ..topicId = topic.id
+          ..order = (orderByOldest ?? true)
+              ? ReplyOrder.oldest
+              : ReplyOrder.newest,
+        builder: (context, _) => AdaptiveScaffold(
+          appBar: DefaultAppBar(
+            title: Text(topic.title),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.info_outline),
+                tooltip: 'Info',
+                onPressed: () =>
+                    showTopicPrompt(context: context, topic: topic),
+              ),
+              const ContextDrawerButton(),
+            ],
           ),
-          child: AdaptiveScaffold(
-            appBar: DefaultAppBar(
-              title: Text(topic.title),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.info_outline),
-                  tooltip: 'Info',
-                  onPressed: () =>
-                      showTopicPrompt(context: context, topic: topic),
-                ),
-                const ContextDrawerButton(),
-              ],
-            ),
-            drawer: const RouterDrawer(),
-            endDrawer: const ReplyListDrawer(),
-            body: const ReplyList(),
-          ),
+          drawer: const RouterDrawer(),
+          endDrawer: const ReplyListDrawer(),
+          body: const ReplyList(),
         ),
       ),
     );
