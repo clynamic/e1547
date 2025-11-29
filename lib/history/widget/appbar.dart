@@ -8,28 +8,26 @@ class HistoryAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<HistoryController>(
-      builder: (context, controller, child) => HistorySelectionAppBar(
-        child: DefaultAppBar(
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('History'),
-              CrossFade.builder(
-                showChild: HistoryQuery.from(controller.search).date != null,
-                builder: (context) => Text(
-                  DateFormatting.named(
-                    HistoryQuery.from(controller.search).date!,
-                  ),
-                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                    color: Theme.of(context).textTheme.bodySmall!.color,
-                  ),
+    final params = context.watch<HistoryParams>();
+
+    return HistorySelectionAppBar(
+      child: DefaultAppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('History'),
+            CrossFade.builder(
+              showChild: params.date != null,
+              builder: (context) => Text(
+                DateFormatting.named(params.date!),
+                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                  color: Theme.of(context).textTheme.bodySmall!.color,
                 ),
               ),
-            ],
-          ),
-          actions: const [ContextDrawerButton()],
+            ),
+          ],
         ),
+        actions: const [ContextDrawerButton()],
       ),
     );
   }
@@ -55,8 +53,10 @@ class HistorySelectionAppBar extends StatelessWidget with AppBarBuilderWidget {
         IconButton(
           icon: const Icon(Icons.delete_outline),
           onPressed: () async {
+            final client = context.read<Client>();
+            final removeMutation = client.histories.useRemove();
             data.onChanged({});
-            await context.read<Client>().histories.removeAll(
+            await removeMutation.mutate(
               data.selections.map((e) => e.id).toList(),
             );
           },
