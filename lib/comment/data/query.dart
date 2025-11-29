@@ -7,10 +7,7 @@ extension CommentQuerying on CommentClient {
 
   CachedQuery get queryCache => dio.queryCache!;
 
-  QueryBridge<Comment, int> get commentCache => queryCache.bridge<Comment, int>(
-    queryKey,
-    fetch: (id) => get(id: id, force: true),
-  );
+  QueryBridge<Comment, int> get commentCache => queryCache.bridge(queryKey);
 
   Query<Comment> useGet({required int id, bool? vendored}) => Query(
     cache: queryCache,

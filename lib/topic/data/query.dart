@@ -7,10 +7,7 @@ extension TopicQuerying on TopicClient {
 
   CachedQuery get queryCache => dio.queryCache!;
 
-  QueryBridge<Topic, int> get topicCache => queryCache.bridge<Topic, int>(
-    queryKey,
-    fetch: (id) => get(id: id, force: true),
-  );
+  QueryBridge<Topic, int> get topicCache => queryCache.bridge(queryKey);
 
   Query<Topic> useGet({required int id, bool? vendored}) => Query(
     cache: queryCache,

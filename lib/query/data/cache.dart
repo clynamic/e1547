@@ -9,24 +9,13 @@ class QueryBridge<T, K> {
     required this.cache,
     required this.baseKey,
     required this.getId,
-    required this.fetch,
   });
 
   final CachedQuery cache;
   final String baseKey;
   final K Function(T) getId;
 
-  final Future<T> Function(K) fetch;
-
   Query<T>? _getQuery(K id) => cache.getQuery<Query<T>>([baseKey, id]);
-
-  // TODO: delete this once https://github.com/D-James-GH/cached_query/issues/75 is resolved
-  Query<T> _createQuery(K id) => Query<T>(
-    cache: cache,
-    key: [baseKey, id],
-    queryFn: () => fetch(id),
-    config: getConfig(vendored: true),
-  );
 
   static ShouldFetch<T> vendorFetch<T>(bool? vendored) =>
       (key, data, createdAt) => !(vendored ?? false);
@@ -56,8 +45,7 @@ class QueryBridge<T, K> {
 
   List<K> savePage(List<T> items) {
     for (final item in items) {
-      final itemQuery = _getQuery(getId(item)) ?? _createQuery(getId(item));
-      itemQuery.setData(item);
+      cache.setQueryData(key: [baseKey, getId(item)], data: item);
     }
     return items.map(getId).toList();
   }
@@ -106,14 +94,6 @@ extension QueryCacheBridging on CachedQuery {
     }
   }
 
-  QueryBridge<T, K> bridge<T, K>(
-    String key, {
-    K Function(T)? getId,
-    required Future<T> Function(K) fetch,
-  }) => QueryBridge(
-    cache: this,
-    baseKey: key,
-    getId: getId ?? _dynamicGetId,
-    fetch: fetch,
-  );
+  QueryBridge<T, K> bridge<T, K>(String key, {K Function(T)? getId}) =>
+      QueryBridge(cache: this, baseKey: key, getId: getId ?? _dynamicGetId);
 }

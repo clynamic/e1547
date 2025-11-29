@@ -51,7 +51,7 @@ dependencies:
   # data
   app_links: ^7.0.0
   async: ^2.11.0
-  cached_query_flutter: ^3.0.1
+  cached_query_flutter: ^3.3.1
   collection: ^1.19.0
   deep_pick: ^1.0.0
   dio: ^5.9.0

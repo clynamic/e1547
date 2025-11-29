@@ -7,10 +7,7 @@ extension ReplyQuerying on ReplyClient {
 
   CachedQuery get queryCache => dio.queryCache!;
 
-  QueryBridge<Reply, int> get replyCache => queryCache.bridge<Reply, int>(
-    queryKey,
-    fetch: (id) => get(id: id, force: true),
-  );
+  QueryBridge<Reply, int> get replyCache => queryCache.bridge(queryKey);
 
   Query<Reply> useGet({required int id, bool? vendored}) => Query(
     cache: queryCache,
