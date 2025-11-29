@@ -7,10 +7,7 @@ extension HistoryQuerying on HistoryClient {
 
   CachedQuery get queryCache => dio.queryCache!;
 
-  QueryBridge<History, int> get historyCache => queryCache.bridge<History, int>(
-    queryKey,
-    fetch: (id) => get(id: id, force: true),
-  );
+  QueryBridge<History, int> get historyCache => queryCache.bridge(queryKey);
 
   Query<History> useGet({required int id, bool? vendored}) => Query(
     cache: queryCache,
