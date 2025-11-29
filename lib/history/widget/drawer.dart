@@ -133,8 +133,8 @@ class HistoryCategoryFilterTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<HistoryController>(
-      builder: (context, controller, child) => Column(
+    return Consumer<HistoryParams>(
+      builder: (context, params, _) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           const Padding(
@@ -143,25 +143,24 @@ class HistoryCategoryFilterTile extends StatelessWidget {
           ),
           for (final filter in HistoryCategory.values)
             AnimatedBuilder(
-              animation: controller,
+              animation: params,
               builder: (context, child) {
-                HistoryQuery query = HistoryQuery.from(controller.search);
                 return Padding(
                   padding: const EdgeInsets.only(left: 16),
                   child: CheckboxListTile(
                     secondary: filter.icon,
                     title: Text(filter.title),
-                    value: query.categories?.contains(filter) ?? true,
+                    value: params.categories?.contains(filter) ?? true,
                     onChanged: (value) {
                       if (value == null) return;
                       Set<HistoryCategory> filters =
-                          query.categories ?? HistoryCategory.values.toSet();
+                          params.categories ?? HistoryCategory.values.toSet();
                       if (value) {
                         filters.add(filter);
                       } else {
                         filters.remove(filter);
                       }
-                      controller.search = query.copy()..categories = filters;
+                      params.categories = filters;
                     },
                   ),
                 );
@@ -178,8 +177,8 @@ class HistoryTypeFilterTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<HistoryController>(
-      builder: (context, controller, child) => Column(
+    return Consumer<HistoryParams>(
+      builder: (context, params, _) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           const Padding(
@@ -188,25 +187,24 @@ class HistoryTypeFilterTile extends StatelessWidget {
           ),
           for (final filter in HistoryType.values)
             AnimatedBuilder(
-              animation: controller,
+              animation: params,
               builder: (context, child) {
-                HistoryQuery query = HistoryQuery.from(controller.search);
                 return Padding(
                   padding: const EdgeInsets.only(left: 16),
                   child: CheckboxListTile(
                     secondary: filter.icon,
                     title: Text(filter.title),
-                    value: query.types?.contains(filter) ?? true,
+                    value: params.types?.contains(filter) ?? true,
                     onChanged: (value) {
                       if (value == null) return;
                       Set<HistoryType> filters =
-                          query.types ?? HistoryType.values.toSet();
+                          params.types ?? HistoryType.values.toSet();
                       if (value) {
                         filters.add(filter);
                       } else {
                         filters.remove(filter);
                       }
-                      controller.search = query.copy()..types = filters;
+                      params.types = filters;
                     },
                   ),
                 );

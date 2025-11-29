@@ -83,7 +83,10 @@ class Client with Disposable {
     traits: traits,
   );
 
-  late final HistoryClient histories = HistoryClient(server: historyServer);
+  late final HistoryClient histories = HistoryClient(
+    server: historyServer,
+    dio: dio,
+  );
 
   @override
   void dispose() {

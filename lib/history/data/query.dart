@@ -1,80 +1,56 @@
 import 'package:e1547/history/history.dart';
+import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
-import 'package:intl/intl.dart';
 
-// TODO: we need something like this for other services too
-extension type HistoryQuery._(QueryMap self) implements QueryMap {
-  factory HistoryQuery({
-    DateTime? date,
-    String? link,
-    String? title,
-    String? subtitle,
-    List<HistoryCategory>? categories,
-    List<HistoryType>? types,
-  }) {
-    return HistoryQuery._(
-      {
-        'search[date]': date != null ? _dateFormat.format(date) : null,
-        'search[link]': link,
-        'search[title]': title,
-        'search[subtitle]': subtitle,
-        'search[category]': categories?.map((e) => e.name).join(','),
-        'search[type]': types?.map((e) => e.name).join(','),
-      }.toQuery(),
-    );
-  }
+extension HistoryQuerying on HistoryClient {
+  static const queryKey = 'histories';
 
-  HistoryQuery.from(QueryMap map) : this._(map);
+  CachedQuery get queryCache => dio.queryCache!;
 
-  static HistoryQuery? maybeFrom(QueryMap? map) {
-    if (map == null) return null;
-    return HistoryQuery.from(map);
-  }
-
-  HistoryQuery copy() => HistoryQuery.from(Map.of(self));
-
-  static DateFormat get _dateFormat => DateFormat('yyyy-MM-dd');
-
-  DateTime? get date {
-    try {
-      return _dateFormat.parse(self['search[date]'] ?? '');
-    } on FormatException {
-      return null;
-    }
-  }
-
-  set date(DateTime? value) => setOrRemove(
-    'search[date]',
-    value != null ? _dateFormat.format(value) : null,
+  QueryBridge<History, int> get historyCache => queryCache.bridge<History, int>(
+    queryKey,
+    fetch: (id) => get(id: id, force: true),
   );
 
-  String? get link => self['search[link]'];
+  Query<History> useGet({required int id, bool? vendored}) => Query(
+    cache: queryCache,
+    key: [queryKey, id],
+    queryFn: () => get(id: id, force: true),
+    config: historyCache.getConfig(vendored: vendored),
+  );
 
-  set link(String? value) => setOrRemove('search[link]', value);
+  InfiniteQuery<List<int>, int> usePage({required QueryMap? query}) =>
+      InfiniteQuery<List<int>, int>(
+        cache: queryCache,
+        key: [queryKey, query],
+        getNextArg: (state) => state.nextPage,
+        queryFn: (key) => page(
+          page: key,
+          query: query,
+          force: true,
+        ).then(historyCache.savePage),
+      );
 
-  String? get title => self['search[title]'];
+  Query<int> useCount() => Query(
+    cache: queryCache,
+    key: [queryKey, 'count'],
+    queryFn: () => count(),
+  );
 
-  set title(String? value) => setOrRemove('search[title]', value);
+  Query<List<DateTime>> useDays() =>
+      Query(cache: queryCache, key: [queryKey, 'days'], queryFn: () => days());
 
-  String? get subtitle => self['search[subtitle]'];
+  Mutation<void, HistoryRequest> useAdd() => Mutation(
+    mutationFn: (request) => add(request),
+    onSuccess: (_, __) => queryCache.invalidateCache(
+      filterFn: (key, _) => key is List && key.first == queryKey,
+    ),
+  );
 
-  set subtitle(String? value) => setOrRemove('search[subtitle]', value);
-
-  Set<HistoryCategory>? get categories => self['search[category]']
-      ?.split(',')
-      .map((e) => HistoryCategory.values.asNameMap()[e])
-      .whereType<HistoryCategory>()
-      .toSet();
-
-  set categories(Set<HistoryCategory>? value) =>
-      setOrRemove('search[category]', value?.map((e) => e.name).join(','));
-
-  Set<HistoryType>? get types => self['search[type]']
-      ?.split(',')
-      .map((e) => HistoryType.values.asNameMap()[e])
-      .whereType<HistoryType>()
-      .toSet();
-
-  set types(Set<HistoryType>? value) =>
-      setOrRemove('search[type]', value?.map((e) => e.name).join(','));
+  Mutation<void, List<int>> useRemove() => Mutation(
+    mutationFn: (ids) => removeAll(ids),
+    onSuccess: (_, __) => queryCache.invalidateCache(
+      filterFn: (key, _) => key is List && key.first == queryKey,
+    ),
+  );
 }

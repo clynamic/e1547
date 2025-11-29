@@ -1,8 +1,9 @@
 import 'dart:math';
 
 import 'package:drift/drift.dart';
+import 'package:e1547/history/data/database.drift.dart';
 import 'package:e1547/history/history.dart';
-import 'package:e1547/identity/data/database.dart';
+import 'package:e1547/identity/identity.dart';
 import 'package:e1547/shared/shared.dart';
 
 @UseRowClass(History, generateInsertable: true)

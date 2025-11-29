@@ -1,5 +1,6 @@
 import 'package:e1547/client/client.dart';
 import 'package:e1547/history/history.dart';
+import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
@@ -8,52 +9,53 @@ class HistorySearchFab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<HistoryController>(
-      builder: (context, controller, child) => FloatingActionButton(
+    final client = context.watch<Client>();
+    final params = context.watch<HistoryParams>();
+
+    return QueryBuilder(
+      query: client.histories.useDays(),
+      builder: (context, state) => FloatingActionButton(
+        onPressed: state.isLoading
+            ? null
+            : () async {
+                Locale locale = Localizations.localeOf(context);
+
+                final days = state.data ?? [];
+                List<DateTime> availableDays = days.isEmpty
+                    ? [DateTime.now()]
+                    : days;
+
+                if (!context.mounted) return;
+
+                DateTime? result = await showDatePicker(
+                  context: context,
+                  initialDate: params.date ?? DateTime.now(),
+                  firstDate: availableDays.first,
+                  lastDate: availableDays.last,
+                  locale: locale,
+                  initialEntryMode: DatePickerEntryMode.calendarOnly,
+                  selectableDayPredicate: (value) =>
+                      availableDays.any((e) => DateUtils.isSameDay(value, e)),
+                );
+
+                if (!context.mounted) return;
+                ScrollController scrollController = PrimaryScrollController.of(
+                  context,
+                );
+
+                if (result != params.date) {
+                  if (scrollController.hasClients) {
+                    scrollController.animateTo(
+                      0,
+                      duration: defaultAnimationDuration,
+                      curve: Curves.easeInOut,
+                    );
+                  }
+
+                  params.date = result;
+                }
+              },
         child: const Icon(Icons.search),
-        onPressed: () async {
-          final client = context.read<Client>();
-          Locale locale = Localizations.localeOf(context);
-
-          // TODO: Wrap this around the widget as a Future
-          // awaiting this here means the UI might not react immediately
-          List<DateTime> days = await client.histories.days();
-          if (days.isEmpty) {
-            days.add(DateTime.now());
-          }
-
-          if (!context.mounted) return;
-
-          HistoryQuery search = HistoryQuery.from(controller.search);
-
-          DateTime? result = await showDatePicker(
-            context: context,
-            initialDate: search.date ?? DateTime.now(),
-            firstDate: days.first,
-            lastDate: days.last,
-            locale: locale,
-            initialEntryMode: DatePickerEntryMode.calendarOnly,
-            selectableDayPredicate: (value) =>
-                days.any((e) => DateUtils.isSameDay(value, e)),
-          );
-
-          if (!context.mounted) return;
-          ScrollController scrollController = PrimaryScrollController.of(
-            context,
-          );
-
-          if (result != search.date) {
-            if (scrollController.hasClients) {
-              scrollController.animateTo(
-                0,
-                duration: defaultAnimationDuration,
-                curve: Curves.easeInOut,
-              );
-            }
-
-            controller.search = search.copy()..date = result;
-          }
-        },
       ),
     );
   }

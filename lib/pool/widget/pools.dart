@@ -24,14 +24,11 @@ class _PoolsPageState extends State<PoolsPage> with RouterDrawerEntryWidget {
       child: Consumer<PoolController>(
         builder: (context, controller, child) => ControllerHistoryConnector(
           controller: controller,
-          addToHistory: (context, client, controller) async =>
-              client.histories.add(
-                PoolHistoryRequest.search(
-                  query: controller.query,
-                  pools: controller.items,
-                  posts: controller.thumbnails.items,
-                ),
-              ),
+          getEntry: (context, controller) => PoolHistoryRequest.search(
+            query: controller.query,
+            pools: controller.items,
+            posts: controller.thumbnails.items,
+          ),
           child: AdaptiveScaffold(
             appBar: const DefaultAppBar(
               title: Text('Pools'),

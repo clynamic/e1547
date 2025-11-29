@@ -1,12 +1,14 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:e1547/history/history.dart';
 import 'package:e1547/shared/shared.dart';
 
 class HistoryClient {
-  HistoryClient({required this.server});
+  HistoryClient({required this.server, required this.dio});
 
   final HistoryServer server;
+  final Dio dio;
 
   Future<History> get({
     required int id,
