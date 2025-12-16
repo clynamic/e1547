@@ -97,10 +97,9 @@ class DrawerDenyTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isVisible = false;
-    RegExp exp = RegExp("^" + search);
     if (search == ""){
       isVisible = true;
-    } else if (exp.hasMatch(entry.key)){
+    } else if (entry.key.startsWith(search)){
       isVisible = true;
     }
     return Visibility(
