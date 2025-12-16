@@ -138,8 +138,6 @@ class DrawerDenyTile extends StatelessWidget {
   }
 }
 
-// TODO migrate this to a statefull widget
-// TODO filter deny list based on textbox state
 class DrawerDenySwitchBody extends StatefulWidget {
   const DrawerDenySwitchBody({
     super.key,
@@ -206,12 +204,28 @@ class _DrawerDenySwitchBodyState extends State<DrawerDenySwitchBody> {
           child: Column(
             children: [
               const Divider(),
-              TextField(
-                onChanged: (text){
-                  setState((){
-                    search = text;
-                  });
-                },
+              Row(
+                children: [
+                  const SizedBox(
+                    width: 15,
+                  ),
+                  const Icon(Icons.search),
+                  const SizedBox(
+                    width: 15,
+                  ),
+                  Expanded(
+                      child: TextField(
+                        onChanged: (text){
+                          setState((){
+                            search = text;
+                          });
+                        },
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 15,
+                  ),
+                ],
               ),
               ...entries.entries.map(
                 (entry) => DrawerDenyTile(
