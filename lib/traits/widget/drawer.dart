@@ -2,6 +2,7 @@ import 'package:e1547/post/post.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
 import 'package:flutter/material.dart';
+import 'dart:developer' as developer; // DEBUG LINE | PLEASE DELETE
 
 class DrawerDenySwitch extends StatelessWidget {
   const DrawerDenySwitch({super.key, required this.controller});
@@ -82,42 +83,54 @@ class _DrawerMultiDenySwitchState extends State<DrawerMultiDenySwitch> {
 class DrawerDenyTile extends StatelessWidget {
   const DrawerDenyTile({
     super.key,
+    required this.search,
     required this.entry,
     required this.isAllowed,
     required this.onChanged,
   });
 
+  final String search;
   final bool isAllowed;
   final void Function(bool? value) onChanged;
   final MapEntry<String, List<Post>> entry;
 
   @override
   Widget build(BuildContext context) {
-    return CheckboxListTile(
-      value: isAllowed,
-      onChanged: onChanged,
-      title: Row(
-        children: [
-          Expanded(
-            child: Wrap(
-              children: entry.key
-                  .split(' ')
-                  .where((tag) => tag.isNotEmpty)
-                  .map(DenyListTagCard.new)
-                  .toList(),
+    bool isVisible = false;
+    RegExp exp = RegExp("^" + search);
+    if (search == ""){
+      isVisible = true;
+    } else if (exp.hasMatch(entry.key)){
+      isVisible = true;
+    }
+    return Visibility(
+      visible: isVisible,
+      child: CheckboxListTile(
+        value: isAllowed,
+        onChanged: onChanged,
+        title: Row(
+          children: [
+            Expanded(
+              child: Wrap(
+                children: entry.key
+                    .split(' ')
+                    .where((tag) => tag.isNotEmpty)
+                    .map(DenyListTagCard.new)
+                    .toList(),
+              ),
             ),
-          ),
-        ],
-      ),
-      secondary: ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 24),
-        child: TweenAnimationBuilder(
-          tween: IntTween(begin: 0, end: entry.value.length),
-          duration: const Duration(milliseconds: 200),
-          builder: (context, value, child) => Text(
-            value.toString(),
-            style: Theme.of(context).textTheme.titleLarge,
-            textAlign: TextAlign.center,
+          ],
+        ),
+        secondary: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 24),
+          child: TweenAnimationBuilder(
+            tween: IntTween(begin: 0, end: entry.value.length),
+            duration: const Duration(milliseconds: 200),
+            builder: (context, value, child) => Text(
+              value.toString(),
+              style: Theme.of(context).textTheme.titleLarge,
+              textAlign: TextAlign.center,
+            ),
           ),
         ),
       ),
@@ -125,7 +138,9 @@ class DrawerDenyTile extends StatelessWidget {
   }
 }
 
-class DrawerDenySwitchBody extends StatelessWidget {
+// TODO migrate this to a statefull widget
+// TODO filter deny list based on textbox state
+class DrawerDenySwitchBody extends StatefulWidget {
   const DrawerDenySwitchBody({
     super.key,
     required this.denying,
@@ -143,28 +158,38 @@ class DrawerDenySwitchBody extends StatelessWidget {
   final ValueChanged<List<String>> updateAllowedList;
 
   @override
+  State<DrawerDenySwitchBody> createState() => _DrawerDenySwitchBodyState();
+}
+
+class _DrawerDenySwitchBodyState extends State<DrawerDenySwitchBody> {
+
+  String search = "";
+
+  @override
   Widget build(BuildContext context) {
     Map<String, List<Post>> entries = {};
 
-    denied.forEach((key, value) {
+    widget.denied.forEach((key, value) {
       for (final denier in value) {
         entries.putIfAbsent(denier, () => []);
         entries[denier]!.add(key);
       }
     });
-    entries.addAll({for (final e in allowedList) e: <Post>[]});
+
+    // collect all the allowedlist items that match our search
+    entries.addAll({for (final e in widget.allowedList) e: <Post>[]});
 
     entries = Map.fromEntries(
       entries.entries.toList()..sort((a, b) => a.key.compareTo(b.key)),
     );
 
-    int count = denied.keys.length;
+    int count = widget.denied.keys.length;
 
     return Column(
       children: [
         SwitchListTile(
           title: const Text('Blacklist'),
-          subtitle: denying && count > 0
+          subtitle: widget.denying && count > 0
               ? TweenAnimationBuilder<int>(
                   tween: IntTween(begin: 0, end: count),
                   duration: defaultAnimationDuration,
@@ -173,26 +198,34 @@ class DrawerDenySwitchBody extends StatelessWidget {
                 )
               : null,
           secondary: const Icon(Icons.block),
-          value: denying,
-          onChanged: updateDenying,
+          value: widget.denying,
+          onChanged: widget.updateDenying,
         ),
         CrossFade(
-          showChild: denied.isNotEmpty || allowedList.isNotEmpty,
+          showChild: widget.denied.isNotEmpty || widget.allowedList.isNotEmpty,
           child: Column(
             children: [
               const Divider(),
+              TextField(
+                onChanged: (text){
+                  setState((){
+                    search = text;
+                  });
+                },
+              ),
               ...entries.entries.map(
                 (entry) => DrawerDenyTile(
+                  search: search,
                   entry: entry,
-                  isAllowed: !allowedList.contains(entry.key),
+                  isAllowed: !widget.allowedList.contains(entry.key),
                   onChanged: (value) {
-                    List<String> allowed = List.from(allowedList);
+                    List<String> allowed = List.from(widget.allowedList);
                     if (value!) {
                       allowed.remove(entry.key);
                     } else {
                       allowed.add(entry.key);
                     }
-                    updateAllowedList(allowed);
+                    widget.updateAllowedList(allowed);
                   },
                 ),
               ),
