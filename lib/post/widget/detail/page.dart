@@ -26,7 +26,8 @@ class PostDetail extends StatelessWidget {
           post: post,
           onTap: () {
             PostVideoRoute.of(context).keepPlaying();
-            if (onTapImage != null) {
+            if (!(context.read<PostEditingController>().editing) &&
+                onTapImage != null) {
               onTapImage!();
             } else {
               Navigator.of(context).push(
@@ -56,7 +57,11 @@ class PostDetail extends StatelessWidget {
 
   Widget middleBody(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
-    child: Column(children: [CommentDisplay(post: post)]),
+    child: Column(
+      children: [
+        PostEditorChild(shown: false, child: CommentDisplay(post: post)),
+      ],
+    ),
   );
 
   Widget lowerBody(BuildContext context) => Padding(
@@ -64,10 +69,11 @@ class PostDetail extends StatelessWidget {
     child: Column(
       children: [
         RelationshipDisplay(post: post),
-        PoolDisplay(post: post),
-        DenylistTagDisplay(post: post),
+        PostEditorChild(shown: false, child: PoolDisplay(post: post)),
+        PostEditorChild(shown: false, child: DenylistTagDisplay(post: post)),
         TagDisplay(post: post),
-        FileDisplay(post: post),
+        PostEditorChild(shown: false, child: FileDisplay(post: post)),
+        PostEditorChild(shown: true, child: RatingDisplay(post: post)),
         SourceDisplay(post: post),
       ],
     ),
@@ -79,74 +85,77 @@ class PostDetail extends StatelessWidget {
       post: post,
       child: PostHistoryConnector(
         post: post,
-        child: Scaffold(
-          extendBodyBehindAppBar: true,
-          appBar: PostDetailAppBar(post: post),
-          floatingActionButton: context.read<Client>().hasLogin
-              ? PostDetailFloatingActionButton(post: post)
-              : null,
-          body: MediaQuery.removeViewInsets(
-            context: context,
-            removeTop: true,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                if (constraints.maxWidth < 1000) {
-                  return ListView(
-                    primary: true,
-                    padding: EdgeInsets.only(
-                      top: MediaQuery.of(context).padding.top,
-                      bottom: kBottomNavigationBarHeight + 24,
-                    ),
-                    children: [
-                      image(context, constraints),
-                      upperBody(context),
-                      middleBody(context),
-                      lowerBody(context),
-                    ],
-                  );
-                } else {
-                  double sideBarWidth;
-                  if (constraints.maxWidth > 1400) {
-                    sideBarWidth = 404;
+        child: PostEditor(
+          post: post,
+          child: Scaffold(
+            extendBodyBehindAppBar: true,
+            appBar: PostDetailAppBar(post: post),
+            floatingActionButton: context.read<Client>().hasLogin
+                ? PostDetailFloatingActionButton(post: post)
+                : null,
+            body: MediaQuery.removeViewInsets(
+              context: context,
+              removeTop: true,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth < 1000) {
+                    return ListView(
+                      primary: true,
+                      padding: EdgeInsets.only(
+                        top: MediaQuery.of(context).padding.top,
+                        bottom: kBottomNavigationBarHeight + 24,
+                      ),
+                      children: [
+                        image(context, constraints),
+                        upperBody(context),
+                        middleBody(context),
+                        lowerBody(context),
+                      ],
+                    );
                   } else {
-                    sideBarWidth = 304;
-                  }
-                  return CustomScrollView(
-                    primary: true,
-                    slivers: [
-                      SliverCrossAxisGroup(
-                        slivers: [
-                          SliverMainAxisGroup(
-                            slivers: [
-                              SliverToBoxAdapter(
+                    double sideBarWidth;
+                    if (constraints.maxWidth > 1400) {
+                      sideBarWidth = 404;
+                    } else {
+                      sideBarWidth = 304;
+                    }
+                    return CustomScrollView(
+                      primary: true,
+                      slivers: [
+                        SliverCrossAxisGroup(
+                          slivers: [
+                            SliverMainAxisGroup(
+                              slivers: [
+                                SliverToBoxAdapter(
+                                  child: Column(
+                                    children: [
+                                      image(context, constraints),
+                                      upperBody(context),
+                                    ],
+                                  ),
+                                ),
+                                SliverPostCommentSection(postId: post.id),
+                              ],
+                            ),
+                            SliverConstrainedCrossAxis(
+                              maxExtent: sideBarWidth,
+                              sliver: SliverToBoxAdapter(
                                 child: Column(
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    image(context, constraints),
-                                    upperBody(context),
+                                    const SizedBox(height: 56),
+                                    lowerBody(context),
                                   ],
                                 ),
                               ),
-                              SliverPostCommentSection(postId: post.id),
-                            ],
-                          ),
-                          SliverConstrainedCrossAxis(
-                            maxExtent: sideBarWidth,
-                            sliver: SliverToBoxAdapter(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const SizedBox(height: 56),
-                                  lowerBody(context),
-                                ],
-                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  );
-                }
-              },
+                          ],
+                        ),
+                      ],
+                    );
+                  }
+                },
+              ),
             ),
           ),
         ),

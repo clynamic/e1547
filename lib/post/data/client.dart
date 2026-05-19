@@ -2,30 +2,20 @@ import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
-import 'package:e1547/client/client.dart';
-import 'package:e1547/identity/identity.dart';
-import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/shared/shared.dart';
-import 'package:e1547/tag/tag.dart';
 
 class PostClient {
-  PostClient({
-    required this.dio,
-    required this.identity,
-    required this.poolsService,
-  });
+  PostClient({required this.dio});
 
   final Dio dio;
-  final Identity identity;
-  final PoolClient poolsService;
 
   Future<Post> get({required int id, bool? force, CancelToken? cancelToken}) =>
       dio
           .get(
             '/posts/$id.json',
-            options: forceOptions(force),
             cancelToken: cancelToken,
+            options: forceOptions(force),
           )
           .then(unwrapRailsArray)
           .then((response) => E621Post.fromJson(response.data));
@@ -34,76 +24,30 @@ class PostClient {
     int? page,
     int? limit,
     QueryMap? query,
-    // This needs to be rearchitected.
-    // - maybe extra function, e.g. pageOrdered?
-    // - maybe extra PostPageOrder class?
-    // - maybe special query parameters?
-    bool? ordered,
-    bool? orderPoolsByOldest,
-    bool? orderFavoritesByAdded,
     bool? force,
     CancelToken? cancelToken,
-  }) async {
-    ordered ??= true;
-    String? tags = query?['tags'];
-    if (ordered && tags != null) {
-      Map<RegExp, Future<List<Post>> Function(RegExpMatch match)> redirects = {
-        poolRegex(): (match) => byPool(
-          id: int.parse(match.namedGroup('id')!),
-          page: page,
-          orderByOldest: orderPoolsByOldest ?? true,
-          force: force,
-          cancelToken: cancelToken,
-        ),
-        if ((orderFavoritesByAdded ?? false) && identity.username != null)
-          favRegex(identity.username!): (match) =>
-              favorites(page: page, limit: limit, force: force),
-      };
+  }) => dio
+      .get(
+        '/posts.json',
+        queryParameters: {'page': page, 'limit': limit, ...?query}.toQuery(),
+        cancelToken: cancelToken,
+        options: forceOptions(force),
+      )
+      .then(unwrapRailsArray)
+      .then(
+        (response) =>
+            (response.data as List).map<Post>(E621Post.fromJson).toList(),
+      )
+      .then(_filter);
 
-      for (final entry in redirects.entries) {
-        RegExpMatch? match = entry.key.firstMatch(tags);
-        if (match != null) {
-          return entry.value(match);
-        }
-      }
-    }
-
-    return dio
-        .get(
-          '/posts.json',
-          queryParameters: {'page': page, 'limit': limit, ...?query},
-          options: forceOptions(force),
-          cancelToken: cancelToken,
-        )
-        .then(unwrapRailsArray)
-        .then(
-          (response) => (response.data as List<dynamic>)
-              .map<Post>(E621Post.fromJson)
-              .whereNot(
-                (e) => (e.file == null && !e.isDeleted) || e.ext == 'swf',
-              )
-              .toList(),
-        );
-  }
-
-  Future<List<Post>> byHot({
-    int? page,
-    int? limit,
-    QueryMap? query,
-    bool? force,
-    CancelToken? cancelToken,
-  }) {
-    return this.page(
-      page: page,
-      query: {
-        ...?query,
-        'tags': (TagMap(query?['tags'])..['order'] = 'rank').toString(),
-      },
-      limit: limit,
-      force: force,
-      cancelToken: cancelToken,
-    );
-  }
+  /// Filters out "broken" posts.
+  /// Flash posts are considered to be broken by default, since we will not be able to display them.
+  /// Censored posts, which have contentious tags and are unavailable to anonymous users, are also considered broken.
+  /// Posts which are not deleted but have no file are censored.
+  List<Post> _filter(List<Post> posts) => posts
+      .whereNot((post) => !post.isDeleted && post.file == null)
+      .whereNot((post) => post.ext == 'swf')
+      .toList();
 
   Future<List<Post>> byIds({
     required List<int> ids,
@@ -125,7 +69,6 @@ class PostClient {
       List<Post> part = await page(
         query: {'tags': filter},
         limit: limit,
-        ordered: false,
         force: force,
         cancelToken: cancelToken,
       );
@@ -164,141 +107,52 @@ class PostClient {
       page: sitePage,
       query: {'tags': filter},
       limit: limit,
-      ordered: false,
       force: force,
       cancelToken: cancelToken,
     );
   }
 
-  Future<List<Post>> byFavoriter({
-    required String username,
-    int? page,
-    int? limit,
-    bool? force,
-    CancelToken? cancelToken,
-  }) => this.page(
-    page: page,
-    query: {'tags': 'fav:$username'},
-    limit: limit,
-    ordered: false,
-    force: force,
-    cancelToken: cancelToken,
-  );
+  Future<void> update({required int id, required Map<String, String?> data}) =>
+      dio.put('/posts/$id.json', data: FormData.fromMap(data));
 
-  Future<List<Post>> byUploader({
-    required String username,
-    int? page,
-    int? limit,
-    bool? force,
-    CancelToken? cancelToken,
-  }) => this.page(
-    page: page,
-    query: {'tags': 'user:$username'},
-    limit: limit,
-    ordered: false,
-    force: force,
-    cancelToken: cancelToken,
-  );
-
-  Future<List<Post>> byPool({
+  Future<void> vote({
     required int id,
-    int? page,
-    int? limit,
-    bool orderByOldest = true,
-    bool? force,
-    CancelToken? cancelToken,
-  }) async {
-    page ??= 1;
-    // TODO: store per page count in Traits
-    int limit = 75;
-    Pool pool = await poolsService.get(
-      id: id,
-      force: force,
-      cancelToken: cancelToken,
-    );
-    List<int> ids = pool.postIds;
-    if (!orderByOldest) ids = ids.reversed.toList();
-    int lower = (page - 1) * limit;
-    if (lower > ids.length) return [];
-    ids = ids.sublist(lower).take(limit).toList();
-    return byIds(
-      ids: ids,
-      limit: limit,
-      force: force,
-      cancelToken: cancelToken,
-    );
-  }
+    required bool upvote,
+    required bool replace,
+  }) => dio.post(
+    '/posts/$id/votes.json',
+    queryParameters: {'score': upvote ? 1 : -1, 'no_unvote': replace},
+  );
 
-  Future<void> update(int postId, Map<String, String?> body) async {
-    await dio.cache?.deleteFromPath(
-      RegExp(RegExp.escape('/posts/$postId.json')),
-    );
-    await dio.put('/posts/$postId.json', data: FormData.fromMap(body));
-  }
-
-  // TODO: votes should be their own client
-  Future<void> vote(int postId, bool upvote, bool replace) async {
-    await dio.cache?.deleteFromPath(
-      RegExp(RegExp.escape('/posts/$postId.json')),
-    );
-    await dio.post(
-      '/posts/$postId/votes.json',
-      queryParameters: {'score': upvote ? 1 : -1, 'no_unvote': replace},
-    );
-  }
-
-  // TODO: favorites should be their own client
   Future<List<Post>> favorites({
     int? page,
     int? limit,
     QueryMap? query,
-    bool? orderByAdded,
     bool? force,
     CancelToken? cancelToken,
-  }) async {
-    if (identity.username == null) {
-      throw NoUserLoginException();
-    }
-    orderByAdded ??= true;
-    String tags = query?['tags'] ?? '';
-    if (tags.isEmpty && orderByAdded) {
-      List<dynamic> body = await dio
-          .get(
-            '/favorites.json',
-            queryParameters: {'page': page, 'limit': limit, ...?query},
-            options: forceOptions(force),
-            cancelToken: cancelToken,
-          )
-          .then(unwrapRailsArray)
-          .then((response) => response.data);
-      List<Post> result = List.from(body.map(E621Post.fromJson));
-      result.removeWhere((e) => e.isDeleted || e.file == null);
-      return result;
-    } else {
-      return this.page(
-        page: page,
-        query: {
-          ...?query,
-          'tags': (TagMap(tags)..['fav'] = identity.username).toString(),
+  }) => dio
+      .get(
+        '/favorites.json',
+        queryParameters: {
+          'page': page,
+          'limit': limit,
+          // may not contain tags, or we get redirected to a html page
+          ...?(query?..remove('tags')),
         },
-        ordered: false,
-        force: force,
+        options: forceOptions(force),
         cancelToken: cancelToken,
+      )
+      .then(unwrapRailsArray)
+      .then(
+        (response) => (response.data as List<dynamic>)
+            .map<Post>(E621Post.fromJson)
+            .where((post) => !post.isDeleted && post.file != null)
+            .toList(),
       );
-    }
-  }
 
-  Future<void> addFavorite(int postId) async {
-    await dio.cache?.deleteFromPath(
-      RegExp(RegExp.escape('/posts/$postId.json')),
-    );
-    await dio.post('/favorites.json', queryParameters: {'post_id': postId});
-  }
+  Future<void> addFavorite(int postId) =>
+      dio.post('/favorites.json', queryParameters: {'post_id': postId});
 
-  Future<void> removeFavorite(int postId) async {
-    await dio.cache?.deleteFromPath(
-      RegExp(RegExp.escape('/posts/$postId.json')),
-    );
-    await dio.delete('/favorites/$postId.json');
-  }
+  Future<void> removeFavorite(int postId) =>
+      dio.delete('/favorites/$postId.json');
 }

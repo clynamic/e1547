@@ -15,18 +15,17 @@ class DeletionDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!post.isDeleted) return const SizedBox.shrink();
     return SubFuture<PostFlag>(
-      create: () => context
-          .read<Client>()
-          .flags
-          .list(
-            limit: 1,
-            query: {
-              'type': 'deletion',
-              'search[post_id]': post.id,
-              'search[is_resolved]': false,
-            }.toQuery(),
-          )
-          .then((e) => e.first),
+      create: () async {
+        List<PostFlag> flags = await context.read<Client>().flags.list(
+          limit: 1,
+          query: {
+            'type': 'deletion',
+            'search[post_id]': post.id,
+            'search[is_resolved]': 'false',
+          }.toQuery(),
+        );
+        return flags.first;
+      },
       builder: (context, value) => HiddenWidget(
         show: value.data != null,
         child: Column(

@@ -10,4 +10,3 @@ export 'pools.dart';
 export 'relationships.dart';
 export 'sources.dart';
 export 'tags.dart';
-export 'widgets.dart';

@@ -2,10 +2,10 @@ import 'package:collection/collection.dart';
 import 'package:e1547/client/client.dart';
 import 'package:e1547/follow/follow.dart';
 import 'package:e1547/post/post.dart';
+import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_sub/flutter_sub.dart';
 
 class TagListActions extends StatelessWidget {
   const TagListActions({super.key, required this.tag});
@@ -18,48 +18,41 @@ class TagListActions extends StatelessWidget {
       return const SizedBox.shrink();
     }
     return Consumer<Client>(
-      builder: (context, client, child) => SubStream<Follow?>(
-        create: () => client.follows.getByTags(tags: tag).streamed,
-        keys: [client, tag],
-        builder: (context, snapshot) => ValueListenableBuilder(
+      builder: (context, client, child) => QueryBuilder(
+        query: client.follows.useGetByTags(tags: tag),
+        builder: (context, followState) => ValueListenableBuilder(
           valueListenable: client.traits,
           builder: (context, traits, child) {
-            if ([
-              ConnectionState.none,
-              ConnectionState.waiting,
-            ].contains(snapshot.connectionState)) {
-              return const AnimatedSwitcher(
-                duration: defaultAnimationDuration,
-                child: SizedBox.shrink(),
-              );
-            }
-
-            Follow? follow = snapshot.data;
+            Follow? follow = followState.data;
             bool hasFollow = follow != null;
 
             bool following = [
               FollowType.update,
               FollowType.notify,
-            ].contains(follow?.type);
+            ].contains(follow.type);
 
-            bool notifying = follow?.type == FollowType.notify;
-            bool bookmarked = follow?.type == FollowType.bookmark;
+            bool notifying = follow.type == FollowType.notify;
+            bool bookmarked = follow.type == FollowType.bookmark;
             bool denied = traits.denylist.contains(tag);
 
             VoidCallback followBookmarkToggle(FollowType type) {
               return () {
                 if (hasFollow) {
                   if (follow.type == type) {
-                    client.follows.delete(follow.id);
+                    client.follows.useDelete().mutate(follow.id);
                   }
                   if (follow.type == FollowType.notify &&
                       type == FollowType.update) {
-                    client.follows.delete(follow.id);
+                    client.follows.useDelete().mutate(follow.id);
                   } else {
-                    client.follows.update(id: follow.id, type: type);
+                    client.follows.useUpdate().mutate(
+                      FollowUpdate(id: follow.id, type: type),
+                    );
                   }
                 } else {
-                  client.follows.create(tags: tag, type: type);
+                  client.follows.useCreate().mutate(
+                    FollowRequest(tags: tag, type: type),
+                  );
                   if (denied) {
                     client.traits.value = traits.copyWith(
                       denylist: traits.denylist..remove(tag),
@@ -99,14 +92,18 @@ class TagListActions extends StatelessWidget {
                                 : const Text('Notify'),
                             onTap: () {
                               if (notifying) {
-                                client.follows.update(
-                                  id: follow!.id,
-                                  type: FollowType.update,
+                                client.follows.useUpdate().mutate(
+                                  FollowUpdate(
+                                    id: follow.id,
+                                    type: FollowType.update,
+                                  ),
                                 );
                               } else {
-                                client.follows.update(
-                                  id: follow!.id,
-                                  type: FollowType.notify,
+                                client.follows.useUpdate().mutate(
+                                  FollowUpdate(
+                                    id: follow.id,
+                                    type: FollowType.notify,
+                                  ),
                                 );
                               }
                             },
@@ -146,7 +143,7 @@ class TagListActions extends StatelessWidget {
                           );
                         } else {
                           if (hasFollow) {
-                            client.follows.delete(follow.id);
+                            client.follows.useDelete().mutate(follow.id);
                           }
                           client.accounts.push(
                             traits: traits.copyWith(
@@ -168,109 +165,90 @@ class TagListActions extends StatelessWidget {
 }
 
 class RemoveTagAction extends StatelessWidget {
-  const RemoveTagAction({
-    super.key,
-    required this.controller,
-    required this.tag,
-  });
+  const RemoveTagAction({super.key, required this.tag});
 
-  final PostController controller;
   final String tag;
 
   @override
   Widget build(BuildContext context) {
+    final controller = context.watch<PostParams>();
+
     return ActionButton(
       icon: const Icon(Icons.search_off),
       label: const Text('Remove'),
       onTap: () {
         Navigator.of(context).maybePop();
-        QueryMap result = controller.query.toQuery();
-        result['tags'] = (TagMap(result['tags'])..remove(tag)).toString();
-        controller.query = result;
+        controller.removeTag(tag);
       },
     );
   }
 }
 
 class AddTagAction extends StatelessWidget {
-  const AddTagAction({super.key, required this.controller, required this.tag});
+  const AddTagAction({super.key, required this.tag});
 
-  final PostController controller;
   final String tag;
 
   @override
   Widget build(BuildContext context) {
+    final controller = context.watch<PostParams>();
+
     return ActionButton(
       icon: const Icon(Icons.zoom_in),
       label: const Text('Add'),
       onTap: () {
         Navigator.of(context).maybePop();
-        final result = controller.query.toQuery();
-        result['tags'] = (TagMap(result['tags'])..add(tag)).toString();
-        controller.query = result;
+        controller.addTag(tag);
       },
     );
   }
 }
 
 class SubtractTagAction extends StatelessWidget {
-  const SubtractTagAction({
-    super.key,
-    required this.controller,
-    required this.tag,
-  });
+  const SubtractTagAction({super.key, required this.tag});
 
-  final PostController controller;
   final String tag;
 
   @override
   Widget build(BuildContext context) {
+    final controller = context.watch<PostParams>();
+
     return ActionButton(
       icon: const Icon(Icons.zoom_out),
       label: const Text('Subtract'),
       onTap: () {
         Navigator.of(context).maybePop();
-        final result = controller.query.toQuery();
-        result['tags'] = (TagMap(result['tags'])..add('-$tag')).toString();
-        controller.query = result;
+        controller.subtractTag(tag);
       },
     );
   }
 }
 
 class TagSearchActions extends StatelessWidget {
-  const TagSearchActions({
-    super.key,
-    required this.tag,
-    required this.controller,
-  });
+  const TagSearchActions({super.key, required this.tag});
 
   final String tag;
-  final PostController controller;
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, child) {
-        if (!controller.canSearch || tag.contains(' ')) {
-          return const SizedBox.shrink();
-        }
+    final controller = context.watch<PostParams>();
 
-        bool isSearched = TagMap(controller.query['tags']).containsKey(tag);
+    if (tag.contains(' ')) {
+      return const SizedBox.shrink();
+    }
 
-        if (isSearched) {
-          return RemoveTagAction(controller: controller, tag: tag);
-        } else {
-          return Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AddTagAction(controller: controller, tag: tag),
-              SubtractTagAction(controller: controller, tag: tag),
-            ],
-          );
-        }
-      },
-    );
+    bool isSearched = controller.hasTag(tag);
+
+    if (isSearched) {
+      return RemoveTagAction(tag: tag);
+    } else {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AddTagAction(tag: tag),
+          SubtractTagAction(tag: tag),
+        ],
+      );
+    }
   }
 }
