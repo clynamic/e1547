@@ -5,5 +5,6 @@ export 'database.dart';
 export 'database.drift.dart';
 export 'follow.dart';
 export 'notifications.dart';
+export 'query.dart';
 export 'server.dart';
 export 'sync.dart';

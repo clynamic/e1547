@@ -1,13 +1,18 @@
+import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import 'package:e1547/follow/follow.dart';
 import 'package:e1547/identity/identity.dart';
 import 'package:e1547/shared/shared.dart';
 
 class FollowClient {
-  FollowClient({required GeneratedDatabase database, required this.identity})
-    : repository = FollowRepository(database: database);
+  FollowClient({
+    required GeneratedDatabase database,
+    required this.identity,
+    required this.dio,
+  }) : repository = FollowRepository(database: database);
 
   final Identity identity;
+  final Dio dio;
 
   final FollowRepository repository;
 
