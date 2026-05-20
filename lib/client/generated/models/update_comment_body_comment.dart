@@ -1,0 +1,31 @@
+// coverage:ignore-file
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, unused_import, invalid_annotation_target, unnecessary_import
+
+import 'package:json_annotation/json_annotation.dart';
+
+part 'update_comment_body_comment.g.dart';
+
+@JsonSerializable()
+class UpdateCommentBodyComment {
+  const UpdateCommentBodyComment({
+    this.body,
+    this.isSticky,
+    this.isHidden,
+  });
+  
+  factory UpdateCommentBodyComment.fromJson(Map<String, Object?> json) => _$UpdateCommentBodyCommentFromJson(json);
+  
+  /// The comment body text
+  final String? body;
+
+  /// Whether the comment is sticky (janitor only)
+  @JsonKey(name: 'is_sticky')
+  final bool? isSticky;
+
+  /// Whether the comment is hidden (moderator only)
+  @JsonKey(name: 'is_hidden')
+  final bool? isHidden;
+
+  Map<String, Object?> toJson() => _$UpdateCommentBodyCommentToJson(this);
+}

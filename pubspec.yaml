@@ -55,6 +55,7 @@ dependencies:
   deep_pick: ^1.0.0
   dio: ^5.9.0
   dio_cache_interceptor: ^4.0.3
+  retrofit: ^4.7.4
   http_cache_drift_store: ^7.0.0
   drift: ^2.28.1
   external_path: ^2.0.1
@@ -104,6 +105,11 @@ dev_dependencies:
   flutter_native_splash: ^2.4.6
   freezed: ^3.0.6
   json_serializable: ^6.9.5
+  retrofit_generator: ^10.2.6
+  # used by tool/build_client.dart
+  swagger_parser: ^1.43.1
+  yaml: ^3.1.2
+  yaml_writer: ^2.0.0
 
 flutter:
   uses-material-design: true
