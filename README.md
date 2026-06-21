@@ -46,6 +46,8 @@
 APK and IPA files can be found over at
 the [releases](https://github.com/clynamic/e1547/releases/latest).
 
+For automatically recieving update notifications (and a simplified update process), we recommend using [obtainium](https://github.com/ImranR98/Obtainium) (see [Using Obtainium](#Using-Obtainium) for a more detailed guide).
+
 You can also find the app on the Google PlayStore:
 
 <a href="https://play.google.com/store/apps/details?id=net.e1547">
@@ -72,6 +74,20 @@ or
 1. Download the [latest APK](https://github.com/clynamic/e1547/releases/latest)
 2. Open it on your Android device with a file manager
 3. Click install
+
+#### Using Obtainium
+
+1. Download obtainium from [F-Droid](https://f-droid.org/en/packages/dev.imranr.obtainium.fdroid/) or from their [Github](https://github.com/ImranR98/Obtainium)
+2. Open obtainium and give notification permissions
+3. Click on "Add app" on the bottom app drawer
+4. Paste https://github.com/clynamic/e1547/releases/ into the "App source URL*" field
+5. Hit the add button, next to the App source URL field
+6. Select the correct binary based on your phone
+7. Obtainium will shortly open a menu for you to install/update e1547, hit the install/update button
+8. Select the same release binary as before
+9. Give obtainium permission to install unknown apps
+
+e1547 should now be installed and you should get automatic notifications about new releases.
 
 #### Which APK should I download?
 
