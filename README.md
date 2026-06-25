@@ -81,9 +81,7 @@ or
 2. Click on "Add app" on the bottom app drawer
 3. Paste https://github.com/clynamic/e1547/releases/ into the "App source URL*" field
 4. Hit the add button, next to the App source URL field
-5. Obtainium will shortly open a menu for you to install/update e1547, hit the install/update button
-
-e1547 should now be installed and you should get automatic notifications about new releases.
+5. Hit the install button in the following menu
 
 #### Which APK should I download?
 
