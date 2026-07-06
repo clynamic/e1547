@@ -2,7 +2,8 @@ require 'fileutils'
 require 'yaml'
 
 add_extra_platforms(
-  platforms: [:windows]
+  platforms: [:windows],
+  platforms: [:linux]
 )
 
 default_platform(:android)
@@ -123,4 +124,39 @@ platform :windows do
         sh("fastforge package --platform=windows --targets=exe --skip-clean")
       end
     end
+end
+
+platform :linux do
+  desc "build package"
+  lane :build do
+      flutter_bootstrap(flutter_channel: 'stable')
+      sh("DESTDIR='' flutter build linux --release")
+  end
+
+  desc "install linux package"
+  lane :install do
+    Dir.chdir("../")
+    FileUtils.mkdir_p("#{ENV['DESTDIR']}/opt/e1547")
+    FileUtils.mkdir_p("#{ENV['DESTDIR']}/usr/bin")
+    FileUtils.mkdir_p("#{ENV['DESTDIR']}/usr/share/icons/hicolor/scalable/apps/")
+
+    sh("cp -rv build/linux/x64/release/bundle/* #{ENV['DESTDIR']}/opt/e1547")
+    sh("ln -s /opt/e1547/e1547 #{ENV['DESTDIR']}/usr/bin/e1547")
+    sh("chmod 0755 #{ENV['DESTDIR']}/opt/e1547/e1547")
+    sh("install -Dm644 assets/icon/desktop/round.ico #{ENV['DESTDIR']}/usr/share/icons/hicolor/scalable/apps/e1547.ico")
+    sh("install -Dm644 assets/static/e1547.desktop '#{ENV['DESTDIR']}/usr/share/applications/e1547.desktop'")
+  end
+
+  desc "package debian"
+  lane :pkgdeb do
+
+    Dir.chdir("../")
+    FileUtils.mkdir_p("#{ENV['DESTDIR']}/DEBIAN")
+    APPVER=sh("grep -i -e \"version: \" pubspec.yaml | awk -F' ' '\{print $2\}' /dev/stdin").strip
+    CONTROL=sh("sed 's/APPVER/#{APPVER}/g' fastlane/debian-control > #{ENV['DESTDIR']}/DEBIAN/control")
+
+    FileUtils.mkdir_p("dist/linux")
+    sh("dpkg-deb --root-owner-group --build #{ENV['DESTDIR']}")
+    sh("mv #{ENV['DESTDIR']}.deb dist/linux/e1547-#{APPVER}.deb")
+  end
 end

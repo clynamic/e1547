@@ -115,6 +115,35 @@ Builds an exe installer with fastforge and InnoSetup
 
 ----
 
+
+## linux
+
+### linux build
+
+```sh
+[bundle exec] fastlane linux build
+```
+
+build package
+
+### linux install
+
+```sh
+[bundle exec] fastlane linux install
+```
+
+install linux package
+
+### linux pkgdeb
+
+```sh
+[bundle exec] fastlane linux pkgdeb
+```
+
+package debian
+
+----
+
 This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.
 
 More information about _fastlane_ can be found on [fastlane.tools](https://fastlane.tools).
