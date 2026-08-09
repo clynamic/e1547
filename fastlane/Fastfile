@@ -2,14 +2,19 @@ require 'fileutils'
 require 'yaml'
 
 add_extra_platforms(
-  platforms: [:windows],
-  platforms: [:linux]
+  platforms: [:windows, :linux]
 )
 
 default_platform(:android)
 
 def fetch_current_version
     YAML.safe_load(File.read('../pubspec.yaml'))['version']
+end
+
+def fetch_destdir
+  destdir = ENV['DESTDIR'].to_s
+  UI.user_error!("DESTDIR must point at a staging directory") if destdir.empty?
+  File.expand_path(destdir)
 end
 
 def fetch_versions
@@ -127,36 +132,42 @@ platform :windows do
 end
 
 platform :linux do
-  desc "build package"
+  desc "Ensures flutter is installed"
+  lane :bootstrap do
+    flutter_bootstrap(flutter_channel: 'stable')
+  end
+
+  desc "Builds the linux bundle"
   lane :build do
-      flutter_bootstrap(flutter_channel: 'stable')
-      sh("DESTDIR='' flutter build linux --release")
+    sh("DESTDIR='' flutter build linux --release")
   end
 
-  desc "install linux package"
+  desc "Installs the linux bundle"
   lane :install do
-    Dir.chdir("../")
-    FileUtils.mkdir_p("#{ENV['DESTDIR']}/opt/e1547")
-    FileUtils.mkdir_p("#{ENV['DESTDIR']}/usr/bin")
-    FileUtils.mkdir_p("#{ENV['DESTDIR']}/usr/share/icons/hicolor/scalable/apps/")
+    Dir.chdir("../") do
+      destdir = fetch_destdir
+      FileUtils.mkdir_p("#{destdir}/opt/e1547")
+      FileUtils.mkdir_p("#{destdir}/usr/bin")
 
-    sh("cp -rv build/linux/x64/release/bundle/* #{ENV['DESTDIR']}/opt/e1547")
-    sh("ln -s /opt/e1547/e1547 #{ENV['DESTDIR']}/usr/bin/e1547")
-    sh("chmod 0755 #{ENV['DESTDIR']}/opt/e1547/e1547")
-    sh("install -Dm644 assets/icon/desktop/round.ico #{ENV['DESTDIR']}/usr/share/icons/hicolor/scalable/apps/e1547.ico")
-    sh("install -Dm644 assets/static/e1547.desktop '#{ENV['DESTDIR']}/usr/share/applications/e1547.desktop'")
+      FileUtils.cp_r(Dir.glob("build/linux/x64/release/bundle/*"), "#{destdir}/opt/e1547")
+      FileUtils.chmod(0755, "#{destdir}/opt/e1547/e1547")
+      FileUtils.ln_sf("/opt/e1547/e1547", "#{destdir}/usr/bin/e1547")
+      sh("install -Dm644 linux/packaging/e1547.png '#{destdir}/usr/share/icons/hicolor/256x256/apps/e1547.png'")
+      sh("install -Dm644 linux/packaging/net.e1547.desktop '#{destdir}/usr/share/applications/net.e1547.desktop'")
+    end
   end
 
-  desc "package debian"
+  desc "Packages the staging root into a deb"
   lane :pkgdeb do
+    version = fetch_current_version
+    Dir.chdir("../") do
+      destdir = fetch_destdir
+      FileUtils.mkdir_p("#{destdir}/DEBIAN")
+      control = File.read("linux/packaging/debian-control").gsub("APPVER", version)
+      File.write("#{destdir}/DEBIAN/control", control)
 
-    Dir.chdir("../")
-    FileUtils.mkdir_p("#{ENV['DESTDIR']}/DEBIAN")
-    APPVER=sh("grep -i -e \"version: \" pubspec.yaml | awk -F' ' '\{print $2\}' /dev/stdin").strip
-    CONTROL=sh("sed 's/APPVER/#{APPVER}/g' fastlane/debian-control > #{ENV['DESTDIR']}/DEBIAN/control")
-
-    FileUtils.mkdir_p("dist/linux")
-    sh("dpkg-deb --root-owner-group --build #{ENV['DESTDIR']}")
-    sh("mv #{ENV['DESTDIR']}.deb dist/linux/e1547-#{APPVER}.deb")
+      FileUtils.mkdir_p("dist/linux")
+      sh("dpkg-deb --root-owner-group --build '#{destdir}' 'dist/linux/e1547-#{version}.deb'")
+    end
   end
 end

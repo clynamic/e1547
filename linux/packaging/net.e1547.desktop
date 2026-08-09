@@ -5,3 +5,5 @@ Exec=e1547
 Icon=e1547
 Terminal=false
 Type=Application
+Categories=Graphics;Viewer;
+StartupWMClass=net.e1547

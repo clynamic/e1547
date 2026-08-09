@@ -3,6 +3,6 @@ Version: APPVER
 Section: web
 Priority: optional
 Architecture: amd64
-Maintainer: pifox <hunting4code@gmail.com>
-Depends: libmpv2, libgles2
+Maintainer: clragon <clragon@clynamic.net>
+Depends: libgtk-3-0, libmpv2, libegl1, libgles2, hicolor-icon-theme
 Description: A sophisticated e621 browser

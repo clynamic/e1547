@@ -118,13 +118,21 @@ Builds an exe installer with fastforge and InnoSetup
 
 ## linux
 
+### linux bootstrap
+
+```sh
+[bundle exec] fastlane linux bootstrap
+```
+
+Ensures flutter is installed
+
 ### linux build
 
 ```sh
 [bundle exec] fastlane linux build
 ```
 
-build package
+Builds the linux bundle
 
 ### linux install
 
@@ -132,7 +140,7 @@ build package
 [bundle exec] fastlane linux install
 ```
 
-install linux package
+Installs the linux bundle
 
 ### linux pkgdeb
 
@@ -140,7 +148,7 @@ install linux package
 [bundle exec] fastlane linux pkgdeb
 ```
 
-package debian
+Packages the staging root into a deb
 
 ----
 
