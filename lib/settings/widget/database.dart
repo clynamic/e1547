@@ -185,10 +185,11 @@ class DatabaseImportTile extends StatelessWidget {
     if (!confirmed) return;
 
     try {
+      // iOS needs custom file type declarations but we are lazy so we pick any
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         dialogTitle: 'Import Database',
-        type: FileType.custom,
-        allowedExtensions: ['db'],
+        type: Platform.isIOS ? FileType.any : FileType.custom,
+        allowedExtensions: Platform.isIOS ? null : ['db'],
       );
 
       final path = result?.files.single.path;
