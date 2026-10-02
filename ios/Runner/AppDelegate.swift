@@ -30,7 +30,7 @@ import workmanager_apple
             return
           }
           do {
-            var url = URL(fileURLWithPath: path)
+            let url = NSURL(fileURLWithPath: path)
             try url.setResourceValue(true, forKey: .isExcludedFromBackupKey)
             result(true)
           } catch {
