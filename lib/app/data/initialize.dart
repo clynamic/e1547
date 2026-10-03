@@ -8,6 +8,7 @@ import 'package:e1547/identity/identity.dart';
 import 'package:e1547/logs/logs.dart';
 import 'package:e1547/query/query.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:notified_preferences/notified_preferences.dart';
 import 'package:path/path.dart';
@@ -140,7 +141,8 @@ Future<AppStorage> initializeAppStorage() async {
         config: const GlobalQueryConfig(
           staleDuration: Duration(minutes: 5),
           refetchOnResume: false,
-          refetchOnConnection: false,
+          // Leaving refetchOnConnection at its default (true), so queries
+          // with active listeners refetch when the network returns.
         ),
       ),
     sqlite: sqlite,
@@ -175,6 +177,47 @@ Future<void> completeDbImport() async {
       await newDbFile.copy(dbPath);
       await newDbFile.delete();
     }
+  }
+}
+
+/// Reads `PRAGMA user_version` (header offset 60, big endian) without
+/// opening the database. Returns null if [path] is not a SQLite file.
+Future<int?> readSqliteUserVersion(String path) async {
+  final file = File(path);
+  if (!file.existsSync()) return null;
+  final handle = await file.open();
+  try {
+    final header = await handle.read(64);
+    if (header.length < 64) return null;
+    if (String.fromCharCodes(header.take(15)) != 'SQLite format 3') return null;
+    // getUint32 reads big endian by default, which is the SQLite format.
+    return ByteData.sublistView(header, 60, 64).getUint32(0);
+  } finally {
+    await handle.close();
+  }
+}
+
+const MethodChannel _storageChannel = MethodChannel('e1547/storage');
+
+Future<void> excludeFileFromBackup(String path) async {
+  if (!Platform.isIOS) return;
+  try {
+    await _storageChannel.invokeMethod('excludeFromBackup', {'path': path});
+  } on PlatformException catch (e, s) {
+    Logger(
+      'Storage',
+    ).warn('Failed to exclude file from backup', {'path': path}, e, s);
+  } on MissingPluginException {
+    // platform without the handler; nothing to do
+  }
+}
+
+/// Excludes the database and its sidecar/staging files from OS backups.
+Future<void> excludeDatabaseFromBackup() async {
+  final dbPath = await getAppDatabasePath();
+  for (final suffix in ['', '-journal', '-wal', '-shm', '.new']) {
+    final file = File('$dbPath$suffix');
+    if (file.existsSync()) await excludeFileFromBackup(file.path);
   }
 }
 

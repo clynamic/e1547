@@ -9,6 +9,7 @@ part 'params.freezed.dart';
 
 enum PostOrder {
   newest('new'),
+  oldest('id_asc'),
   score('score'),
   favcount('favcount'),
   rank('rank'),
@@ -79,6 +80,7 @@ abstract class PostParams with _$PostParams {
         valueMapper: (value) => value.value,
         nameMapper: (value) => switch (value) {
           PostOrder.newest => 'New',
+          PostOrder.oldest => 'Oldest',
           PostOrder.score => 'Score',
           PostOrder.favcount => 'Favorites',
           PostOrder.rank => 'Rank',
@@ -142,6 +144,36 @@ abstract class PostParams with _$PostParams {
           ChoiceFilterTagValue(value: 'any', name: 'Any'),
         ],
         icon: Icon(Icons.help),
+      ),
+      FileTypeFilterTag(),
+      const TextFilterTag(
+        tag: 'user',
+        name: 'Uploader',
+        icon: Icon(Icons.person),
+      ),
+      const NumberRangeFilterTag(
+        tag: 'width',
+        name: 'Width',
+        min: 0,
+        max: 10000,
+        division: 100,
+        icon: Icon(Icons.straighten),
+      ),
+      const NumberRangeFilterTag(
+        tag: 'height',
+        name: 'Height',
+        min: 0,
+        max: 10000,
+        division: 100,
+        icon: Icon(Icons.height),
+      ),
+      const NumberRangeFilterTag(
+        tag: 'tagcount',
+        name: 'Tag count',
+        min: 0,
+        max: 50,
+        division: 10,
+        icon: Icon(Icons.label),
       ),
     ],
   );

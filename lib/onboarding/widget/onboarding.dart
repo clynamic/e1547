@@ -1,4 +1,5 @@
 import 'package:e1547/identity/identity.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/onboarding/onboarding.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
@@ -27,7 +28,7 @@ class _OnboardingPager extends StatefulWidget {
 class _OnboardingPagerState extends State<_OnboardingPager> {
   final PageController controller = PageController();
   int page = 0;
-  static const int pages = 3;
+  static const int pages = 4;
 
   void complete() => context.read<Settings>().onboardingSeen.value = true;
 
@@ -49,6 +50,7 @@ class _OnboardingPagerState extends State<_OnboardingPager> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     String host = context.watch<IdentityClient>().identity.host;
     bool isLast = page == pages - 1;
     return KeyboardDismisser(
@@ -65,7 +67,7 @@ class _OnboardingPagerState extends State<_OnboardingPager> {
                         padding: const EdgeInsets.all(8),
                         child: TextButton(
                           onPressed: complete,
-                          child: const Text('Skip'),
+                          child: Text(l10n.onboardingSkip),
                         ),
                       ),
                     ),
@@ -74,6 +76,7 @@ class _OnboardingPagerState extends State<_OnboardingPager> {
                         controller: controller,
                         onPageChanged: (value) => setState(() => page = value),
                         children: [
+                          const LanguageStep(),
                           const WelcomeStep(),
                           const ThemeStep(),
                           LoginStep(initialHost: host, onComplete: complete),
@@ -99,13 +102,13 @@ class _OnboardingPagerState extends State<_OnboardingPager> {
                         if (page > 0)
                           TextButton(
                             onPressed: back,
-                            child: const Text('Back'),
+                            child: Text(l10n.onboardingBack),
                           ),
                         const Spacer(),
                         if (!isLast)
                           ElevatedButton(
                             onPressed: next,
-                            child: const Text('Next'),
+                            child: Text(l10n.onboardingNext),
                           ),
                       ],
                     ),

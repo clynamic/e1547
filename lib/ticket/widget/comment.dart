@@ -1,5 +1,6 @@
 import 'package:e1547/client/client.dart';
 import 'package:e1547/comment/comment.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/ticket/ticket.dart';
 import 'package:flutter/material.dart';
@@ -11,8 +12,9 @@ class CommentReportScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return ReasonReportScreen(
-      title: Text('Comment #${comment.id}'),
+      title: Text(l10n.commentTitle(comment.id)),
       onReport: (reason) => validateCall(
         () => context.read<Client>().tickets.create(
           type: TicketType.comment,
@@ -20,8 +22,8 @@ class CommentReportScreen extends StatelessWidget {
           reason: reason,
         ),
       ),
-      onSuccess: 'Reported comment #${comment.id}',
-      onFailure: 'Failed to report user #${comment.id}',
+      onSuccess: l10n.reportCommentSuccess(comment.id),
+      onFailure: l10n.reportCommentFailed(comment.id),
       previewBuilder: (context, isLoading) => Card(
         clipBehavior: Clip.antiAlias,
         child: ReportLoadingOverlay(

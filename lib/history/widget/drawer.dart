@@ -1,9 +1,33 @@
 import 'package:e1547/client/client.dart';
 import 'package:e1547/history/history.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sub/flutter_sub.dart';
 import 'package:intl/intl.dart';
+
+/// History category names double as stable keys.
+///
+/// This maps them to their localized display names.
+String localizedHistoryCategory(
+  BuildContext context,
+  HistoryCategory category,
+) => switch (category) {
+  HistoryCategory.items => AppLocalizations.of(context).historyItems,
+  HistoryCategory.searches => AppLocalizations.of(context).historySearches,
+};
+
+/// History type names double as stable keys.
+///
+/// This maps them to their localized display names.
+String localizedHistoryType(BuildContext context, HistoryType type) =>
+    switch (type) {
+      HistoryType.posts => AppLocalizations.of(context).postsTitle,
+      HistoryType.pools => AppLocalizations.of(context).navPools,
+      HistoryType.topics => AppLocalizations.of(context).topicsTitle,
+      HistoryType.wikis => AppLocalizations.of(context).historyWikis,
+      HistoryType.users => AppLocalizations.of(context).historyUsers,
+    };
 
 class HistoryEnableTile extends StatelessWidget {
   const HistoryEnableTile({super.key});
@@ -17,8 +41,10 @@ class HistoryEnableTile extends StatelessWidget {
       builder: (context, countSnapshot) => ValueListenableBuilder(
         valueListenable: client.traits,
         builder: (context, traits, child) => SwitchListTile(
-          title: const Text('Enabled'),
-          subtitle: Text('${countSnapshot.data ?? 0} pages visited'),
+          title: Text(AppLocalizations.of(context).enabled),
+          subtitle: Text(
+            AppLocalizations.of(context).pagesVisited(countSnapshot.data ?? 0),
+          ),
           secondary: const Icon(Icons.history),
           value: traits.writeHistory ?? true,
           onChanged: (value) => client.traits.value = client.traits.value
@@ -36,27 +62,26 @@ class HistoryClearTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final client = context.watch<Client>();
     return ListTile(
-      title: const Text('Clear history'),
-      subtitle: const Text('Delete all entries'),
+      title: Text(AppLocalizations.of(context).historyClear),
+      subtitle: Text(AppLocalizations.of(context).historyClearSubtitle),
       leading: const Icon(Icons.clear_all),
       onTap: () => showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Clear history?'),
-          content: const Text(
-            'All history entries will be permanently deleted. This action cannot be undone.',
-          ),
+          title: Text(AppLocalizations.of(context).historyClearConfirm),
+          content: Text(AppLocalizations.of(context).historyClearConfirmBody),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              onPressed: () => popDialog(context),
+              child: Text(AppLocalizations.of(context).actionCancel),
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
-                client.histories.useClear().mutate();
+                if (popDialog(context)) {
+                  client.histories.useClear().mutate();
+                }
               },
-              child: const Text('Clear'),
+              child: Text(AppLocalizations.of(context).historyClearAction),
             ),
           ],
         ),
@@ -83,24 +108,27 @@ class HistoryLimitTile extends StatelessWidget {
             showDialog(
               context: context,
               builder: (context) => AlertDialog(
-                title: const Text('History limit'),
+                title: Text(AppLocalizations.of(context).historyLimit),
                 content: Text(
-                  'Enabling history limit means all history entries beyond ${NumberFormat.compact().format(trimAmount)} '
-                  'and all entries older than ${trimAge.inDays ~/ 30} months are automatically deleted.',
+                  AppLocalizations.of(context).historyLimitEnableBody(
+                    NumberFormat.compact().format(trimAmount),
+                    trimAge.inDays ~/ 30,
+                  ),
                 ),
                 actions: [
                   TextButton(
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    child: const Text('CANCEL'),
+                    onPressed: () => popDialog(context),
+                    child: Text(AppLocalizations.of(context).actionCancel),
                   ),
                   TextButton(
                     onPressed: () {
-                      client.traits.value = client.traits.value.copyWith(
-                        trimHistory: value,
-                      );
-                      Navigator.of(context).maybePop();
+                      if (popDialog(context)) {
+                        client.traits.value = client.traits.value.copyWith(
+                          trimHistory: value,
+                        );
+                      }
                     },
-                    child: const Text('OK'),
+                    child: Text(AppLocalizations.of(context).actionOk),
                   ),
                 ],
               ),
@@ -116,13 +144,15 @@ class HistoryLimitTile extends StatelessWidget {
               ? Icons.hourglass_bottom
               : Icons.hourglass_empty,
         ),
-        title: const Text('Limit history'),
+        title: Text(AppLocalizations.of(context).historyLimitTitle),
         subtitle: (traits.trimHistory ?? false)
             ? Text(
-                'Limited to newer than ${trimAge.inDays ~/ 30} months or '
-                'less than ${NumberFormat.compact().format(trimAmount)} entries.',
+                AppLocalizations.of(context).historyLimitOn(
+                  NumberFormat.compact().format(trimAmount),
+                  trimAge.inDays ~/ 30,
+                ),
               )
-            : const Text('history is infinite'),
+            : Text(AppLocalizations.of(context).historyLimitOff),
       ),
     );
   }
@@ -137,11 +167,11 @@ class HistoryCategoryFilterTile extends StatelessWidget {
       builder: (context, controller, _) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(left: 12),
+          Padding(
+            padding: const EdgeInsets.only(left: 12),
             child: SectionHeader(
               indent: SectionHeader.listTileIndent,
-              title: 'Entries',
+              title: AppLocalizations.of(context).historyEntries,
             ),
           ),
           for (final filter in HistoryCategory.values)
@@ -149,7 +179,7 @@ class HistoryCategoryFilterTile extends StatelessWidget {
               padding: const EdgeInsets.only(left: 16),
               child: CheckboxListTile(
                 secondary: filter.icon,
-                title: Text(filter.title),
+                title: Text(localizedHistoryCategory(context, filter)),
                 value: controller.value.categories?.contains(filter) ?? true,
                 onChanged: (value) {
                   if (value == null) return;
@@ -181,11 +211,11 @@ class HistoryTypeFilterTile extends StatelessWidget {
       builder: (context, controller, _) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(left: 12),
+          Padding(
+            padding: const EdgeInsets.only(left: 12),
             child: SectionHeader(
               indent: SectionHeader.listTileIndent,
-              title: 'Type',
+              title: AppLocalizations.of(context).historyType,
             ),
           ),
           for (final filter in HistoryType.values)
@@ -193,7 +223,7 @@ class HistoryTypeFilterTile extends StatelessWidget {
               padding: const EdgeInsets.only(left: 16),
               child: CheckboxListTile(
                 secondary: filter.icon,
-                title: Text(filter.title),
+                title: Text(localizedHistoryType(context, filter)),
                 value: controller.value.types?.contains(filter) ?? true,
                 onChanged: (value) {
                   if (value == null) return;

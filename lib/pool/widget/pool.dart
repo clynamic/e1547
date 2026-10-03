@@ -1,5 +1,6 @@
 import 'package:e1547/client/client.dart';
 import 'package:e1547/follow/follow.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
@@ -46,7 +47,7 @@ class PoolPage extends StatelessWidget {
                         actions: [
                           IconButton(
                             icon: const Icon(Icons.info_outline),
-                            tooltip: 'Info',
+                            tooltip: AppLocalizations.of(context).info,
                             onPressed: () =>
                                 showPoolPrompt(context: context, pool: pool),
                           ),
@@ -55,7 +56,7 @@ class PoolPage extends StatelessWidget {
                       ),
                     ),
                     endDrawer: ContextDrawer(
-                      title: const Text('Pool'),
+                      title: Text(AppLocalizations.of(context).filterPool),
                       children: [
                         const PoolReaderSwitch(),
                         const PoolOrderSwitch(),
@@ -95,8 +96,12 @@ class PoolOrderSwitch extends StatelessWidget {
     final oldestFirst = controller.value.poolOldestFirst;
     return SwitchListTile(
       secondary: const Icon(Icons.sort),
-      title: const Text('Pool order'),
-      subtitle: Text(oldestFirst ? 'oldest first' : 'newest first'),
+      title: Text(AppLocalizations.of(context).poolOrder),
+      subtitle: Text(
+        oldestFirst
+            ? AppLocalizations.of(context).poolOldestFirst
+            : AppLocalizations.of(context).poolNewestFirst,
+      ),
       value: oldestFirst,
       onChanged: (value) {
         final next = TagMap(controller.value.tags);
@@ -120,8 +125,12 @@ class PoolReaderSwitch extends StatelessWidget {
     final readerMode = display.value == PostDisplayType.comic;
     return SwitchListTile(
       secondary: const Icon(Icons.auto_stories),
-      title: const Text('Pool reader mode'),
-      subtitle: Text(readerMode ? 'large images' : 'normal grid'),
+      title: Text(AppLocalizations.of(context).poolReaderMode),
+      subtitle: Text(
+        readerMode
+            ? AppLocalizations.of(context).poolReaderLargeImages
+            : AppLocalizations.of(context).poolReaderNormalGrid,
+      ),
       value: readerMode,
       onChanged: (value) {
         display.value = value ? PostDisplayType.comic : PostDisplayType.grid;

@@ -1,0 +1,4 @@
+### Fixed
+- the bookmark button repeating its action when double tapped
+- canceled tasks being revived when their controller was disposed
+- the blacklist entry undo rolling back later deletions

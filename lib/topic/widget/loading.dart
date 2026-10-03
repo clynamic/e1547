@@ -1,4 +1,5 @@
 import 'package:e1547/client/client.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/reply/reply.dart';
 import 'package:e1547/shared/shared.dart';
@@ -23,12 +24,12 @@ class TopicLoadingPage extends StatelessWidget {
         loadingBuilder: (context, child) => Scaffold(
           appBar: AppBar(
             leading: const CloseButton(),
-            title: Text('Topic #$id'),
+            title: Text(AppLocalizations.of(context).topicLink(id)),
           ),
           body: child(context),
         ),
-        onError: const Text('Failed to load topic'),
-        onEmpty: const Text('Topic not found'),
+        onError: Text(AppLocalizations.of(context).topicFailedToLoadTopic),
+        onEmpty: Text(AppLocalizations.of(context).topicNotFound),
         child: (context) =>
             TopicRepliesPage(topic: state.data!, orderByOldest: orderByOldest),
       ),

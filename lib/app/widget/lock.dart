@@ -1,6 +1,6 @@
 import 'dart:async';
-
 import 'package:animations/animations.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +32,7 @@ class _LockScreenState extends State<LockScreen> {
 
     if (pin != null) {
       lock = ScreenLock(
-        title: const Text('Enter PIN'),
+        title: Text(AppLocalizations.of(context).lockEnterPin),
         correctString: pin!,
         customizedButtonChild: biometrics
             ? const Icon(Icons.fingerprint)
@@ -118,12 +118,17 @@ class _BiometricsLockScreenState extends State<BiometricsLockScreen> {
             const Icon(Icons.fingerprint, size: 60),
             const SizedBox(height: 20),
             Text(
-              failed ? 'Failed to authenticate' : 'Please authenticate',
+              failed
+                  ? AppLocalizations.of(context).lockFailedAuth
+                  : AppLocalizations.of(context).lockPleaseAuth,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
             if (failed)
-              TextButton(onPressed: tryAuth, child: const Text('Retry')),
+              TextButton(
+                onPressed: tryAuth,
+                child: Text(AppLocalizations.of(context).lockRetry),
+              ),
           ],
         ),
       ),
@@ -138,10 +143,11 @@ Future<void> tryLocalAuth({
 }) async {
   ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
   final LocalAuthentication localAuth = LocalAuthentication();
+  final l10n = AppLocalizations.of(context);
   await localAuth.stopAuthentication();
   try {
     bool success = await localAuth.authenticate(
-      localizedReason: 'Authenticate to unlock.',
+      localizedReason: l10n.lockBiometricReason,
       persistAcrossBackgrounding: true,
     );
     if (success) {
@@ -151,9 +157,9 @@ Future<void> tryLocalAuth({
     }
   } on LocalAuthException {
     messenger.showSnackBar(
-      const SnackBar(
-        content: Text('Severe failure in biometric authentication'),
-        duration: Duration(milliseconds: 300),
+      SnackBar(
+        content: Text(l10n.lockBiometricFailure),
+        duration: const Duration(milliseconds: 300),
       ),
     );
     onFailure?.call();
@@ -163,8 +169,8 @@ Future<void> tryLocalAuth({
 Future<String?> registerPin(BuildContext context) async {
   Completer<String?> completer = Completer();
   await screenLockCreate(
-    title: const Text('Enter new PIN'),
-    confirmTitle: const Text('Confirm new PIN'),
+    title: Text(AppLocalizations.of(context).lockEnterNewPin),
+    confirmTitle: Text(AppLocalizations.of(context).lockConfirmNewPin),
     context: context,
     onConfirmed: (result) {
       completer.complete(result);

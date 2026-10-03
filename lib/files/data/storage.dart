@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:drift/drift.dart';
+import 'package:drift/native.dart' show SqliteException;
+import 'package:e1547/logs/logs.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 // ignore: always_use_package_imports
@@ -100,6 +102,8 @@ class DriftFileCacheStorage extends CacheInfoRepository {
 
   final Duration flushDelay;
 
+  final Logger _logger = Logger('FileCache');
+
   final Map<String, CacheObject> _pending = {};
   Timer? _timer;
 
@@ -130,10 +134,37 @@ class DriftFileCacheStorage extends CacheInfoRepository {
     if (_pending.isEmpty) return;
     final pending = _pending.values.toList();
     _pending.clear();
-    await repository.updateAll([
-      for (final object in pending)
-        _toCompanion(object, setTouchedToNow: false),
-    ]);
+    await _guarded(
+      'update',
+      null,
+      () => repository.updateAll([
+        for (final object in pending)
+          _toCompanion(object, setTouchedToNow: false),
+      ]),
+    );
+  }
+
+  // The cache database can become unwritable when the OS wipes app
+  // directories under storage pressure, or when its file is replaced
+  // beneath an open connection (issue #178, SqliteException(1032)).
+  // The file cache is not worth crashing over: database failures
+  // degrade into cache misses, so files download again.
+  Future<T> _guarded<T>(
+    String action,
+    T fallback,
+    Future<T> Function() run,
+  ) async {
+    try {
+      return await run();
+    } on SqliteException catch (error, stackTrace) {
+      _logger.error(
+        'Ignoring cache {action} failure: {error}',
+        {'action': action, 'error': error.toString()},
+        error,
+        stackTrace,
+      );
+      return fallback;
+    }
   }
 
   CacheObject _touched(CacheObject object, DateTime touched) => CacheObject(
@@ -178,9 +209,11 @@ class DriftFileCacheStorage extends CacheInfoRepository {
   @override
   Future<CacheObject?> get(String key) async {
     if (_pending[key] case final CacheObject pending) return pending;
-    final data = await repository.get(cache, key);
-    if (data == null) return null;
-    return _toObject(data);
+    return _guarded('read', null, () async {
+      final data = await repository.get(cache, key);
+      if (data == null) return null;
+      return _toObject(data);
+    });
   }
 
   @override
@@ -188,13 +221,15 @@ class DriftFileCacheStorage extends CacheInfoRepository {
     CacheObject cacheObject, {
     bool setTouchedToNow = true,
   }) async {
-    final id = await repository.add(
-      _toCompanion(
-        cacheObject,
-        setTouchedToNow: setTouchedToNow,
-      ).copyWith(id: const Value.absent()),
-    );
-    return cacheObject.copyWith(id: id);
+    return _guarded('insert', cacheObject, () async {
+      final id = await repository.add(
+        _toCompanion(
+          cacheObject,
+          setTouchedToNow: setTouchedToNow,
+        ).copyWith(id: const Value.absent()),
+      );
+      return cacheObject.copyWith(id: id);
+    });
   }
 
   @override
@@ -220,7 +255,9 @@ class DriftFileCacheStorage extends CacheInfoRepository {
     Future<List<FileCacheTableData>> Function() query,
   ) async {
     await _flush();
-    return (await query()).map(_toObject).toList();
+    return _guarded('query', const [], () async {
+      return (await query()).map(_toObject).toList();
+    });
   }
 
   @override
@@ -243,15 +280,16 @@ class DriftFileCacheStorage extends CacheInfoRepository {
   Future<int> deleteAll(Iterable<int> ids) async {
     _pending.removeWhere((_, object) => ids.contains(object.id));
     await _flush();
-    return repository.removeAll(ids);
+    return _guarded('delete', 0, () => repository.removeAll(ids));
   }
 
   @override
   Future<void> deleteDataFile() async {
     _pending.clear();
-    await repository.removeCache(cache);
+    await _guarded('reset', null, () => repository.removeCache(cache));
   }
 
   @override
-  Future<bool> exists() => repository.any(cache);
+  Future<bool> exists() =>
+      _guarded('exists check', false, () => repository.any(cache));
 }

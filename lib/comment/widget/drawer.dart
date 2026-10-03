@@ -1,4 +1,5 @@
 import 'package:e1547/comment/comment.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
@@ -8,15 +9,16 @@ class CommentListDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = context.watch<CommentParamsController>();
+    final l10n = AppLocalizations.of(context);
     return ContextDrawer(
-      title: const Text('Comments'),
+      title: Text(l10n.commentsTitle),
       children: [
         SwitchListTile(
           secondary: const Icon(Icons.sort),
-          title: const Text('Comment order'),
+          title: Text(l10n.commentOrder),
           subtitle: Text(switch (controller.value.order) {
-            CommentOrder.oldest => 'oldest first',
-            CommentOrder.newest => 'newest first',
+            CommentOrder.oldest => l10n.filterOldestFirst,
+            CommentOrder.newest => l10n.filterNewestFirst,
           }),
           value: controller.value.order == CommentOrder.oldest,
           onChanged: (value) {

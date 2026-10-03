@@ -20,6 +20,7 @@ Dio createDefaultDio(Identity identity, {CachedQuery? queryCache}) {
       },
       sendTimeout: const Duration(seconds: 30),
       connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
     ),
   );
   dio.httpClientAdapter = NativeAdapter();

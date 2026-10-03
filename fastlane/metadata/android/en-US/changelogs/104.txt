@@ -1,0 +1,10 @@
+### Changed
+- Capped fullscreen image decoding to about 4 megapixels on Android
+- Tiered the in-memory image cache on Android, limiting it to 300 images and 48 MB on 32 bit and 500 images and 64 MB on 64 bit devices
+- Lowered the default video resolution to 480p on 32 bit and 720p on 64 bit Android devices, it can be raised again in the settings
+- Reduced the file cache from 2000 to 500 files, removing the oldest files once after updating
+- Recommended 64 bit builds in the readme
+
+### Fixed
+- Videos creating endless players when swiping through many of them
+- Cache crashes on devices with low storage

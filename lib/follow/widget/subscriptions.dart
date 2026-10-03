@@ -1,5 +1,6 @@
 import 'package:e1547/client/client.dart';
 import 'package:e1547/follow/follow.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/settings/settings.dart';
@@ -47,16 +48,20 @@ class FollowsSubscriptionsPage extends StatelessWidget {
                 items: state.data?.pages.expand((p) => p).toList(),
                 child: PromptActions(
                   child: AdaptiveScaffold(
-                    appBar: const FollowSelectionAppBar(
+                    appBar: FollowSelectionAppBar(
                       child: DefaultAppBar(
-                        title: Text('Subscriptions'),
-                        actions: [ContextDrawerButton()],
+                        title: Text(
+                          AppLocalizations.of(context).navSubscriptions,
+                        ),
+                        actions: const [ContextDrawerButton()],
                       ),
                     ),
                     drawer: const RouterDrawer(),
-                    endDrawer: const ContextDrawer(
-                      title: Text('Subscriptions'),
-                      children: [
+                    endDrawer: ContextDrawer(
+                      title: Text(
+                        AppLocalizations.of(context).navSubscriptions,
+                      ),
+                      children: const [
                         FollowEditingTile(),
                         Divider(),
                         FollowFilterReadTile(),
@@ -66,7 +71,9 @@ class FollowsSubscriptionsPage extends StatelessWidget {
                       ],
                     ),
                     floatingActionButton: AddTagFab(
-                      title: 'Add to subscriptions',
+                      title: AppLocalizations.of(
+                        context,
+                      ).followAddToSubscriptions,
                       onSubmit: (value) async {
                         value = value.trim();
                         if (value.isEmpty) return;
@@ -90,9 +97,15 @@ class FollowsSubscriptionsPage extends StatelessWidget {
                               onRetry: query.getNextPage,
                               itemBuilder: (context, item, index) =>
                                   FollowTile(follow: item),
-                              onEmpty: const Text('No subscriptions'),
-                              onError: const Text(
-                                'Failed to load subscriptions',
+                              onEmpty: Text(
+                                AppLocalizations.of(
+                                  context,
+                                ).followNoSubscriptions,
+                              ),
+                              onError: Text(
+                                AppLocalizations.of(
+                                  context,
+                                ).followFailedToLoadSubscriptions,
                               ),
                             ),
                             crossAxisCount: TileLayout.of(

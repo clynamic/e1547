@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/markup/markup.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/ticket/ticket.dart';
@@ -27,6 +28,7 @@ class _DescriptionEditDisplayState extends State<DescriptionEditDisplay> {
     builder: (context, constraints) {
       const breakpoint = 600.0;
       final isWideLayout = constraints.maxWidth >= breakpoint;
+      final l10n = AppLocalizations.of(context);
 
       return Padding(
         padding: defaultFormPadding,
@@ -35,8 +37,11 @@ class _DescriptionEditDisplayState extends State<DescriptionEditDisplay> {
           children: [
             Row(
               children: [
-                const Expanded(
-                  child: Text('Description', style: TextStyle(fontSize: 16)),
+                Expanded(
+                  child: Text(
+                    l10n.filterDescription,
+                    style: const TextStyle(fontSize: 16),
+                  ),
                 ),
                 IconButton(
                   onPressed: (widget.enabled ?? true)
@@ -48,7 +53,7 @@ class _DescriptionEditDisplayState extends State<DescriptionEditDisplay> {
                                 MaterialPageRoute(
                                   builder: (context) => DTextEditor(
                                     title: Text(
-                                      '#${widget.postId} description',
+                                      l10n.editDescriptionTitle(widget.postId),
                                     ),
                                     content: widget.controller.text,
                                     onSubmitted: (text) {
@@ -64,8 +69,8 @@ class _DescriptionEditDisplayState extends State<DescriptionEditDisplay> {
                       ? Icon(_isPreviewMode ? Icons.edit : Icons.visibility)
                       : const Icon(Icons.edit),
                   tooltip: isWideLayout
-                      ? (_isPreviewMode ? 'Edit' : 'Preview')
-                      : 'Edit',
+                      ? (_isPreviewMode ? l10n.menuEdit : l10n.editorPreview)
+                      : l10n.menuEdit,
                 ),
               ],
             ),
@@ -81,7 +86,7 @@ class _DescriptionEditDisplayState extends State<DescriptionEditDisplay> {
                 child: widget.controller.text.trim().isNotEmpty
                     ? DText(widget.controller.text)
                     : Text(
-                        'No description',
+                        l10n.historyNoDescription,
                         style: TextStyle(
                           color: dimTextColor(context),
                           fontStyle: FontStyle.italic,
@@ -91,9 +96,9 @@ class _DescriptionEditDisplayState extends State<DescriptionEditDisplay> {
             ] else if (isWideLayout) ...[
               TextFormField(
                 controller: widget.controller,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Enter post description...',
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  hintText: l10n.editDescriptionHint,
                 ),
                 maxLines: null,
                 enabled: widget.enabled,
@@ -109,7 +114,7 @@ class _DescriptionEditDisplayState extends State<DescriptionEditDisplay> {
                 child: widget.controller.text.trim().isNotEmpty
                     ? DText(widget.controller.text)
                     : Text(
-                        'No description',
+                        l10n.historyNoDescription,
                         style: TextStyle(
                           color: dimTextColor(context),
                           fontStyle: FontStyle.italic,

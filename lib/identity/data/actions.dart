@@ -21,6 +21,22 @@ String encodeBasicAuth(String username, String password) =>
   );
 }
 
+/// Mirrors LogRedactor.defaultSecrets in lib/logs/data/redact.dart.
+bool isSecretHeader(String name) {
+  final normalized = name.toLowerCase().replaceAll(RegExp(r'[-_\s]'), '');
+  return const [
+    'auth',
+    'cookie',
+    'credential',
+    'key',
+    'login',
+    'password',
+    'secret',
+    'session',
+    'token',
+  ].any(normalized.contains);
+}
+
 /// Returns a new URL which is guaranteed to
 /// - have a scheme (defaults to https)
 /// - not have a trailing slash

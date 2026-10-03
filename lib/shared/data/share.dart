@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -29,8 +30,9 @@ abstract final class Share {
       await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
     } else {
       final messenger = ScaffoldMessenger.of(context);
+      final AppLocalizations localizations = AppLocalizations.of(context);
       String? outputFile = await FilePicker.platform.saveFile(
-        dialogTitle: 'Save file',
+        dialogTitle: localizations.saveFile,
         fileName: name,
       );
       if (outputFile == null) return;
@@ -39,7 +41,7 @@ abstract final class Share {
       messenger.showSnackBar(
         SnackBar(
           duration: const Duration(seconds: 1),
-          content: Text('File saved as ${basename(outputFile)}'),
+          content: Text(localizations.fileSavedAs(basename(outputFile))),
         ),
       );
     }
@@ -51,11 +53,12 @@ abstract final class Share {
       await SharePlus.instance.share(ShareParams(files: [file]));
     } else {
       final messenger = ScaffoldMessenger.of(context);
+      final AppLocalizations localizations = AppLocalizations.of(context);
       String content = await file.readAsString();
       if (!context.mounted) return;
 
       String? outputFile = await FilePicker.platform.saveFile(
-        dialogTitle: 'Save file',
+        dialogTitle: localizations.saveFile,
         fileName: basename(path),
       );
       if (outputFile == null) return;
@@ -64,7 +67,7 @@ abstract final class Share {
       messenger.showSnackBar(
         SnackBar(
           duration: const Duration(seconds: 1),
-          content: Text('File saved as ${basename(outputFile)}'),
+          content: Text(localizations.fileSavedAs(basename(outputFile))),
         ),
       );
     }
@@ -72,11 +75,12 @@ abstract final class Share {
 
   static Future<void> clipboard(BuildContext context, String text) async {
     ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final AppLocalizations localizations = AppLocalizations.of(context);
     await Clipboard.setData(ClipboardData(text: text));
     messenger.showSnackBar(
-      const SnackBar(
-        duration: Duration(seconds: 1),
-        content: Text('Copied to clipboard'),
+      SnackBar(
+        duration: const Duration(seconds: 1),
+        content: Text(localizations.copiedToClipboard),
       ),
     );
   }

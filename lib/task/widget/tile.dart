@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e1547/app/app.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/task/task.dart';
@@ -47,7 +48,10 @@ class TaskTile extends StatelessWidget {
             isRunning: isRunning,
           ),
           title: Text(
-            '${taskActionLabel(task.action, task.status)} post #${task.postId}',
+            AppLocalizations.of(context).taskTileTitle(
+              taskActionLabel(context, task.action, task.status),
+              task.postId,
+            ),
           ),
           subtitle: Text(
             RelativeTime.locale(
@@ -78,28 +82,31 @@ class TaskTile extends StatelessWidget {
   }
 }
 
-String taskActionLabel(TaskAction action, TaskStatus status) {
+String taskActionLabel(
+  BuildContext context,
+  TaskAction action,
+  TaskStatus status,
+) {
+  final l10n = AppLocalizations.of(context);
   final String present = switch (action) {
-    TaskAction.download => 'download',
-    TaskAction.favorite => 'favorite',
-    TaskAction.unfavorite => 'unfavorite',
-  };
-  final String gerund = switch (action) {
-    TaskAction.download => 'downloading',
-    TaskAction.favorite => 'favoriting',
-    TaskAction.unfavorite => 'unfavoriting',
-  };
-  final String past = switch (action) {
-    TaskAction.download => 'downloaded',
-    TaskAction.favorite => 'favorited',
-    TaskAction.unfavorite => 'unfavorited',
+    TaskAction.download => l10n.taskActionDownload,
+    TaskAction.favorite => l10n.taskActionFavorite,
+    TaskAction.unfavorite => l10n.taskActionUnfavorite,
   };
   return switch (status) {
-    TaskStatus.pending => 'queued to $present',
-    TaskStatus.running => gerund,
-    TaskStatus.completed => past,
-    TaskStatus.failed => 'failed to $present',
-    TaskStatus.canceled => 'canceled $present',
+    TaskStatus.pending => l10n.taskQueuedTo(present),
+    TaskStatus.running => switch (action) {
+      TaskAction.download => l10n.taskDownloadRunning,
+      TaskAction.favorite => l10n.taskFavoriteRunning,
+      TaskAction.unfavorite => l10n.taskUnfavoriteRunning,
+    },
+    TaskStatus.completed => switch (action) {
+      TaskAction.download => l10n.taskDownloadCompleted,
+      TaskAction.favorite => l10n.taskFavoriteCompleted,
+      TaskAction.unfavorite => l10n.taskUnfavoriteCompleted,
+    },
+    TaskStatus.failed => l10n.taskFailedTo(present),
+    TaskStatus.canceled => l10n.taskCanceledAction(present),
   };
 }
 

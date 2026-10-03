@@ -20,7 +20,11 @@ class AppInfoClient {
   final AppInfo info = AppInfo.instance;
   final CachedQuery queryCache;
   late final Dio _dio = Dio(
-    BaseOptions(headers: {HttpHeaders.userAgentHeader: info.userAgent}),
+    BaseOptions(
+      headers: {HttpHeaders.userAgentHeader: info.userAgent},
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 15),
+    ),
   );
 
   Future<List<AppVersion>> getVersions() async {
@@ -99,9 +103,13 @@ class AppInfoClient {
     return versions;
   }
 
-  /// Returns the latest release URL.
+  /// Returns the releases page URL.
+  ///
+  /// The releases list is used instead of /releases/latest because this
+  /// repository only publishes prereleases for now, which the /latest
+  /// endpoint ignores.
   String latestReleaseUrl() =>
-      'https://github.com/${AppInfo.instance.github!}/releases/latest';
+      'https://github.com/${AppInfo.instance.github!}/releases';
 
   /// Returns donors bundled statically with the app.
   ///

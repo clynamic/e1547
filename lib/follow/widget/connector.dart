@@ -43,7 +43,7 @@ class FollowSeenConnector extends StatelessWidget {
     final query = client.posts.usePage(query: controller.value.toQuery());
 
     return QueryOnceConnector<
-      InfiniteQueryStatus<List<int>, int>,
+      InfiniteQueryStatus<List<int>, Object>,
       FollowSeenRequest
     >(
       query: query,

@@ -100,6 +100,7 @@ class DefaultAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.leading,
     this.actions,
     this.title,
+    this.centerTitle,
     this.elevation,
     this.automaticallyImplyLeading = true,
     this.ignoreTitlePointer = true,
@@ -107,6 +108,9 @@ class DefaultAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   /// Copied from [AppBar.title].
   final Widget? title;
+
+  /// Copied from [AppBar.centerTitle].
+  final bool? centerTitle;
 
   /// Copied from [AppBar.leading].
   final Widget? leading;
@@ -146,6 +150,7 @@ class DefaultAppBar extends StatelessWidget implements PreferredSizeWidget {
           leadingWidth: leadingConfig.leadingWidth,
           actions: effectiveActions,
           title: IgnorePointer(ignoring: ignoreTitlePointer, child: title),
+          centerTitle: centerTitle,
           elevation: elevation,
           automaticallyImplyLeading: false,
           flexibleSpace: const ScrollToTop(),

@@ -3,6 +3,7 @@ import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
 import 'package:e1547/follow/follow.dart';
 import 'package:e1547/identity/identity.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/traits/traits.dart';
 import 'package:flutter/material.dart';
@@ -65,6 +66,10 @@ void main() {
         sqlite: sqlite,
       ),
     );
+    // The fake clock would otherwise leave dio's timeout timers pending
+    // on requests that are still in flight when the test ends.
+    client.dio.options.connectTimeout = null;
+    client.dio.options.receiveTimeout = null;
   });
 
   tearDown(() => traits.dispose());
@@ -76,6 +81,8 @@ void main() {
         Provider<BaseCacheManager>.value(value: const NoImageCacheManager()),
       ],
       child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: Center(
             child: SizedBox(width: 200, child: FollowTile(follow: follow)),

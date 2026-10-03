@@ -1,6 +1,8 @@
 import 'package:collection/collection.dart';
 import 'package:e1547/client/client.dart';
 import 'package:e1547/history/history.dart';
+import 'package:e1547/l10n/app_localizations.dart';
+import 'package:e1547/l10n/tag_descriptions_zh.dart';
 import 'package:e1547/markup/markup.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/shared/shared.dart';
@@ -36,13 +38,14 @@ Future<void> showTagSearchPrompt({
           children: [
             InkWell(
               onTap: () {
-                Navigator.of(context).maybePop();
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        PostsPage(params: PostParams(tags: tag)),
-                  ),
-                );
+                if (popDialog(context)) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          PostsPage(params: PostParams(tags: tag)),
+                    ),
+                  );
+                }
               },
               child: Text(
                 tagToName(tag),
@@ -219,6 +222,12 @@ class _SearchTagDisplayState extends State<SearchTagDisplay> {
 
   @override
   Widget build(BuildContext context) {
+    // chinese users get a curated offline description for common tags,
+    // both when a wiki exists and when it does not
+    final String? localized = localizedTagDescription(
+      tagToRaw(widget.tag),
+      Localizations.maybeLocaleOf(context) ?? const Locale('en'),
+    );
     return FutureBuilder<Wiki?>(
       future: wiki,
       builder: (context, snapshot) => CrossFade.builder(
@@ -226,21 +235,24 @@ class _SearchTagDisplayState extends State<SearchTagDisplay> {
         showChild: snapshot.connectionState == ConnectionState.done,
         builder: (context) {
           if (snapshot.hasData) {
-            return DText(snapshot.data!.body);
+            return DText(localized ?? snapshot.data!.body);
           } else if (snapshot.hasError) {
-            return const IconMessage(
-              title: Text('unable to retrieve wiki entry'),
-              icon: Icon(Icons.warning_amber_outlined),
+            return IconMessage(
+              title: Text(AppLocalizations.of(context).tagUnableToRetrieveWiki),
+              icon: const Icon(Icons.warning_amber_outlined),
               direction: Axis.horizontal,
             );
           } else {
+            if (localized != null) {
+              return DText(localized);
+            }
             return Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    'no wiki entry',
+                    AppLocalizations.of(context).tagNoWikiEntry,
                     style: TextStyle(
                       color: dimTextColor(context, 0.5),
                       fontStyle: FontStyle.italic,

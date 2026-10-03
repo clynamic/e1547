@@ -1,5 +1,6 @@
 import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/markup/markup.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
@@ -26,6 +27,7 @@ class UserPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return UserHistoryConnector(
       user: user,
       child: SubValue.builder(
@@ -36,11 +38,11 @@ class UserPage extends StatelessWidget {
             Widget body;
             PreferredSizeWidget? appbar;
             final tabs = <Widget, WidgetBuilder>{
-              const Tab(text: 'Favorites'): (context) => _UserPostsTab(
+              Tab(text: l10n.navFavorites): (context) => _UserPostsTab(
                 filter: filter,
                 params: PostParams(tags: 'fav:${user.name}'),
               ),
-              const Tab(text: 'Uploads'): (context) => _UserPostsTab(
+              Tab(text: l10n.userUploads): (context) => _UserPostsTab(
                 filter: filter,
                 params: PostParams(tags: 'user:${user.name}'),
               ),
@@ -84,7 +86,7 @@ class UserPage extends StatelessWidget {
                   ),
                 ),
               );
-              tabs[const Tab(text: 'About')] = (context) => SliverPadding(
+              tabs[Tab(text: l10n.navAbout)] = (context) => SliverPadding(
                 padding: defaultListPadding.add(
                   LimitedWidthLayout.of(context).padding,
                 ),
@@ -176,7 +178,7 @@ class UserPage extends StatelessWidget {
                 appBar: appbar,
                 drawer: const RouterDrawer(),
                 endDrawer: ContextDrawer(
-                  title: const Text('Posts'),
+                  title: Text(l10n.postsTitle),
                   children: [
                     DrawerDenySwitch(filter: filter),
                     DrawerMultiTagCounter(filter: filter),
@@ -293,17 +295,18 @@ class _UserProfileActions extends StatelessWidget {
     ValueNotifier<Traits> traits = context.watch<Client>().traits;
     String userTag = 'user:${user.id}';
     bool blocked = traits.value.denylist.contains(userTag);
+    final l10n = AppLocalizations.of(context);
     return PopupMenuButton<VoidCallback>(
       icon: const Icon(Icons.more_vert),
       onSelected: (value) => value(),
       itemBuilder: (context) => [
         PopupMenuTile(
-          title: 'Browse',
+          title: l10n.menuBrowse,
           icon: Icons.open_in_browser,
           value: () async => launch(context.read<Client>().withHost(user.link)),
         ),
         PopupMenuTile(
-          title: 'Report',
+          title: l10n.menuReport,
           icon: Icons.report,
           value: () => guardWithLogin(
             context: context,
@@ -314,11 +317,11 @@ class _UserProfileActions extends StatelessWidget {
                 ),
               );
             },
-            error: 'You must be logged in to report users!',
+            error: l10n.userLoginRequiredReport,
           ),
         ),
         PopupMenuTile(
-          title: blocked ? 'Unblock' : 'Block',
+          title: blocked ? l10n.actionUnblock : l10n.actionBlock,
           icon: blocked ? Icons.check : Icons.block,
           value: () {
             if (blocked) {
@@ -345,6 +348,7 @@ class UserInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     Widget info(
       IconData icon,
       String title,
@@ -371,9 +375,9 @@ class UserInfo extends StatelessWidget {
               Card(
                 child: ExpandablePanel(
                   controller: Expandables.of(context, 'about'),
-                  header: const ListTile(
-                    leading: Icon(Icons.person),
-                    title: Text('About'),
+                  header: ListTile(
+                    leading: const Icon(Icons.person),
+                    title: Text(l10n.navAbout),
                   ),
                   collapsed: const SizedBox.shrink(),
                   expanded: Padding(
@@ -390,9 +394,9 @@ class UserInfo extends StatelessWidget {
               Card(
                 child: ExpandablePanel(
                   controller: Expandables.of(context, 'comission'),
-                  header: const ListTile(
-                    leading: Icon(Icons.attach_money),
-                    title: Text('Comission'),
+                  header: ListTile(
+                    leading: const Icon(Icons.attach_money),
+                    title: Text(l10n.userComission),
                   ),
                   collapsed: const SizedBox.shrink(),
                   expanded: Padding(
@@ -407,9 +411,9 @@ class UserInfo extends StatelessWidget {
             Card(
               child: ExpandablePanel(
                 controller: Expandables.of(context, 'info'),
-                header: const ListTile(
-                  leading: Icon(Icons.info_outline),
-                  title: Text('Info'),
+                header: ListTile(
+                  leading: const Icon(Icons.info_outline),
+                  title: Text(l10n.info),
                 ),
                 collapsed: const SizedBox.shrink(),
                 expanded: Padding(
@@ -418,7 +422,7 @@ class UserInfo extends StatelessWidget {
                     children: [
                       info(
                         Icons.tag,
-                        'id',
+                        l10n.userId,
                         user.id.toString(),
                         onLongPress: () {
                           Clipboard.setData(
@@ -427,7 +431,7 @@ class UserInfo extends StatelessWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               duration: const Duration(seconds: 1),
-                              content: Text('Copied user id #${user.id}'),
+                              content: Text(l10n.userCopiedId(user.id)),
                             ),
                           );
                         },
@@ -435,21 +439,33 @@ class UserInfo extends StatelessWidget {
                       if (user.stats case final stats?) ...[
                         info(
                           Icons.calendar_today,
-                          'joined',
+                          l10n.userJoined,
                           stats.createdAt != null
-                              ? DateFormatting.named(stats.createdAt!)
+                              ? localizedDateName(context, stats.createdAt!)
                               : null,
                         ),
                         info(
                           Icons.shield,
-                          'rank',
+                          l10n.userRank,
                           stats.levelString?.toLowerCase(),
                         ),
-                        info(Icons.upload, 'posts', stats.postUploadCount),
-                        info(Icons.edit, 'edits', stats.postUpdateCount),
-                        info(Icons.favorite, 'favorites', stats.favoriteCount),
-                        info(Icons.comment, 'comments', stats.commentCount),
-                        info(Icons.forum, 'forum', stats.forumPostCount),
+                        info(
+                          Icons.upload,
+                          l10n.userPosts,
+                          stats.postUploadCount,
+                        ),
+                        info(Icons.edit, l10n.userEdits, stats.postUpdateCount),
+                        info(
+                          Icons.favorite,
+                          l10n.userFavorites,
+                          stats.favoriteCount,
+                        ),
+                        info(
+                          Icons.comment,
+                          l10n.userComments,
+                          stats.commentCount,
+                        ),
+                        info(Icons.forum, l10n.userForum, stats.forumPostCount),
                       ],
                     ],
                   ),

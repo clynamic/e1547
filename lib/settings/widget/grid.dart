@@ -1,16 +1,8 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
 extension GridQuiltDescription on GridQuilt {
-  String get description {
-    switch (this) {
-      case GridQuilt.square:
-        return 'tiles are quadratic';
-      case GridQuilt.vertical:
-        return 'tiles expand vertically';
-    }
-  }
-
   IconData get icon {
     switch (this) {
       case GridQuilt.square:
@@ -30,13 +22,13 @@ class GridSettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: const Text('Quilt'),
-      subtitle: Text(state.description),
+      title: Text(AppLocalizations.of(context).settingsQuilt),
+      subtitle: Text(quiltDescription(context, state)),
       leading: Icon(state.icon),
       onTap: () => showDialog(
         context: context,
         builder: (context) => SimpleDialog(
-          title: const Text('Grid'),
+          title: Text(AppLocalizations.of(context).gridTitle),
           children: [
             Column(
               mainAxisSize: MainAxisSize.min,
@@ -44,10 +36,11 @@ class GridSettingsTile extends StatelessWidget {
                   .map(
                     (state) => ListTile(
                       trailing: Icon(state.icon),
-                      title: Text(state.description),
+                      title: Text(quiltDescription(context, state)),
                       onTap: () {
-                        onChange!(state);
-                        Navigator.of(context).maybePop();
+                        if (popDialog(context)) {
+                          onChange!(state);
+                        }
                       },
                     ),
                   )
@@ -59,3 +52,10 @@ class GridSettingsTile extends StatelessWidget {
     );
   }
 }
+
+/// Localized descriptions of grid quilt modes.
+String quiltDescription(BuildContext context, GridQuilt quilt) =>
+    switch (quilt) {
+      GridQuilt.square => AppLocalizations.of(context).quiltSquare,
+      GridQuilt.vertical => AppLocalizations.of(context).quiltVertical,
+    };

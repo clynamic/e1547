@@ -2,6 +2,7 @@ import 'package:drift/native.dart';
 import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
 import 'package:e1547/identity/identity.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
@@ -57,6 +58,10 @@ void main() {
         sqlite: sqlite,
       ),
     );
+    // The fake clock would otherwise leave dio's timeout timers pending
+    // on requests that are still in flight when the test ends.
+    client.dio.options.connectTimeout = null;
+    client.dio.options.receiveTimeout = null;
   });
 
   tearDown(() async {
@@ -84,6 +89,8 @@ void main() {
             Provider<AnyRouteObserver>.value(value: routeObserver),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             navigatorObservers: [routeObserver],
             home: FilterControllerProvider<PostFilter, Post>.value(
               value: filter,
@@ -133,8 +140,8 @@ void main() {
 
     await pushDetail(tester, filter, post: samplePost(id: 1000));
 
-    final view = tester.widget<PagedPageView<int, Post>>(
-      find.byType(PagedPageView<int, Post>),
+    final view = tester.widget<PagedPageView<Object, Post>>(
+      find.byType(PagedPageView<Object, Post>),
     );
     expect(view.state.items?.map((post) => post.id), [1000]);
   });

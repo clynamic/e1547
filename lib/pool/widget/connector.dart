@@ -22,7 +22,7 @@ class PoolHistoryConnector extends StatelessWidget {
     final controller = context.watch<PostParamsController>();
     final query = client.posts.usePage(query: controller.value.toQuery());
 
-    return QueryHistoryConnector<InfiniteQueryStatus<List<int>, int>>(
+    return QueryHistoryConnector<InfiniteQueryStatus<List<int>, Object>>(
       query: query,
       getEntry: (context, state) {
         final data = state.data;

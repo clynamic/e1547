@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:e1547/app/app.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/foundation.dart';
@@ -36,6 +37,9 @@ class AppInitState extends State<AppInit> {
     final logs = await initializeLogger();
     final storage = await initializeAppStorage();
     await backfillOnboardingSeen(storage);
+    // Re-applied on every launch, so a database imported or renamed
+    // after the last check is covered too.
+    await excludeDatabaseFromBackup();
     unawaited(initializeBackgroundTasks());
     VideoService.ensureInitialized();
     return (
@@ -59,6 +63,8 @@ class AppInitState extends State<AppInit> {
           return MaterialApp(
             key: const Key('loading'),
             theme: AppTheme.dark.data,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Builder(
               builder: (context) => Scaffold(
                 body: Center(
@@ -72,7 +78,7 @@ class AppInitState extends State<AppInit> {
                         const AppIcon(radius: 64),
                         if (snapshot.error != null) ...[
                           const SizedBox(height: 16),
-                          const Text('Failed to initialize'),
+                          Text(AppLocalizations.of(context).failedToInitialize),
                           if (kDebugMode) ...[
                             const SizedBox(height: 8),
                             Text(snapshot.error.toString()),

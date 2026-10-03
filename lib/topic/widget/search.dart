@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/topic/topic.dart';
@@ -14,16 +15,16 @@ class TopicsPage extends StatelessWidget {
       create: (_) => TopicFilter(),
       child: ChangeNotifierProvider(
         create: (_) => TopicParamsController(TopicParams.fromQuery(query)),
-        child: const TopicsHistoryConnector(
+        child: TopicsHistoryConnector(
           child: AdaptiveScaffold(
             appBar: DefaultAppBar(
-              title: Text('Topics'),
-              actions: [ContextDrawerButton()],
+              title: Text(AppLocalizations.of(context).topicsTitle),
+              actions: const [ContextDrawerButton()],
             ),
-            floatingActionButton: TopicSearchFab(),
-            drawer: RouterDrawer(),
-            endDrawer: TopicListDrawer(),
-            body: TopicList(),
+            floatingActionButton: const TopicSearchFab(),
+            drawer: const RouterDrawer(),
+            endDrawer: const TopicListDrawer(),
+            body: const TopicList(),
           ),
         ),
       ),

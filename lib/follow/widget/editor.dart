@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:e1547/client/client.dart';
 import 'package:e1547/follow/follow.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
@@ -74,22 +75,26 @@ class _FollowEditorState extends State<FollowEditor> {
 
   @override
   Widget build(BuildContext context) {
-    Widget title = const Text('Edit follows');
+    Widget title = Text(AppLocalizations.of(context).followEditorTitle);
     return FutureLoadingPage<Map<String, String>>(
       title: title,
       future: follows,
       builder: (context, value) => MultiTextEditor(
         title: title,
         content: [
-          TextEditorContent(key: notify, title: 'Notify', value: value[notify]),
+          TextEditorContent(
+            key: notify,
+            title: AppLocalizations.of(context).actionNotify,
+            value: value[notify],
+          ),
           TextEditorContent(
             key: subscribe,
-            title: 'Subscribe',
+            title: AppLocalizations.of(context).followSubscribe,
             value: value[subscribe],
           ),
           TextEditorContent(
             key: bookmark,
-            title: 'Bookmark',
+            title: AppLocalizations.of(context).navBookmarks,
             value: value[bookmark],
           ),
         ],

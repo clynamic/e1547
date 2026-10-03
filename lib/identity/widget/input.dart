@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -66,12 +67,13 @@ class _HostFormFieldState extends State<HostFormField> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     Widget field = TextFormField(
       controller: controller,
       focusNode: focusNode,
       readOnly: widget.readOnly,
       decoration: InputDecoration(
-        labelText: 'Site',
+        labelText: l10n.identitySite,
         border: const OutlineInputBorder(),
         prefixIcon: const Icon(Icons.public),
         prefixText: isHttps ? 'https://' : 'http://',
@@ -81,7 +83,7 @@ class _HostFormFieldState extends State<HostFormField> {
       textInputAction: TextInputAction.next,
       validator: (value) {
         if (value!.trim().isEmpty) {
-          return 'You must provide a host URL.';
+          return l10n.identityHostRequired;
         }
         try {
           if (isHttps) {
@@ -91,7 +93,7 @@ class _HostFormFieldState extends State<HostFormField> {
           }
           Uri.parse(value);
         } on FormatException {
-          return 'Invalid host URL';
+          return l10n.identityHostInvalid;
         }
         return null;
       },
@@ -103,9 +105,7 @@ class _HostFormFieldState extends State<HostFormField> {
               key: tooltipKey,
               triggerMode: TooltipTriggerMode.manual,
               verticalOffset: 44,
-              message:
-                  'Site can\'t be changed. '
-                  'Add a new account to use a different one.',
+              message: l10n.identityHostReadOnly,
               child: field,
             )
           : field,
@@ -120,22 +120,23 @@ class UsernameFormField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: TextFormField(
         controller: controller,
         autocorrect: false,
-        decoration: const InputDecoration(
-          labelText: 'Username',
-          border: OutlineInputBorder(),
-          prefixIcon: Icon(Icons.person_outline),
+        decoration: InputDecoration(
+          labelText: l10n.identityUsernameLabel,
+          border: const OutlineInputBorder(),
+          prefixIcon: const Icon(Icons.person_outline),
         ),
         inputFormatters: [FilteringTextInputFormatter.deny(' ')],
         autofillHints: const [AutofillHints.username],
         textInputAction: TextInputAction.next,
         validator: (value) {
           if (value!.trim().isEmpty) {
-            return 'You must provide a username.';
+            return l10n.identityUsernameRequired;
           }
           return null;
         },
@@ -159,18 +160,18 @@ class ApikeyFormField extends StatefulWidget {
 }
 
 class _ApikeyFormFieldState extends State<ApikeyFormField> {
-  final String apiKeyExample = '1ca1d165e973d7f8d35b7deb7a2ae54c';
   bool obscurePassword = true;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: TextFormField(
         autocorrect: false,
         controller: widget.controller,
         decoration: InputDecoration(
-          labelText: 'API key',
+          labelText: l10n.identityApikeyLabel,
           border: const OutlineInputBorder(),
           prefixIcon: const Icon(Icons.key),
           suffixIcon: Padding(
@@ -179,7 +180,7 @@ class _ApikeyFormFieldState extends State<ApikeyFormField> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  tooltip: obscurePassword ? 'Show' : 'Hide',
+                  tooltip: obscurePassword ? l10n.actionShow : l10n.actionHide,
                   icon: Icon(
                     obscurePassword ? Icons.visibility_off : Icons.visibility,
                   ),
@@ -199,8 +200,7 @@ class _ApikeyFormFieldState extends State<ApikeyFormField> {
         textInputAction: TextInputAction.done,
         validator: (value) {
           if (value!.isEmpty) {
-            return 'You must provide an API key.\n'
-                'e.g. $apiKeyExample';
+            return l10n.identityApikeyRequired;
           }
 
           if (widget.canOmit &&
@@ -209,8 +209,7 @@ class _ApikeyFormFieldState extends State<ApikeyFormField> {
           }
 
           if (!RegExp(r'^[A-z\d]{24,32}$').hasMatch(value)) {
-            return 'API key is a 24 or 32-character sequence of {A..z} and {0..9}\n'
-                'e.g. $apiKeyExample';
+            return l10n.identityApikeyInvalid;
           }
 
           return null;

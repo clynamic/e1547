@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
@@ -10,18 +11,43 @@ class PostList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => PostPageQueryBuilder(
-    builder: (context, state, query) => PullToRefresh(
-      onRefresh: query.invalidate,
-      child: CustomScrollView(
-        primary: true,
-        slivers: [
-          SliverPadding(
-            padding: defaultActionListPadding,
-            sliver: SliverPostList(displayType: displayType),
-          ),
-        ],
-      ),
-    ),
+    builder: (context, state, query) {
+      // The scroll view shadows the primary scroll controller from the
+      // footer inside it, so it is handed in from out here.
+      final scrollController = PrimaryScrollController.of(context);
+      return PullToRefresh(
+        onRefresh: query.invalidate,
+        child: CustomScrollView(
+          primary: true,
+          slivers: [
+            if (state.error case final error?
+                when isConnectionError(error) &&
+                    (state.data?.pages.isNotEmpty ?? false))
+              SliverToBoxAdapter(
+                child: _OfflineBanner(onRetry: query.invalidate),
+              ),
+            SliverPadding(
+              padding: defaultListPadding,
+              sliver: SliverPostList(displayType: displayType),
+            ),
+            // The footer carries the bottom clearance of the list, so the
+            // posts end flush above it.
+            SliverPadding(
+              padding: defaultListPadding.copyWith(
+                bottom: defaultActionListPadding.bottom,
+              ),
+              sliver: SliverToBoxAdapter(
+                child: PostListFooter(
+                  state: state,
+                  query: query,
+                  scrollController: scrollController,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    },
   );
 }
 
@@ -58,7 +84,7 @@ class PostGridSliver extends StatelessWidget {
     required this.fetchNextPage,
   });
 
-  final PagingState<int, Post> state;
+  final PagingState<Object, Post> state;
   final VoidCallback fetchNextPage;
 
   @override
@@ -67,8 +93,13 @@ class PostGridSliver extends StatelessWidget {
       ItemWidgetBuilder<Post> itemBuilder,
     ) => defaultPagedChildBuilderDelegate<Post>(
       onRetry: fetchNextPage,
-      onEmpty: const Text('No posts'),
-      onError: const Text('Failed to load posts'),
+      onEmpty: Text(AppLocalizations.of(context).noPosts),
+      onError: switch (state.error) {
+        final error? when isConnectionError(error) => Text(
+          AppLocalizations.of(context).offlineNoData,
+        ),
+        _ => Text(AppLocalizations.of(context).failedToLoadPosts),
+      },
       itemBuilder: itemBuilder,
     );
 
@@ -78,7 +109,7 @@ class PostGridSliver extends StatelessWidget {
     );
 
     return switch (TileLayout.of(context).stagger) {
-      GridQuilt.square => PagedSliverGrid<int, Post>(
+      GridQuilt.square => PagedSliverGrid<Object, Post>(
         showNewPageErrorIndicatorAsGridChild: false,
         showNewPageProgressIndicatorAsGridChild: false,
         showNoMoreItemsIndicatorAsGridChild: false,
@@ -90,7 +121,7 @@ class PostGridSliver extends StatelessWidget {
           childAspectRatio: 1 / TileLayout.of(context).tileHeightFactor,
         ),
       ),
-      GridQuilt.vertical => PagedSliverMasonryGrid<int, Post>.count(
+      GridQuilt.vertical => PagedSliverMasonryGrid<Object, Post>.count(
         showNewPageErrorIndicatorAsGridChild: false,
         showNewPageProgressIndicatorAsGridChild: false,
         showNoMoreItemsIndicatorAsGridChild: false,
@@ -115,7 +146,7 @@ class PostComicSliver extends StatelessWidget {
     required this.fetchNextPage,
   });
 
-  final PagingState<int, Post> state;
+  final PagingState<Object, Post> state;
   final VoidCallback fetchNextPage;
 
   @override
@@ -125,8 +156,8 @@ class PostComicSliver extends StatelessWidget {
       fetchNextPage: fetchNextPage,
       builderDelegate: defaultPagedChildBuilderDelegate<Post>(
         onRetry: fetchNextPage,
-        onEmpty: const Text('No posts'),
-        onError: const Text('Failed to load posts'),
+        onEmpty: Text(AppLocalizations.of(context).noPosts),
+        onError: Text(AppLocalizations.of(context).failedToLoadPosts),
         itemBuilder: (context, item, index) => Padding(
           padding:
               LimitedWidthLayout.maybeOf(context)?.padding ?? EdgeInsets.zero,
@@ -147,7 +178,7 @@ class PostTimelineSliver extends StatelessWidget {
     required this.fetchNextPage,
   });
 
-  final PagingState<int, Post> state;
+  final PagingState<Object, Post> state;
   final VoidCallback fetchNextPage;
 
   @override
@@ -157,8 +188,8 @@ class PostTimelineSliver extends StatelessWidget {
       fetchNextPage: fetchNextPage,
       builderDelegate: defaultPagedChildBuilderDelegate<Post>(
         onRetry: fetchNextPage,
-        onEmpty: const Text('No posts'),
-        onError: const Text('Failed to load posts'),
+        onEmpty: Text(AppLocalizations.of(context).noPosts),
+        onError: Text(AppLocalizations.of(context).failedToLoadPosts),
         itemBuilder: (context, item, index) => Padding(
           padding:
               LimitedWidthLayout.maybeOf(context)?.padding ?? EdgeInsets.zero,
@@ -168,6 +199,36 @@ class PostTimelineSliver extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// A dismissible banner shown while a post list shows cached data offline.
+class _OfflineBanner extends StatefulWidget {
+  const _OfflineBanner({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  State<_OfflineBanner> createState() => _OfflineBannerState();
+}
+
+class _OfflineBannerState extends State<_OfflineBanner> {
+  bool dismissed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (dismissed) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context);
+    return MaterialBanner(
+      content: Text(l10n.offlineBanner),
+      actions: [
+        TextButton(onPressed: widget.onRetry, child: Text(l10n.actionTryAgain)),
+        TextButton(
+          onPressed: () => setState(() => dismissed = true),
+          child: Text(l10n.actionCancel),
+        ),
+      ],
     );
   }
 }

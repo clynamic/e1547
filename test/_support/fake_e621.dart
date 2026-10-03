@@ -381,10 +381,49 @@ class FakeE621 {
     Map<String, String> query,
   ) {
     final limit = _parseLimit(query['limit']);
-    final page = _parsePage(query['page']);
+    final (page, anchor) = _parsePageParams(query);
+    if (anchor != null) {
+      // e621 serves the posts before a cursor anchor in descending id order,
+      // while our fixtures are stored ascending, so sort them.
+      final remaining = items.where((e) => (e['id']! as int) < anchor).toList()
+        ..sort((a, b) => (b['id']! as int).compareTo(a['id']! as int));
+      if (limit == 0 || remaining.isEmpty) return const [];
+      return remaining.sublist(0, limit.clamp(0, remaining.length));
+    }
     final start = (page - 1) * limit;
     if (limit == 0 || start >= items.length) return const [];
     return items.sublist(start, (start + limit).clamp(0, items.length));
+  }
+
+  /// Parses the `page` parameter into a 1-based page number and, for a `b<id>`
+  /// cursor request, the anchor id the server may honor.
+  ///
+  /// A cursor combined with an `order` tag that does not sort by descending id
+  /// is parsed as page 1: the real e621 api silently ignores cursors for those
+  /// orders and serves the first page instead, and since this fake does not
+  /// implement order sorting, page 1 is exactly what it serves too.
+  (int, int?) _parsePageParams(Map<String, String> query) {
+    final page = query['page'];
+    final cursor = page == null ? null : RegExp(r'^b(\d+)$').firstMatch(page);
+    if (cursor != null) {
+      if (_cursorOrder(query['tags'])) {
+        return (1, int.parse(cursor.group(1)!));
+      }
+      return (1, null);
+    }
+    return (_parsePage(page), null);
+  }
+
+  /// Whether the `order` tags sort results by descending id, the only orders
+  /// the real e621 api honors cursors for.
+  bool _cursorOrder(String? tags) {
+    for (final tag in (tags ?? '').split(' ')) {
+      final order = RegExp(r'^order:(.+)$').firstMatch(tag);
+      if (order != null && !{'new', 'id', 'id_desc'}.contains(order.group(1))) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /// An invalid page or limit is [410].

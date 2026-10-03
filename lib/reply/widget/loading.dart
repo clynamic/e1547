@@ -1,4 +1,5 @@
 import 'package:e1547/client/client.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/reply/reply.dart';
 import 'package:e1547/shared/shared.dart';
@@ -14,6 +15,7 @@ class ReplyLoadingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final client = context.watch<Client>();
+    final l10n = AppLocalizations.of(context);
     return QueryBuilder(
       query: client.replies.useGet(id: id),
       builder: (context, state) => LoadingPage(
@@ -23,12 +25,12 @@ class ReplyLoadingPage extends StatelessWidget {
         loadingBuilder: (context, child) => Scaffold(
           appBar: AppBar(
             leading: const CloseButton(),
-            title: Text('Reply #$id'),
+            title: Text(l10n.replyTitle(id)),
           ),
           body: child(context),
         ),
-        onError: const Text('Failed to load reply'),
-        onEmpty: const Text('Reply not found'),
+        onError: Text(l10n.failedToLoadReply),
+        onEmpty: Text(l10n.replyNotFound),
         child: (context) =>
             TopicLoadingPage(state.data!.topicId, orderByOldest: orderByOldest),
       ),

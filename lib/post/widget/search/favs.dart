@@ -1,4 +1,5 @@
 import 'package:e1547/client/client.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/settings/settings.dart';
@@ -15,11 +16,13 @@ class FavPage extends StatelessWidget {
     final client = context.watch<Client>();
     return RouterDrawerEntry<FavPage>(
       child: client.identity.username == null
-          ? const AdaptiveScaffold(
-              appBar: DefaultAppBar(title: Text('Favorites')),
+          ? AdaptiveScaffold(
+              appBar: DefaultAppBar(
+                title: Text(AppLocalizations.of(context).navFavorites),
+              ),
               body: IconMessage(
-                icon: Icon(Icons.person_search),
-                title: Text('Favorites are unavailable for anonymous users'),
+                icon: const Icon(Icons.person_search),
+                title: Text(AppLocalizations.of(context).favoritesUnavailable),
               ),
             )
           : FilterControllerProvider<PostFilter, Post>(
@@ -40,7 +43,7 @@ class FavPage extends StatelessWidget {
                         floatingActionButton: const PostsPageFab(),
                         drawer: const RouterDrawer(),
                         endDrawer: ContextDrawer(
-                          title: const Text('Posts'),
+                          title: Text(AppLocalizations.of(context).postsTitle),
                           children: [
                             const FavoriteOrderSwitch(),
                             const Divider(),
@@ -86,8 +89,12 @@ class FavoriteOrderSwitch extends StatelessWidget {
     final addedOrder = order == null || order == 'fav';
     return SwitchListTile(
       secondary: const Icon(Icons.sort),
-      title: const Text('Favorite order'),
-      subtitle: Text(addedOrder ? 'added order' : 'id order'),
+      title: Text(AppLocalizations.of(context).favoriteOrder),
+      subtitle: Text(
+        addedOrder
+            ? AppLocalizations.of(context).orderAdded
+            : AppLocalizations.of(context).orderId,
+      ),
       value: addedOrder,
       onChanged: (value) {
         final next = TagMap(controller.value.tags);

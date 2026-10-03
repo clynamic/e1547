@@ -1,4 +1,5 @@
 import 'package:e1547/client/client.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/logs/logs.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
@@ -83,6 +84,10 @@ class _TagsEditDisplayState extends State<TagsEditDisplay> {
         .toList();
     if (missing.isEmpty) return;
 
+    // Resolved up front, the context must not cross async gaps.
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
     try {
       final client = context.read<Client>().tags;
       final previews = await client.preview(tags: missing.join(' '));
@@ -95,8 +100,8 @@ class _TagsEditDisplayState extends State<TagsEditDisplay> {
     } on Exception catch (e, stackTrace) {
       _logger.warn('Tag preview failed', null, e, stackTrace);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading tag preview: $e')),
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.editTagPreviewFailed(e.toString()))),
         );
       }
     }
@@ -104,6 +109,7 @@ class _TagsEditDisplayState extends State<TagsEditDisplay> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: defaultFormPadding,
       child: Column(
@@ -111,8 +117,11 @@ class _TagsEditDisplayState extends State<TagsEditDisplay> {
         children: [
           Row(
             children: [
-              const Expanded(
-                child: Text('Tags', style: TextStyle(fontSize: 16)),
+              Expanded(
+                child: Text(
+                  l10n.filterTags,
+                  style: const TextStyle(fontSize: 16),
+                ),
               ),
               IconButton(
                 onPressed: widget.enabled == false
@@ -126,7 +135,7 @@ class _TagsEditDisplayState extends State<TagsEditDisplay> {
                         }
                       },
                 icon: Icon(_isPreviewMode ? Icons.edit : Icons.visibility),
-                tooltip: _isPreviewMode ? 'Edit' : 'Preview',
+                tooltip: _isPreviewMode ? l10n.menuEdit : l10n.editorPreview,
               ),
             ],
           ),
@@ -146,7 +155,7 @@ class _TagsEditDisplayState extends State<TagsEditDisplay> {
                           .toList(),
                     )
                   : Text(
-                      'No tags',
+                      l10n.tagNoTags,
                       style: TextStyle(
                         color: dimTextColor(context),
                         fontStyle: FontStyle.italic,
@@ -156,9 +165,9 @@ class _TagsEditDisplayState extends State<TagsEditDisplay> {
           ] else ...[
             TagInput(
               controller: widget.controller,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'space separated tags',
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
+                hintText: l10n.editTagsHint,
               ),
               readOnly: widget.enabled == false,
               autofocus: false,
@@ -188,25 +197,26 @@ class TagPreviewCard extends StatelessWidget {
 
   Widget? _getStatusText(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     if (tag.id == null) {
       return Text(
-        'new',
+        l10n.editTagStatusNew,
         style: TextStyle(fontSize: 10, color: theme.colorScheme.primary),
       );
     } else if (tag.category == TagCategory.invalid.id) {
       return Text(
-        'invalid',
+        l10n.editTagStatusInvalid,
         style: TextStyle(fontSize: 10, color: theme.colorScheme.error),
       );
     } else if (tag.postCount == 0) {
       return Text(
-        'empty',
+        l10n.editTagStatusEmpty,
         style: TextStyle(fontSize: 10, color: theme.colorScheme.tertiary),
       );
     } else if (tag.postCount == 1 && tag.category == TagCategory.general.id) {
       // Underused general tag
       return Text(
-        'underused',
+        l10n.editTagStatusUnderused,
         style: TextStyle(fontSize: 10, color: theme.colorScheme.secondary),
       );
     }

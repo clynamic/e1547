@@ -1,5 +1,6 @@
 import 'package:e1547/client/client.dart';
 import 'package:e1547/follow/follow.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
@@ -15,7 +16,8 @@ class PostPageAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final map = TagMap(context.watch<PostParamsController>().value.tags);
+    final controller = context.watch<PostParamsController>();
+    final map = TagMap(controller.value.tags);
     final showInfo =
         map.isNotEmpty && map['order'] != 'rank' && map['fav'] == null;
 
@@ -23,6 +25,7 @@ class PostPageAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: const _PostPageTitle(),
       actions: [
         if (showInfo) const _PostPageInfoButton(),
+        if (controller.canSearch) const PostsPageFilterButton(),
         ...?actions,
         const ContextDrawerButton(),
       ],
@@ -68,12 +71,18 @@ class _PostPageTitle extends StatelessWidget {
     final tags = params.tags ?? '';
     final map = TagMap(tags);
 
-    if (map.isEmpty) return const Text('Search');
-    if (map['order'] == 'rank') return const Text('Hot');
+    if (map.isEmpty) {
+      return Text(AppLocalizations.of(context).navSearch);
+    }
+    if (map['order'] == 'rank') {
+      return Text(AppLocalizations.of(context).navHot);
+    }
     final fav = map['fav'];
     if (fav != null) {
       return Text(
-        fav == client.identity.username ? 'Favorites' : "$fav's Favorites",
+        fav == client.identity.username
+            ? AppLocalizations.of(context).navFavorites
+            : AppLocalizations.of(context).favoritesOf(fav),
       );
     }
 

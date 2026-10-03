@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/markup/markup.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
@@ -17,7 +18,7 @@ class WikiPage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline),
-            tooltip: 'Info',
+            tooltip: AppLocalizations.of(context).info,
             onPressed: () => showWikiPrompt(context: context, wiki: wiki),
           ),
         ],

@@ -119,16 +119,17 @@ dependency_overrides:
   cached_query:
     git:
       url: https://github.com/clragon/cached_query.git
-      ref: main
+      ref: 5d63291bc9ca14c74c202b641c5683e62c654135
       path: packages/cached_query
   cached_query_flutter:
     git:
       url: https://github.com/clragon/cached_query.git
-      ref: main
+      ref: 5d63291bc9ca14c74c202b641c5683e62c654135
       path: packages/cached_query_flutter
 
 flutter:
   uses-material-design: true
+  generate: true
   assets:
     - assets/icon/app/
     - assets/static/

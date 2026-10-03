@@ -1,5 +1,6 @@
 import 'package:e1547/client/client.dart';
 import 'package:e1547/follow/follow.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/settings/settings.dart';
@@ -22,12 +23,12 @@ class FollowsTimelinePage extends StatelessWidget {
           builder: (context, tagsState) {
             final tags = tagsState.data;
             if (tags == null) {
-              return const Scaffold(
+              return Scaffold(
                 appBar: DefaultAppBar(
-                  title: Text('Timeline'),
-                  actions: [ContextDrawerButton()],
+                  title: Text(AppLocalizations.of(context).navTimeline),
+                  actions: const [ContextDrawerButton()],
                 ),
-                body: Center(child: CircularProgressIndicator()),
+                body: const Center(child: CircularProgressIndicator()),
               );
             }
             final followedTags = [
@@ -35,14 +36,18 @@ class FollowsTimelinePage extends StatelessWidget {
               ...tags[FollowType.notify] ?? const <String>[],
             ];
             return AdaptiveScaffold(
-              appBar: const DefaultAppBar(
-                title: Text('Timeline'),
-                actions: [ContextDrawerButton()],
+              appBar: DefaultAppBar(
+                title: Text(AppLocalizations.of(context).navTimeline),
+                actions: const [ContextDrawerButton()],
               ),
               drawer: const RouterDrawer(),
-              endDrawer: const ContextDrawer(
-                title: Text('Timeline'),
-                children: [FollowEditingTile(), Divider(), DrawerDenySwitch()],
+              endDrawer: ContextDrawer(
+                title: Text(AppLocalizations.of(context).navTimeline),
+                children: const [
+                  FollowEditingTile(),
+                  Divider(),
+                  DrawerDenySwitch(),
+                ],
               ),
               body: LimitedWidthLayout(
                 child: ListenableBuilder(
@@ -75,21 +80,40 @@ class FollowTimelinePostList extends StatelessWidget {
       getItem: (id) => client.posts.useGet(id: id, vendored: true),
       builder: (context, state) => QueryFilter(
         state: state,
-        builder: (context, state) => PullToRefresh(
-          onRefresh: query.invalidate,
-          child: CustomScrollView(
-            primary: true,
-            slivers: [
-              SliverPadding(
-                padding: defaultActionListPadding,
-                sliver: PostTimelineSliver(
-                  state: state.paging,
-                  fetchNextPage: query.getNextPage,
+        builder: (context, state) {
+          // The scroll view shadows the primary scroll controller from the
+          // footer inside it, so it is handed in from out here.
+          final scrollController = PrimaryScrollController.of(context);
+          return PullToRefresh(
+            onRefresh: query.invalidate,
+            child: CustomScrollView(
+              primary: true,
+              slivers: [
+                SliverPadding(
+                  padding: defaultListPadding,
+                  sliver: PostTimelineSliver(
+                    state: state.paging,
+                    fetchNextPage: query.getNextPage,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
+                // The footer carries the bottom clearance of the list, so
+                // the posts end flush above it.
+                SliverPadding(
+                  padding: defaultListPadding.copyWith(
+                    bottom: defaultActionListPadding.bottom,
+                  ),
+                  sliver: SliverToBoxAdapter(
+                    child: PostListFooter(
+                      state: state,
+                      query: query,
+                      scrollController: scrollController,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

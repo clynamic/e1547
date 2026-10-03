@@ -19,6 +19,19 @@ Future<void> preloadPostImage({
   if (post.type != PostType.image) return;
   if (url == null) return;
   final manager = context.read<BaseCacheManager>();
+  if (size == PostImageSize.file) {
+    // Decoding originals ahead of time would fill the image cache with
+    // multi-megabyte bitmaps that a capped decode cannot even reuse.
+    // They are only fetched to disk instead and get decoded,
+    // at a capped size, once they are actually shown.
+    try {
+      await manager.getSingleFile(url);
+    } on Exception {
+      // A failed prefetch must not break preloading;
+      // the image downloads again when it is shown.
+    }
+    return;
+  }
   await precacheImage(
     CachedNetworkImageProvider(url, cacheManager: manager),
     context,

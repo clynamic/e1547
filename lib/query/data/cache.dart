@@ -25,6 +25,26 @@ QueryConfig<InfiniteQueryData<List<int>, int>> pagedIdConfig() =>
       storageDeserializer: pagedIdsFromJson,
     );
 
+/// Like [pagedIdsFromJson], but for queries whose page arguments may be either
+/// a page number or a server cursor.
+///
+/// Args stored as ints by older versions deserialize unchanged, since casting
+/// to [Object] keeps them as they are.
+InfiniteQueryData<List<int>, Object> pagedObjectIdsFromJson(dynamic json) =>
+    InfiniteQueryData<List<int>, Object>.fromJson(
+      json,
+      pagesConverter: (pages) =>
+          pages.map((page) => (page as List).cast<int>()).toList(),
+      argsConverter: (args) => args.cast<Object>(),
+    );
+
+QueryConfig<InfiniteQueryData<List<int>, Object>> pagedObjectIdConfig() =>
+    const QueryConfig(
+      storeQuery: true,
+      storageDuration: queryStorageDuration,
+      storageDeserializer: pagedObjectIdsFromJson,
+    );
+
 /// Cache normalisation intermediary
 class QueryBridge<T, K> {
   QueryBridge({

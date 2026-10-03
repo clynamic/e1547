@@ -1,4 +1,5 @@
 import 'package:e1547/client/client.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/wiki/wiki.dart';
@@ -16,6 +17,7 @@ class WikiLoadingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final wikis = context.watch<Client>().wikis;
     final id = this.id;
+    final l10n = AppLocalizations.of(context);
     return QueryBuilder(
       query: id != null
           ? wikis.useGet(id: id)
@@ -27,12 +29,12 @@ class WikiLoadingPage extends StatelessWidget {
         loadingBuilder: (context, child) => Scaffold(
           appBar: AppBar(
             leading: const CloseButton(),
-            title: Text(id != null ? 'Wiki #$id' : 'Wiki $title'),
+            title: Text(l10n.wikiTitle(id != null ? '#$id' : title!)),
           ),
           body: child(context),
         ),
-        onError: const Text('Failed to load wiki'),
-        onEmpty: const Text('Wiki not found'),
+        onError: Text(l10n.failedToLoadWiki),
+        onEmpty: Text(l10n.wikiNotFound),
         child: (context) => WikiPage(wiki: state.data!),
       ),
     );

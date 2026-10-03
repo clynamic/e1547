@@ -1,4 +1,5 @@
 import 'package:e1547/identity/identity.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/user/user.dart';
 import 'package:flutter/material.dart';
@@ -17,9 +18,10 @@ class IdentityTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return ListTile(
       key: ValueKey(identity.id),
-      title: Text(identity.usernameOrAnon),
+      title: Text(identity.username ?? l10n.identityAnonymous),
       subtitle: Text(linkToDisplay(identity.host)),
       leading: IdentityAvatar(identity.id),
       trailing: trailing,
@@ -34,6 +36,7 @@ class CurrentIdentityTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final identity = context.watch<IdentityClient>().identity;
+    final l10n = AppLocalizations.of(context);
     return IntrinsicHeight(
       child: Row(
         children: [
@@ -60,7 +63,7 @@ class CurrentIdentityTile extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            identity.usernameOrAnon,
+                            identity.username ?? l10n.identityAnonymous,
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           Text(

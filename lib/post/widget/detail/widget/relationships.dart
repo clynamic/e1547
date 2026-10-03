@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
@@ -19,12 +20,15 @@ class RelationshipDisplay extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (parentId != null) ...[
-          const RelationHeader(title: 'Parent'),
+          RelationHeader(title: AppLocalizations.of(context).filterParent),
           PostRelationTile(id: parentId),
           const Divider(),
         ],
         if (children.isNotEmpty) ...[
-          RelationHeader(title: 'Children', count: children.length),
+          RelationHeader(
+            title: AppLocalizations.of(context).detailChildren,
+            count: children.length,
+          ),
           SizedBox(
             height: postRelationPreviewSize,
             child: ScrollEdgeFade(

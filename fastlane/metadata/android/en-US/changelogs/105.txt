@@ -1,0 +1,10 @@
+### Added
+- a system theme that follows the platform dark mode
+- a language setting with simplified and traditional chinese translations of the main interface
+- filtering of blacklisted posts out of follow previews
+
+### Changed
+- pointed update checks and repository links at this fork
+- tiered the in-memory image cache on ios, limiting it to 500 images and 64 MB
+- capped fullscreen image decoding to 2048 pixels and about 4 megapixels on ios
+- excluded x86\_64 from the universal apk, shrinking it from 137 MB to about 87 MB

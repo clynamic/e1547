@@ -1,6 +1,7 @@
 import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
 import 'package:e1547/history/history.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/markup/markup.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
@@ -109,6 +110,7 @@ class _HistoryTileDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final client = context.watch<Client>();
+    final l10n = AppLocalizations.of(context);
     return PopupMenuButton<VoidCallback>(
       icon: Icon(Icons.more_vert, color: dimTextColor(context)),
       iconSize: 18,
@@ -116,7 +118,7 @@ class _HistoryTileDropdown extends StatelessWidget {
       itemBuilder: (context) => [
         if (entry.isSearch(LinkType.post))
           PopupMenuTile(
-            title: 'Wiki',
+            title: l10n.historyWiki,
             icon: Icons.info,
             value: () => showTagSearchPrompt(
               context: context,
@@ -125,19 +127,41 @@ class _HistoryTileDropdown extends StatelessWidget {
           ),
         if (entry.subtitle != null)
           PopupMenuTile(
-            title: 'Description',
+            title: l10n.filterDescription,
             icon: Icons.description,
             value: () => showHistoryPrompt(context: context, entry: entry),
           ),
         PopupMenuTile(
-          title: 'Share',
+          title: l10n.menuShare,
           icon: Icons.share,
           value: () => Share.text(context, client.withHost(entry.link)),
         ),
         PopupMenuTile(
-          title: 'Delete',
+          title: l10n.menuDelete,
           icon: Icons.delete,
-          value: () => client.histories.useRemove().mutate([entry.id]),
+          value: () {
+            final messenger = ScaffoldMessenger.of(context);
+            client.histories.useRemove().mutate([entry.id]);
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text(l10n.historyEntriesDeleted(1)),
+                action: SnackBarAction(
+                  label: l10n.actionUndo,
+                  onPressed: () => client.histories.useAdd().mutate(
+                    HistoryRequest(
+                      visitedAt: entry.visitedAt,
+                      link: entry.link,
+                      category: entry.category,
+                      type: entry.type,
+                      title: entry.title,
+                      subtitle: entry.subtitle,
+                      thumbnails: entry.thumbnails,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ],
     );

@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/reply/reply.dart';
 import 'package:e1547/shared/shared.dart';
@@ -34,8 +35,8 @@ class SliverReplyList extends StatelessWidget {
       builderDelegate: defaultPagedChildBuilderDelegate(
         onRetry: query.getNextPage,
         itemBuilder: (context, item, index) => ReplyTile(reply: item),
-        onEmpty: const Text('No replies'),
-        onError: const Text('Failed to load replies'),
+        onEmpty: Text(AppLocalizations.of(context).noReplies),
+        onError: Text(AppLocalizations.of(context).failedToLoadReplies),
       ),
     ),
   );

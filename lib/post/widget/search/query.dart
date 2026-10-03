@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 class PostPageQueryBuilder extends StatelessWidget {
   const PostPageQueryBuilder({super.key, required this.builder});
 
-  final PageQueryBuilderCallback<Post, int> builder;
+  final PageQueryBuilderCallback<Post, Object> builder;
 
   @override
   Widget build(BuildContext context) {

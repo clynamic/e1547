@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/task/task.dart';
 import 'package:flutter/material.dart';
@@ -25,22 +26,25 @@ class TasksPage extends StatelessWidget {
               items: items,
               child: AdaptiveScaffold(
                 appBar: SelectionAppBar<Task>(
-                  titleBuilder: (context, layoutData) =>
-                      Text('${layoutData.selections.length} selected'),
+                  titleBuilder: (context, layoutData) => Text(
+                    AppLocalizations.of(
+                      context,
+                    ).taskSelectionCount(layoutData.selections.length),
+                  ),
                   actionBuilder: (context, layoutData) =>
-                      taskBulkActions(controller, layoutData),
+                      taskBulkActions(context, controller, layoutData),
                   child: DefaultAppBar(
-                    title: const Text('Tasks'),
+                    title: Text(AppLocalizations.of(context).navTasks),
                     actions: [
                       if (hasActive)
                         IconButton(
-                          tooltip: 'cancel all',
+                          tooltip: AppLocalizations.of(context).taskCancelAll,
                           icon: const Icon(Icons.block),
                           onPressed: controller.cancelAll,
                         ),
                       if (hasDone)
                         IconButton(
-                          tooltip: 'clear done',
+                          tooltip: AppLocalizations.of(context).taskClearDone,
                           icon: const Icon(Icons.delete_sweep),
                           onPressed: controller.clearDone,
                         ),

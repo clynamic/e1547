@@ -1,5 +1,6 @@
 import 'package:e1547/client/client.dart';
 import 'package:e1547/identity/identity.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
@@ -32,7 +33,9 @@ class IdentityPage extends StatelessWidget {
                     vertical: 8,
                   ),
                   child: Text(
-                    identity == null ? 'Add account' : 'Edit account',
+                    identity == null
+                        ? AppLocalizations.of(context).identityAdd
+                        : AppLocalizations.of(context).identityEdit,
                     style: Theme.of(context).textTheme.titleLarge,
                     textAlign: TextAlign.center,
                   ),

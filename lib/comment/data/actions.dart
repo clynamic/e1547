@@ -1,5 +1,6 @@
 import 'package:e1547/client/client.dart';
 import 'package:e1547/comment/comment.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/markup/markup.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
@@ -33,11 +34,12 @@ Future<bool> writeComment({
   String? text,
   Comment? comment,
 }) async {
+  final l10n = AppLocalizations.of(context);
   bool sent = false;
   await Navigator.of(context).push(
     MaterialPageRoute(
       builder: (context) => DTextEditor(
-        title: Text('#$postId comment'),
+        title: Text(l10n.commentEditorTitle(postId)),
         content: text ?? (comment?.body),
         onSubmitted: (text) async {
           final messenger = ScaffoldMessenger.of(context);
@@ -52,13 +54,13 @@ Future<bool> writeComment({
                     .mutate(text);
               }
             } on ClientException {
-              return 'Failed to send comment!';
+              return l10n.commentSendFailed;
             }
             sent = true;
             messenger.showSnackBar(
-              const SnackBar(
-                duration: Duration(seconds: 1),
-                content: Text('Comment sent!'),
+              SnackBar(
+                duration: const Duration(seconds: 1),
+                content: Text(l10n.commentSent),
               ),
             );
           }

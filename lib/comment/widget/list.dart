@@ -1,4 +1,5 @@
 import 'package:e1547/comment/comment.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
@@ -34,8 +35,8 @@ class SliverCommentList extends StatelessWidget {
       builderDelegate: defaultPagedChildBuilderDelegate(
         onRetry: query.getNextPage,
         itemBuilder: (context, item, index) => CommentTile(comment: item),
-        onEmpty: const Text('No comments'),
-        onError: const Text('Failed to load comments'),
+        onEmpty: Text(AppLocalizations.of(context).noComments),
+        onError: Text(AppLocalizations.of(context).failedToLoadComments),
       ),
     ),
   );

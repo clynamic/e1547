@@ -1,5 +1,6 @@
 import 'package:e1547/client/client.dart';
 import 'package:e1547/comment/comment.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
@@ -33,8 +34,9 @@ class CommentDisplay extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  'COMMENTS'
-                  ' (${post.commentCount})',
+                  AppLocalizations.of(
+                    context,
+                  ).detailCommentsButton(post.commentCount),
                 ),
               ),
             ),
@@ -67,26 +69,29 @@ class SliverPostCommentSection extends StatelessWidget {
         ),
         builder: (context, _) => SliverMainAxisGroup(
           slivers: [
-            const SliverToBoxAdapter(
+            SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   children: [
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 2,
+                      ),
                       child: Row(
                         children: [
                           Expanded(
                             child: Text(
-                              'Comments',
-                              style: TextStyle(fontSize: 16),
+                              AppLocalizations.of(context).commentsTitle,
+                              style: const TextStyle(fontSize: 16),
                             ),
                           ),
-                          CommentListDropdown(),
+                          const CommentListDropdown(),
                         ],
                       ),
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),

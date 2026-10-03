@@ -23,11 +23,25 @@ class _CookieCapturePageState extends State<CookieCapturePage> {
     'host': context.read<Client>().host,
   });
 
+  /// The only origin this page is allowed to navigate.
+  late final String host = normalizeHostUrl(context.read<Client>().host);
+
   late final WebViewController controller = WebViewController()
     ..setUserAgent(AppInfo.instance.userAgent)
     ..setJavaScriptMode(JavaScriptMode.unrestricted)
     ..setBackgroundColor(Theme.of(context).colorScheme.surface)
-    ..loadRequest(Uri.parse(normalizeHostUrl(context.read<Client>().host)));
+    ..setNavigationDelegate(
+      NavigationDelegate(
+        onNavigationRequest: (request) {
+          if (allowsCookieCaptureNavigation(host, request)) {
+            return NavigationDecision.navigate;
+          }
+          logger.debug('Blocked navigation', {'url': request.url});
+          return NavigationDecision.prevent;
+        },
+      ),
+    )
+    ..loadRequest(Uri.parse(host));
 
   Future<void> setCookies(BuildContext context) async {
     IdentityClient client = context.read<IdentityClient>();
@@ -64,6 +78,8 @@ class _CookieCapturePageState extends State<CookieCapturePage> {
     client.replace(client.identity.copyWith(headers: headers));
   }
 
+  bool submitted = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,6 +88,9 @@ class _CookieCapturePageState extends State<CookieCapturePage> {
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.check),
         onPressed: () async {
+          // A double tap would capture and replace the identity twice.
+          if (submitted) return;
+          submitted = true;
           NavigatorState navigator = Navigator.of(context);
           try {
             await setCookies(context);
@@ -118,4 +137,21 @@ bool isCloudflareCookie(String name) {
   // Challenge state cookies are transient and pointless to persist.
   if (name.startsWith('cf_chl')) return false;
   return name.startsWith('cf_') || name.startsWith('__cf');
+}
+
+/// Decides whether the cookie capture page may navigate to [request].
+///
+/// The page exists only to pass a Cloudflare challenge on [host], so
+/// main-frame navigation is restricted to http(s) requests for that exact
+/// host. Everything else—off-site links, redirects, and non-http schemes
+/// like intent://, tel: or market://—is phishing or scheme-escape surface
+/// and is blocked. Subframes are always allowed, because Cloudflare
+/// challenge widgets are embedded in iframes on challenges.cloudflare.com.
+bool allowsCookieCaptureNavigation(String host, NavigationRequest request) {
+  if (!request.isMainFrame) return true;
+  Uri? allowed = Uri.tryParse(normalizeHostUrl(host));
+  Uri? target = Uri.tryParse(request.url);
+  if (allowed == null || allowed.host.isEmpty || target == null) return false;
+  if (!target.isScheme('http') && !target.isScheme('https')) return false;
+  return target.host == allowed.host;
 }

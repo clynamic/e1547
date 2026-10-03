@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:e1547/app/app.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
@@ -93,9 +94,9 @@ class _DevOptionEnablerState extends State<DevOptionEnabler> {
         if (taps == 7) {
           messenger.clearSnackBars();
           messenger.showSnackBar(
-            const SnackBar(
-              duration: Duration(seconds: 2),
-              content: Text('You are now a developer!'),
+            SnackBar(
+              duration: const Duration(seconds: 2),
+              content: Text(AppLocalizations.of(context).developerUnlocked),
             ),
           );
           context.read<Settings>().showDev.value = true;
@@ -151,10 +152,8 @@ class AboutExperimental extends StatelessWidget {
             FontAwesomeIcons.triangleExclamation,
             color: Theme.of(context).colorScheme.error,
           ),
-          title: const Text('Experimental platform'),
-          subtitle: const Text(
-            'This platform is not supported. Expect bugs and missing features.',
-          ),
+          title: Text(AppLocalizations.of(context).aboutExperimentalPlatform),
+          subtitle: Text(AppLocalizations.of(context).aboutExperimentalBody),
         ),
         const Divider(),
       ],
@@ -163,7 +162,6 @@ class AboutExperimental extends StatelessWidget {
 }
 
 class AboutVersion extends StatelessWidget {
-  // ignore: unused_element
   const AboutVersion({super.key, required this.newVersions});
 
   final Query<List<AppVersion>>? newVersions;
@@ -187,7 +185,7 @@ class AboutVersion extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'A newer version is available: ',
+                  AppLocalizations.of(context).updaterNewerHeader,
                   style: TextStyle(color: dimTextColor(context, 0.5)),
                 ),
                 ...versions
@@ -210,10 +208,13 @@ class AboutVersion extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: Navigator.of(context).maybePop,
-            child: const Text('CANCEL'),
+            onPressed: () => popDialog(context),
+            child: Text(AppLocalizations.of(context).actionCancel),
           ),
-          TextButton(onPressed: openGithub, child: const Text('DOWNLOAD')),
+          TextButton(
+            onPressed: openGithub,
+            child: Text(AppLocalizations.of(context).actionDownload),
+          ),
         ],
       );
     }
@@ -224,17 +225,19 @@ class AboutVersion extends StatelessWidget {
       Widget icon;
       VoidCallback? onTap;
       if (data == null && (state?.isLoading ?? true)) {
-        message = 'Fetching updates...';
+        message = AppLocalizations.of(context).updaterFetching;
         icon = const FaIcon(FontAwesomeIcons.clockRotateLeft);
       } else if (data == null) {
-        message = 'Failed to check for updates';
+        message = AppLocalizations.of(context).updaterCheckFailed;
         onTap = openGithub;
         icon = const FaIcon(FontAwesomeIcons.circleExclamation);
       } else if (data.isEmpty) {
-        message = 'You have the newest version';
+        message = AppLocalizations.of(context).updaterNewest;
         icon = const FaIcon(FontAwesomeIcons.clockRotateLeft);
       } else {
-        message = 'A newer version is available: ${data.first.version}';
+        message = AppLocalizations.of(
+          context,
+        ).updaterNewer(data.first.version.toString());
         onTap = () => showDialog(
           context: context,
           builder: (context) => changesDialog(data),
@@ -249,7 +252,7 @@ class AboutVersion extends StatelessWidget {
             children: [
               ListTile(
                 leading: icon,
-                title: const Text('Version'),
+                title: Text(AppLocalizations.of(context).aboutVersion),
                 subtitle: Text(message),
                 onTap: onTap,
               ),
@@ -291,11 +294,12 @@ class AboutLinks extends StatelessWidget {
       required Widget title,
       required String link,
       String? extra,
+      Widget? subtitle,
     }) {
       return ListTile(
         leading: leading,
         title: title,
-        subtitle: Text(extra ?? link),
+        subtitle: subtitle ?? Text(extra ?? link),
         onTap: () => launch(link + (extra ?? '')),
       );
     }
@@ -304,21 +308,32 @@ class AboutLinks extends StatelessWidget {
       children: [
         linkListTile(
           leading: const FaIcon(FontAwesomeIcons.github),
-          title: const Text('GitHub'),
+          title: Text(AppLocalizations.of(context).aboutGitHub),
           link: 'https://github.com/',
           extra: appInfo.github,
         ),
         linkListTile(
+          leading: const FaIcon(FontAwesomeIcons.codeFork),
+          title: Text(AppLocalizations.of(context).aboutUpstream),
+          subtitle: Text(AppLocalizations.of(context).aboutUpstreamBody),
+          link: 'https://github.com/',
+          extra: 'clragon/e1547',
+        ),
+        linkListTile(
           leading: const FaIcon(FontAwesomeIcons.discord),
-          title: const Text('Discord'),
+          title: Text(AppLocalizations.of(context).aboutDiscord),
           link: 'https://discord.gg/',
           extra: appInfo.discord,
         ),
         if (appInfo.forumTopicId != null)
           ListTile(
             leading: const FaIcon(FontAwesomeIcons.comments),
-            title: const Text('Forum'),
-            subtitle: Text('e621 thread #${appInfo.forumTopicId}'),
+            title: Text(AppLocalizations.of(context).aboutForum),
+            subtitle: Text(
+              AppLocalizations.of(
+                context,
+              ).aboutForumTopic(appInfo.forumTopicId!),
+            ),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) => TopicLoadingPage(appInfo.forumTopicId!),
@@ -328,7 +343,7 @@ class AboutLinks extends StatelessWidget {
         if (appInfo.website != null)
           linkListTile(
             leading: const FaIcon(FontAwesomeIcons.house),
-            title: const Text('Website'),
+            title: Text(AppLocalizations.of(context).aboutWebsite),
             link: 'https://',
             extra: appInfo.website,
           ),
@@ -339,21 +354,21 @@ class AboutLinks extends StatelessWidget {
             ].contains(appInfo.source))
           linkListTile(
             leading: const FaIcon(FontAwesomeIcons.mugSaucer),
-            title: const Text('Ko-fi'),
+            title: Text(AppLocalizations.of(context).aboutKofi),
             link: 'https://ko-fi.com/',
             extra: appInfo.kofi,
           ),
         if (appInfo.email != null)
           linkListTile(
             leading: const FaIcon(FontAwesomeIcons.solidEnvelope),
-            title: const Text('Email'),
+            title: Text(AppLocalizations.of(context).aboutEmail),
             link: 'mailto:',
             extra: appInfo.email,
           ),
         const Divider(),
         linkListTile(
           leading: const FaIcon(FontAwesomeIcons.googlePlay),
-          title: const Text('Playstore'),
+          title: Text(AppLocalizations.of(context).aboutPlaystore),
           link: Platform.isAndroid
               ? 'https://play.google.com/store/apps/details?id='
               : 'https://play.google.com/store/search?q=',
@@ -380,9 +395,9 @@ class AboutDonations extends StatelessWidget {
 
       if ((githubDonations?.isError ?? false) &&
           (assetDonations?.isError ?? false)) {
-        return const IconMessage(
-          icon: Icon(Icons.warning_amber),
-          title: Text('Failed to fetch donors'),
+        return IconMessage(
+          icon: const Icon(Icons.warning_amber),
+          title: Text(AppLocalizations.of(context).aboutDonorsFailed),
         );
       }
 
@@ -392,10 +407,10 @@ class AboutDonations extends StatelessWidget {
 
       return Column(
         children: [
-          const ListTile(
-            title: Text('Donors'),
-            leading: FaIcon(FontAwesomeIcons.handHoldingHeart),
-            subtitle: Text('Thanks for helping me keep up development!'),
+          ListTile(
+            title: Text(AppLocalizations.of(context).aboutDonors),
+            leading: const FaIcon(FontAwesomeIcons.handHoldingHeart),
+            subtitle: Text(AppLocalizations.of(context).aboutDonorsThanks),
           ),
           const Divider(),
           const SizedBox(height: 8),
@@ -408,9 +423,9 @@ class AboutDonations extends StatelessWidget {
             )
           else if (donors.isEmpty)
             // I dont like whining about no donors
-            const ListTile(
-              title: Text('No donors yet'),
-              leading: FaIcon(FontAwesomeIcons.heartCrack),
+            ListTile(
+              title: Text(AppLocalizations.of(context).aboutNoDonors),
+              leading: const FaIcon(FontAwesomeIcons.heartCrack),
             )
           else
             Donors(donors: donors),

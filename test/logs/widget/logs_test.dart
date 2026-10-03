@@ -1,5 +1,12 @@
+import 'dart:io';
+
+import 'package:cached_query/cached_query.dart';
+import 'package:drift/native.dart';
+import 'package:e1547/app/app.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/logs/logs.dart';
 import 'package:e1547/settings/settings.dart';
+import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:notified_preferences/notified_preferences.dart';
@@ -26,7 +33,11 @@ class FakeLogSource extends LogSource {
   }
 }
 
-Widget wrap(Widget child) => MaterialApp(home: child);
+Widget wrap(Widget child) => MaterialApp(
+  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  supportedLocales: AppLocalizations.supportedLocales,
+  home: child,
+);
 
 Finder scrollView() => find.descendant(
   of: find.byType(CustomScrollView),
@@ -161,5 +172,82 @@ void main() {
 
       expect(find.text('spam'), findsOneWidget);
     });
+  });
+  testWidgets('selecting a log file keeps the logs page', (tester) async {
+    final sqlite = AppDatabase(NativeDatabase.memory());
+    addTearDown(sqlite.close);
+    SharedPreferences.setMockInitialValues({});
+    // Reading and listing log files is real IO, which the fake clock of a
+    // widget test cannot wait for on its own.
+    late final AppStorage storage;
+    late final Settings settings;
+    await tester.runAsync(() async {
+      final temp = await Directory.systemTemp.createTemp('e1547-logs');
+      // The list only offers its live entry once a log file exists, and a
+      // file only parses with a full timestamp in its name.
+      await File(
+        '${temp.path}/2026-10-01-12-00-00-000.jsonl',
+      ).writeAsString('');
+      final preferences = await SharedPreferences.getInstance();
+      storage = AppStorage(
+        preferences: preferences,
+        temporaryFiles: temp.path,
+        queryCache: CachedQuery.asNewInstance(),
+        sqlite: sqlite,
+      );
+      settings = Settings(preferences);
+    });
+
+    // The logger's deduplicator runs a timer of its own, which outlives
+    // the tree and has to be closed by hand.
+    final logs = Logs();
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          Provider<Logs>.value(value: logs),
+          Provider<AppStorage>.value(value: storage),
+          Provider<Settings>.value(value: settings),
+        ],
+        child: const MaterialApp(
+          locale: Locale('zh'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: LogsPage(),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    // The app bar's folder button opens the list of log files.
+    await tester.tap(find.byIcon(Icons.folder));
+    await tester.pump();
+    // Listing the directory is real IO, which only lands in real time,
+    // so both clocks take turns until the files have been read.
+    for (var i = 0; i < 10; i++) {
+      await tester.runAsync(() async {
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      });
+      await tester.pump(const Duration(milliseconds: 100));
+      if (find.text('实时').evaluate().isNotEmpty) break;
+    }
+
+    expect(find.byType(LogFileList), findsOneWidget);
+
+    // Picking the live entry closes the list, and only the list.
+    await tester.tap(find.text('实时'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
+
+    expect(find.byType(LogFileList), findsNothing);
+    expect(find.byType(LogsPage), findsOneWidget);
+
+    // The log sources keep timers while they run, which the tree has to
+    // dispose of before the test can end. The logger's own deduplicator
+    // timer has to be closed even before that, with the tree already gone.
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+    logs.deduplicator.close();
   });
 }

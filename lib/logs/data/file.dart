@@ -28,5 +28,8 @@ class LogFileInfo {
 
   @override
   String toString() =>
+      // This stays on the platform locale on purpose: it is a data layer
+      // without a context, and log file metadata should not follow the app
+      // language. The logs UI formats dates itself via [DateFormatting].
       '${DateFormatting.dateTime(date)} ${type != null ? ' ($type)' : ''}';
 }

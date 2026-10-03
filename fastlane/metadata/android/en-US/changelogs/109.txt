@@ -1,0 +1,3 @@
+### Added
+- more search filters to the posts filter panel: file type, uploader, width, height and tag count
+- metatag autocomplete to search inputs, suggesting values for special search terms like order:rank

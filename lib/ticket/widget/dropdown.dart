@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class ReportFormDropdown<T> extends StatelessWidget {
@@ -16,19 +17,20 @@ class ReportFormDropdown<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       child: DropdownButtonFormField<T>(
         isExpanded: true,
-        decoration: const InputDecoration(
-          labelText: 'Type',
-          border: OutlineInputBorder(),
+        decoration: InputDecoration(
+          labelText: l10n.historyType,
+          border: const OutlineInputBorder(),
         ),
         initialValue: type,
         onChanged: isLoading ? null : onChanged,
         validator: (value) {
           if (value == null) {
-            return 'Type cannot be empty';
+            return l10n.reportTypeRequired;
           }
           return null;
         },

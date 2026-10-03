@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
@@ -153,9 +154,9 @@ class _MultiTextEditorState extends State<MultiTextEditor> {
                       TextField(
                         controller: textControllers[content],
                         keyboardType: TextInputType.multiline,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           border: InputBorder.none,
-                          hintText: 'type here...',
+                          hintText: AppLocalizations.of(context).editorTypeHere,
                         ),
                         maxLines: null,
                         enabled: !actionController.isLoading,
@@ -191,9 +192,9 @@ class _MultiTextEditorState extends State<MultiTextEditor> {
         }
 
         Map<Widget, Widget>? tabs = {
-          const Tab(text: 'Write'): editor(),
+          Tab(text: AppLocalizations.of(context).editorWrite): editor(),
           if (widget.preview case final preview?)
-            const Tab(text: 'Preview'): scrollView(
+            Tab(text: AppLocalizations.of(context).editorPreview): scrollView(
               preview(context, textControllerMap),
             ),
         };

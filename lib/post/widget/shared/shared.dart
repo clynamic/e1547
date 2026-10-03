@@ -1,5 +1,6 @@
 export 'appbar.dart';
 export 'connector.dart';
+export 'file_type_filter.dart';
 export 'frame.dart';
 export 'hidden.dart';
 export 'image.dart';

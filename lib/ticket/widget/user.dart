@@ -1,4 +1,5 @@
 import 'package:e1547/client/client.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/ticket/ticket.dart';
 import 'package:e1547/user/user.dart';
@@ -11,8 +12,9 @@ class UserReportScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return ReasonReportScreen(
-      title: Text('User #${user.id}'),
+      title: Text(l10n.historyLinkUser(user.id)),
       onReport: (reason) => validateCall(
         () => context.read<Client>().tickets.create(
           type: TicketType.user,
@@ -20,8 +22,8 @@ class UserReportScreen extends StatelessWidget {
           reason: reason,
         ),
       ),
-      onSuccess: 'Reported user #${user.id}',
-      onFailure: 'Failed to report user #${user.id}',
+      onSuccess: l10n.reportUserSuccess(user.id),
+      onFailure: l10n.reportUserFailed(user.id),
       previewBuilder: (context, isLoading) => Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

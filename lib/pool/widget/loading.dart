@@ -1,4 +1,5 @@
 import 'package:e1547/client/client.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/pool/pool.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
@@ -22,12 +23,12 @@ class PoolLoadingPage extends StatelessWidget {
         loadingBuilder: (context, child) => Scaffold(
           appBar: AppBar(
             leading: const CloseButton(),
-            title: Text('Pool #$id'),
+            title: Text(AppLocalizations.of(context).poolLink(id)),
           ),
           body: child(context),
         ),
-        onError: const Text('Failed to load pool'),
-        onEmpty: const Text('Pool not found'),
+        onError: Text(AppLocalizations.of(context).poolFailedToLoadPool),
+        onEmpty: Text(AppLocalizations.of(context).poolNotFound),
         child: (context) =>
             PoolPage(pool: state.data!, orderByOldest: orderByOldest),
       ),

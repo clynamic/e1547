@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:drift/isolate.dart';
 import 'package:drift/native.dart';
 import 'package:e1547/identity/identity.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
@@ -34,10 +35,15 @@ class _LoginLoadingDialogState extends State<LoginLoadingDialog> {
   @override
   void initState() {
     super.initState();
-    login();
+    // Localizations must not be read during initState.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) login();
+    });
   }
 
   Future<void> login() async {
+    // Resolved up front, contexts must not cross async gaps.
+    final l10n = AppLocalizations.of(context);
     NavigatorState navigator = Navigator.of(context);
     IdentityClient client = context.read<IdentityClient>();
     Identity? identity = widget.identity;
@@ -92,7 +98,7 @@ class _LoginLoadingDialogState extends State<LoginLoadingDialog> {
             return;
           }
         }
-        reason = 'You already have an identity under this host and username.';
+        reason = l10n.identityDuplicate;
       }
       await navigator.maybePop();
       widget.onError?.call(reason);
@@ -104,6 +110,7 @@ class _LoginLoadingDialogState extends State<LoginLoadingDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Dialog(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -121,7 +128,10 @@ class _LoginLoadingDialogState extends State<LoginLoadingDialog> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
-                'Connecting to ${linkToDisplay(widget.host)} as ${widget.username ?? 'anonymous'}...',
+                l10n.identityConnecting(
+                  linkToDisplay(widget.host),
+                  widget.username ?? l10n.identityAnonymous,
+                ),
               ),
             ),
           ],

@@ -1,4 +1,5 @@
 import 'package:e1547/client/client.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
@@ -61,6 +62,8 @@ class _PostEditPageState extends State<PostEditPage> {
     if (_isLoading) return;
     setState(() => _isLoading = true);
     final messenger = ScaffoldMessenger.of(context);
+    // Resolved up front, the context must not cross async gaps.
+    final l10n = AppLocalizations.of(context);
 
     try {
       final editData = _editData.copyWith(
@@ -94,14 +97,14 @@ class _PostEditPageState extends State<PostEditPage> {
 
       if (state.isError) {
         messenger.showSnackBar(
-          SnackBar(content: Text('Failed to update post #${widget.post.id}')),
+          SnackBar(content: Text(l10n.postUpdateFailed(widget.post.id))),
         );
         return;
       }
 
       if (mounted) {
         messenger.showSnackBar(
-          SnackBar(content: Text('Updated post #${widget.post.id}')),
+          SnackBar(content: Text(l10n.postUpdated(widget.post.id))),
         );
         Navigator.of(context).pop();
       }
@@ -169,7 +172,10 @@ class _PostEditPageState extends State<PostEditPage> {
             PostVideoRoute.of(context).keepPlaying();
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => PostFullscreen(post: widget.post),
+                builder: (context) => ImageCacheSizeProvider(
+                  size: fullscreenImageCacheSize,
+                  child: PostFullscreen(post: widget.post),
+                ),
               ),
             );
           },

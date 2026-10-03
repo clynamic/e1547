@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/wiki/wiki.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ class WikiInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     Widget textInfoRow(String label, String value) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -26,7 +28,7 @@ class WikiInfo extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('id'),
+              Text(l10n.wikiInfoId),
               InkWell(
                 child: Text('#${wiki.id}'),
                 onLongPress: () async {
@@ -38,7 +40,7 @@ class WikiInfo extends StatelessWidget {
                   messenger.showSnackBar(
                     SnackBar(
                       duration: const Duration(seconds: 1),
-                      content: Text('Copied wiki id #${wiki.id}'),
+                      content: Text(l10n.wikiCopiedId(wiki.id)),
                     ),
                   );
                 },
@@ -46,19 +48,23 @@ class WikiInfo extends StatelessWidget {
             ],
           ),
           if (wiki.otherNames case final otherNames?)
-            textInfoRow('alias', otherNames.join(', ')),
+            textInfoRow(l10n.wikiInfoAlias, otherNames.join(', ')),
           textInfoRow(
-            'created',
-            DateFormatting.dateTime(wiki.createdAt.toLocal()),
+            l10n.wikiInfoCreated,
+            localizedDateTime(context, wiki.createdAt.toLocal()),
           ),
           textInfoRow(
-            'updated',
-            DateFormatting.dateTime(
+            l10n.wikiInfoUpdated,
+            localizedDateTime(
+              context,
               (wiki.updatedAt ?? wiki.createdAt).toLocal(),
             ),
           ),
           if (wiki.isLocked case final isLocked?)
-            textInfoRow('locked', isLocked ? 'yes' : 'no'),
+            textInfoRow(
+              l10n.wikiInfoLocked,
+              isLocked ? l10n.wikiInfoYes : l10n.wikiInfoNo,
+            ),
         ],
       ),
     );

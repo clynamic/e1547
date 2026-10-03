@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
@@ -33,7 +34,11 @@ void main() {
       Provider<Settings>.value(value: settings),
       ChangeNotifierProvider<VideoService>.value(value: videos),
     ],
-    child: MaterialApp(home: home),
+    child: MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: home,
+    ),
   );
 
   VideoPlayer playerOf(WidgetTester tester, Post post) => tester

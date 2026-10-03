@@ -1,0 +1,12 @@
+### Added
+- a language selection step to onboarding
+- japanese and russian translations
+- a filter button to the posts app bar, exposing search filters and their query syntax
+- simplified and traditional chinese translations of the post detail info section, the dtext editor toolbar, the tag drawer and wiki prompt, the post edit form, report and flag flows and the tasks page
+- translations of follow notifications, the host unavailable page and desktop share and download prompts
+
+### Changed
+- merged duplicate translation keys and polished translation wording
+
+### Fixed
+- vote failure messages on timeline tiles

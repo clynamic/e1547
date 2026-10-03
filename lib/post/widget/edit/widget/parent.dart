@@ -1,4 +1,5 @@
 import 'package:e1547/client/client.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/ticket/ticket.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +35,8 @@ class _ParentEditDisplayState extends State<ParentEditDisplay> {
   void _onFocusChanged() async {
     if (!_focusNode.hasFocus) {
       final value = widget.controller.text;
+      // Resolved up front, the context must not cross async gaps.
+      final l10n = AppLocalizations.of(context);
       if (value.trim().isEmpty) {
         setState(() => _errorText = null);
         return;
@@ -41,7 +44,7 @@ class _ParentEditDisplayState extends State<ParentEditDisplay> {
 
       final parentId = int.tryParse(value);
       if (parentId == null) {
-        setState(() => _errorText = 'Invalid number format');
+        setState(() => _errorText = l10n.editInvalidNumber);
         return;
       }
 
@@ -49,26 +52,27 @@ class _ParentEditDisplayState extends State<ParentEditDisplay> {
         await context.read<Client>().posts.get(id: parentId);
         setState(() => _errorText = null);
       } on ClientException {
-        setState(() => _errorText = 'Invalid parent post');
+        setState(() => _errorText = l10n.editInvalidParent);
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: defaultFormPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Parent ID (optional)', style: TextStyle(fontSize: 16)),
+          Text(l10n.editParentIdLabel, style: const TextStyle(fontSize: 16)),
           const SizedBox(height: 8),
           TextFormField(
             controller: widget.controller,
             focusNode: _focusNode,
             decoration: InputDecoration(
               border: const OutlineInputBorder(),
-              hintText: 'Parent post ID',
+              hintText: l10n.editParentIdHint,
               errorText: _errorText,
             ),
             keyboardType: TextInputType.number,

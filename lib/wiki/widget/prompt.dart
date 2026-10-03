@@ -14,13 +14,14 @@ Future<void> showWikiPrompt({
     padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
     child: InkWell(
       onTap: () {
-        Navigator.of(context).maybePop();
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) =>
-                PostsPage(params: PostParams(tags: wiki.title)),
-          ),
-        );
+        if (popDialog(context)) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) =>
+                  PostsPage(params: PostParams(tags: wiki.title)),
+            ),
+          );
+        }
       },
       child: Text(
         tagToName(wiki.title),

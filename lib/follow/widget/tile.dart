@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
 import 'package:e1547/follow/follow.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/shared/shared.dart';
@@ -28,7 +29,7 @@ class FollowTile extends StatelessWidget {
             minWidth: Theme.of(context).isDesktop ? 600 : 0,
           ),
           child: ControlledTextField(
-            labelText: 'Follow title',
+            labelText: AppLocalizations.of(context).followTitlePrompt,
             actionController: promptController,
             textController: TextEditingController(text: follow.name),
             submit: (value) {
@@ -56,7 +57,7 @@ class FollowTile extends StatelessWidget {
           },
           actionController: promptController,
           tag: follow.tags,
-          title: 'Edit follow',
+          title: AppLocalizations.of(context).followEditPrompt,
         ),
       );
     }
@@ -64,6 +65,7 @@ class FollowTile extends StatelessWidget {
     Widget contextMenu() {
       bool notified = follow.type == FollowType.notify;
       bool bookmarked = follow.type == FollowType.bookmark;
+      final l10n = AppLocalizations.of(context);
 
       return PopupMenuButton<VoidCallback>(
         icon: const Dimmed(child: Icon(Icons.more_vert)),
@@ -72,7 +74,7 @@ class FollowTile extends StatelessWidget {
           if ((follow.unseen ?? 0) > 0)
             PopupMenuTile(
               value: () => client.follows.markSeen(follow.id),
-              title: 'Mark as read',
+              title: l10n.followMarkAsRead,
               icon: Icons.mark_email_read,
             ),
           if (PlatformCapabilities.hasNotifications && !bookmarked)
@@ -82,8 +84,8 @@ class FollowTile extends StatelessWidget {
                 type: !notified ? FollowType.notify : FollowType.update,
               ),
               title: notified
-                  ? 'Disable notifications'
-                  : 'Enable notifications',
+                  ? l10n.followDisableNotifications
+                  : l10n.followEnableNotifications,
               icon: notified
                   ? Icons.notifications_off
                   : Icons.notifications_active,
@@ -94,16 +96,20 @@ class FollowTile extends StatelessWidget {
                 id: follow.id,
                 type: !bookmarked ? FollowType.bookmark : FollowType.update,
               ),
-              title: bookmarked ? 'Subscribe' : 'Bookmark',
+              title: bookmarked ? l10n.followSubscribe : l10n.actionBookmark,
               icon: bookmarked ? Icons.person_add : Icons.bookmark,
             ),
           if (promptController != null && follow.tags.split(' ').length > 1)
-            PopupMenuTile(value: editTitle, title: 'Rename', icon: Icons.label),
+            PopupMenuTile(
+              value: editTitle,
+              title: l10n.followRename,
+              icon: Icons.label,
+            ),
           if (promptController != null)
-            PopupMenuTile(value: edit, title: 'Edit', icon: Icons.edit),
+            PopupMenuTile(value: edit, title: l10n.menuEdit, icon: Icons.edit),
           PopupMenuTile(
             value: () => client.follows.delete(follow.id),
-            title: 'Unfollow',
+            title: l10n.actionUnfollow,
             icon: Icons.person_remove,
           ),
         ],
@@ -112,15 +118,8 @@ class FollowTile extends StatelessWidget {
 
     String getStatusText() {
       int unseen = follow.unseen ?? 0;
-      String text = unseen.toString();
-      if (unseen >= 5) {
-        text += '+';
-      }
-      text += ' new post';
-      if (unseen > 1) {
-        text += 's';
-      }
-      return text;
+      String label = unseen >= 5 ? '$unseen+' : '$unseen';
+      return AppLocalizations.of(context).followNewPosts(unseen, label);
     }
 
     return ClipRRect(
@@ -211,7 +210,9 @@ class FollowTile extends StatelessWidget {
                         showChild: follow.alias != null,
                         child: Dimmed(
                           child: Text(
-                            'alias ${follow.alias}',
+                            AppLocalizations.of(
+                              context,
+                            ).followAlias(follow.alias),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                           ),

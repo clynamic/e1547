@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
@@ -38,7 +39,7 @@ class ContextDrawer extends StatelessWidget {
 }
 
 class ContextDrawerButton extends StatelessWidget {
-  const ContextDrawerButton({super.key, this.icon, this.tooltip = 'Filter'});
+  const ContextDrawerButton({super.key, this.icon, this.tooltip});
 
   final IconData? icon;
   final String? tooltip;
@@ -47,7 +48,7 @@ class ContextDrawerButton extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!Scaffold.of(context).hasEndDrawer) return const SizedBox();
     return IconButton(
-      tooltip: tooltip,
+      tooltip: tooltip ?? AppLocalizations.of(context).filterTooltip,
       icon: Icon(icon ?? Icons.tune),
       onPressed: () => Scaffold.of(context).openEndDrawer(),
     );
