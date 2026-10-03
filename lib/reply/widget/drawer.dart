@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/reply/reply.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
@@ -8,15 +9,16 @@ class ReplyListDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = context.watch<ReplyParamsController>();
+    final l10n = AppLocalizations.of(context);
     return ContextDrawer(
-      title: const Text('Replies'),
+      title: Text(l10n.repliesTitle),
       children: [
         SwitchListTile(
           secondary: const Icon(Icons.sort),
-          title: const Text('Reply order'),
+          title: Text(l10n.replyOrder),
           subtitle: Text(switch (controller.value.order) {
-            ReplyOrder.oldest => 'oldest first',
-            ReplyOrder.newest => 'newest first',
+            ReplyOrder.oldest => l10n.filterOldestFirst,
+            ReplyOrder.newest => l10n.filterNewestFirst,
           }),
           value: controller.value.order == ReplyOrder.oldest,
           onChanged: (value) {

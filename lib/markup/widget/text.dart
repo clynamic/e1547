@@ -1,5 +1,6 @@
 import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/logs/logs.dart';
 import 'package:e1547/markup/markup.dart';
 import 'package:e1547/shared/shared.dart';
@@ -74,7 +75,10 @@ class _DTextState extends State<DText> {
               size: 20,
             ),
           ),
-          Text('DText parsing has failed', style: TextStyle(color: errorColor)),
+          Text(
+            AppLocalizations.of(context).dtextParsingFailed,
+            style: TextStyle(color: errorColor),
+          ),
         ],
       );
     }

@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
@@ -73,9 +74,9 @@ class DrawerTagCounterBody extends StatelessWidget {
               iconColor: Theme.of(context).iconTheme.color,
             ),
             child: ExpandablePanel(
-              header: const ListTile(
-                title: Text('Tags'),
-                leading: Icon(Icons.tag),
+              header: ListTile(
+                title: Text(AppLocalizations.of(context).filterTags),
+                leading: const Icon(Icons.tag),
               ),
               collapsed: const SizedBox.shrink(),
               expanded: Column(
@@ -86,7 +87,7 @@ class DrawerTagCounterBody extends StatelessWidget {
                     builder: (context) => CrossFade(
                       showChild: children!.isNotEmpty,
                       secondChild: Text(
-                        'no tags',
+                        AppLocalizations.of(context).tagNoTags,
                         style: TextStyle(
                           fontStyle: FontStyle.italic,
                           color: dimTextColor(context),
@@ -113,16 +114,20 @@ class DrawerTagCounterBody extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: const Dimmed(
+                      child: Dimmed(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.warning_amber, size: 12),
+                            const Icon(Icons.warning_amber, size: 12),
                             Padding(
-                              padding: EdgeInsets.all(8),
+                              padding: const EdgeInsets.all(8),
                               child: Text(
-                                'failed to load tags',
-                                style: TextStyle(fontStyle: FontStyle.italic),
+                                AppLocalizations.of(
+                                  context,
+                                ).tagFailedToLoadTags,
+                                style: const TextStyle(
+                                  fontStyle: FontStyle.italic,
+                                ),
                               ),
                             ),
                           ],

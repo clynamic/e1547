@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -119,7 +120,7 @@ class RouterDrawer extends StatelessWidget {
           selected:
               destination.unique &&
               destination.path == controller.drawerSelection,
-          title: Text(destination.name),
+          title: Text(localizedDestinationName(context, destination.name)),
           leading: destination.icon,
           onTap: destination.unique
               ? () => Navigator.of(
@@ -220,3 +221,24 @@ mixin DefaultRouteAware<T extends StatefulWidget> on State<T>
   @override
   void didPushNext() {}
 }
+
+/// Drawer destination names double as stable keys.
+///
+/// This maps them to their localized display names.
+String localizedDestinationName(BuildContext context, String name) =>
+    switch (name) {
+      'Home' => AppLocalizations.of(context).navHome,
+      'Hot' => AppLocalizations.of(context).navHot,
+      'Search' => AppLocalizations.of(context).navSearch,
+      'Favorites' => AppLocalizations.of(context).navFavorites,
+      'Timeline' => AppLocalizations.of(context).navTimeline,
+      'Subscriptions' => AppLocalizations.of(context).navSubscriptions,
+      'Bookmarks' => AppLocalizations.of(context).navBookmarks,
+      'Pools' => AppLocalizations.of(context).navPools,
+      'Forum' => AppLocalizations.of(context).navForum,
+      'History' => AppLocalizations.of(context).navHistory,
+      'Tasks' => AppLocalizations.of(context).navTasks,
+      'Settings' => AppLocalizations.of(context).navSettings,
+      'About' => AppLocalizations.of(context).navAbout,
+      _ => name,
+    };

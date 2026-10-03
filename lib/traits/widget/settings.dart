@@ -1,4 +1,5 @@
 import 'package:e1547/client/client.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
 import 'package:e1547/traits/traits.dart';
@@ -39,7 +40,7 @@ class DenyListPage extends StatelessWidget {
               List<String> denylist = traits.denylist.toList();
               return AdaptiveScaffold(
                 appBar: DefaultAppBar(
-                  title: const Text('Blacklist'),
+                  title: Text(AppLocalizations.of(context).settingsBlacklist),
                   actions: [
                     IconButton(
                       icon: const Icon(Icons.edit),
@@ -54,8 +55,11 @@ class DenyListPage extends StatelessWidget {
                 floatingActionButton: PromptFab(
                   builder: (context) => buildEditTextField(
                     context,
-                    title: 'Add tag',
+                    title: AppLocalizations.of(context).blacklistAddTag,
                     submit: (value) async {
+                      // Resolved up front, the context must not cross async
+                      // gaps.
+                      final l10n = AppLocalizations.of(context);
                       value = value.trim();
                       if (value.isEmpty) return;
                       try {
@@ -65,8 +69,8 @@ class DenyListPage extends StatelessWidget {
                           ),
                         );
                       } on ClientException {
-                        throw const ActionControllerException(
-                          message: 'Failed to update blacklist!',
+                        throw ActionControllerException(
+                          message: l10n.blacklistUpdateFailed,
                         );
                       }
                     },
@@ -78,10 +82,12 @@ class DenyListPage extends StatelessWidget {
                     await client.accounts.pull();
                   },
                   child: denylist.isEmpty
-                      ? const Center(
+                      ? Center(
                           child: IconMessage(
-                            icon: Icon(Icons.check),
-                            title: Text('Your blacklist is empty'),
+                            icon: const Icon(Icons.check),
+                            title: Text(
+                              AppLocalizations.of(context).blacklistEmpty,
+                            ),
                           ),
                         )
                       : ListView.builder(
@@ -99,8 +105,13 @@ class DenyListPage extends StatelessWidget {
                                 buildEditTextField(
                                   context,
                                   value: tag,
-                                  title: 'Edit tag',
+                                  title: AppLocalizations.of(
+                                    context,
+                                  ).blacklistEditTag,
                                   submit: (value) async {
+                                    // Resolved up front, the context must not
+                                    // cross async gaps.
+                                    final l10n = AppLocalizations.of(context);
                                     value = value.trim();
                                     try {
                                       if (value.isEmpty) {
@@ -119,19 +130,66 @@ class DenyListPage extends StatelessWidget {
                                         );
                                       }
                                     } on ClientException {
-                                      throw const ActionControllerException(
-                                        message: 'Failed to update blacklist!',
+                                      throw ActionControllerException(
+                                        message: l10n.blacklistUpdateFailed,
                                       );
                                     }
                                   },
                                 ),
                               );
                             },
-                            onDelete: () => client.accounts.push(
-                              traits: traits.copyWith(
-                                denylist: denylist..remove(denylist[index]),
-                              ),
-                            ),
+                            onDelete: () {
+                              final l10n = AppLocalizations.of(context);
+                              final messenger = ScaffoldMessenger.of(context);
+                              final tag = denylist[index];
+                              final position = index;
+                              final remaining = List.of(denylist)
+                                ..removeAt(position);
+                              client.accounts
+                                  .push(
+                                    traits: traits.copyWith(
+                                      denylist: remaining,
+                                    ),
+                                  )
+                                  .then((_) {
+                                    messenger.showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          l10n.denylistEntryDeleted,
+                                        ),
+                                        action: SnackBarAction(
+                                          label: l10n.actionUndo,
+                                          onPressed: () {
+                                            // Read the current traits:
+                                            // other deletions since this
+                                            // snackbar was shown must not be
+                                            // rolled back.
+                                            final current = client.traits.value;
+                                            if (current.denylist.contains(
+                                              tag,
+                                            )) {
+                                              return;
+                                            }
+                                            client.accounts.push(
+                                              traits: current.copyWith(
+                                                denylist:
+                                                    List.of(
+                                                      current.denylist,
+                                                    )..insert(
+                                                      position.clamp(
+                                                        0,
+                                                        current.denylist.length,
+                                                      ),
+                                                      tag,
+                                                    ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    );
+                                  });
+                            },
                           ),
                         ),
                 ),

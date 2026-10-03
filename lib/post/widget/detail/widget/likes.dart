@@ -1,4 +1,5 @@
 import 'package:e1547/client/client.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/settings/settings.dart';
@@ -15,6 +16,7 @@ class LikeDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     final client = context.watch<Client>();
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return Column(
       children: [
@@ -36,9 +38,7 @@ class LikeDisplay extends StatelessWidget {
                             messenger.showSnackBar(
                               SnackBar(
                                 duration: const Duration(seconds: 1),
-                                content: Text(
-                                  'Failed to upvote Post #${post.id}',
-                                ),
+                                content: Text(l10n.postUpvoteFailed(post.id)),
                               ),
                             );
                             return error;
@@ -48,19 +48,18 @@ class LikeDisplay extends StatelessWidget {
                       : null,
                   onDownvote: enabled
                       ? (isLiked) async {
-                          mutate((upvote: false, replace: !isLiked)).catchError(
-                            (error) {
-                              messenger.showSnackBar(
-                                SnackBar(
-                                  duration: const Duration(seconds: 1),
-                                  content: Text(
-                                    'Failed to downvote Post #${post.id}',
-                                  ),
-                                ),
-                              );
-                              return error;
-                            },
-                          );
+                          mutate((
+                            upvote: false,
+                            replace: !isLiked,
+                          )).catchError((error) {
+                            messenger.showSnackBar(
+                              SnackBar(
+                                duration: const Duration(seconds: 1),
+                                content: Text(l10n.postDownvoteFailed(post.id)),
+                              ),
+                            );
+                            return error;
+                          });
                           return !isLiked;
                         }
                       : null,
@@ -99,6 +98,7 @@ class FavoriteButton extends StatelessWidget {
     final client = context.watch<Client>();
     final settings = context.read<Settings>();
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
 
     final addMutation = client.posts.useAddFavorite();
     final removeMutation = client.posts.useRemoveFavorite();
@@ -137,8 +137,8 @@ class FavoriteButton extends StatelessWidget {
                     duration: const Duration(seconds: 1),
                     content: Text(
                       isLiked
-                          ? 'Failed to remove Post #${post.id} from favorites'
-                          : 'Failed to add Post #${post.id} to favorites',
+                          ? l10n.postRemoveFavoriteFailed(post.id)
+                          : l10n.postAddFavoriteFailed(post.id),
                     ),
                   ),
                 );

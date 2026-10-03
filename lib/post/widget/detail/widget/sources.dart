@@ -1,4 +1,5 @@
 import 'package:e1547/app/app.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
@@ -16,9 +17,12 @@ class SourceDisplay extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-            child: Text('Sources', style: TextStyle(fontSize: 16)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            child: Text(
+              AppLocalizations.of(context).detailSources,
+              style: const TextStyle(fontSize: 16),
+            ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
@@ -32,7 +36,7 @@ class SourceDisplay extends StatelessWidget {
                 : Padding(
                     padding: const EdgeInsets.all(4),
                     child: Text(
-                      'no sources',
+                      AppLocalizations.of(context).detailNoSources,
                       style: TextStyle(
                         color: dimTextColor(context),
                         fontStyle: FontStyle.italic,

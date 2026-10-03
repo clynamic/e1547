@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
@@ -130,32 +131,51 @@ class _VideoBarState extends State<VideoBar> {
   @override
   void initState() {
     super.initState();
-    playing = widget.player.state.playing;
-    position = widget.player.state.position;
-    duration = widget.player.state.duration;
-    buffer = widget.player.state.buffer;
+    _syncWith(widget.player);
+    _subscribeTo(widget.player);
+  }
+
+  @override
+  void didUpdateWidget(VideoBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.player != widget.player) {
+      _unsubscribe();
+      _syncWith(widget.player);
+      _subscribeTo(widget.player);
+    }
+  }
+
+  void _syncWith(VideoPlayer player) {
+    playing = player.state.playing;
+    position = player.state.position;
+    duration = player.state.duration;
+    buffer = player.state.buffer;
+    seeking = false;
+  }
+
+  void _subscribeTo(VideoPlayer player) {
     subscriptions.addAll([
-      widget.player.stream.playing.listen((event) {
+      player.stream.playing.listen((event) {
         setState(() {
           playing = event;
         });
       }),
-      widget.player.stream.completed.listen((event) {
+      player.stream.completed.listen((event) {
         setState(() {
           position = Duration.zero;
         });
       }),
-      widget.player.stream.position.listen((event) {
+      player.stream.position.listen((event) {
         setState(() {
           if (!seeking) position = event;
         });
       }),
-      widget.player.stream.duration.listen((event) {
+      player.stream.duration.listen((event) {
         setState(() {
           duration = event;
         });
       }),
-      widget.player.stream.buffer.listen((event) {
+      player.stream.buffer.listen((event) {
         setState(() {
           buffer = event;
         });
@@ -163,11 +183,16 @@ class _VideoBarState extends State<VideoBar> {
     ]);
   }
 
-  @override
-  void dispose() {
+  void _unsubscribe() {
     for (final s in subscriptions) {
       s.cancel();
     }
+    subscriptions.clear();
+  }
+
+  @override
+  void dispose() {
+    _unsubscribe();
     super.dispose();
   }
 
@@ -222,7 +247,7 @@ class _VideoBarState extends State<VideoBar> {
                   Text(duration.toString().substring(2, 7)),
                   const SizedBox(width: 4),
                   InkWell(
-                    onTap: Navigator.of(context).maybePop,
+                    onTap: () => popDialog(context),
                     child: Padding(
                       padding: const EdgeInsets.all(4),
                       child: Icon(
@@ -271,12 +296,20 @@ class _VideoGestureState extends State<VideoGesture>
     vsync: this,
     duration: const Duration(milliseconds: 400),
   );
-  late final Animation<double> fadeAnimation = CurvedAnimation(
+  late final CurvedAnimation fadeAnimation = CurvedAnimation(
     parent: animationController,
     curve: Curves.easeInOut,
   );
   int combo = 0;
   Timer? comboReset;
+
+  @override
+  void dispose() {
+    comboReset?.cancel();
+    fadeAnimation.dispose();
+    animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -301,8 +334,12 @@ class _VideoGestureState extends State<VideoGesture>
           const Duration(milliseconds: 900),
           () => setState(() => combo = 0),
         );
-        await animationController.forward();
-        await animationController.reverse();
+        try {
+          await animationController.forward().orCancel;
+          await animationController.reverse().orCancel;
+        } on TickerCanceled {
+          // the widget was unmounted mid-animation
+        }
       },
       child: FadeTransition(
         opacity: fadeAnimation,
@@ -314,7 +351,9 @@ class _VideoGestureState extends State<VideoGesture>
                 color: Colors.white,
               ),
               title: Text(
-                '${videoSeekStep.inSeconds * combo} seconds',
+                AppLocalizations.of(
+                  context,
+                ).videoSeekSeconds(videoSeekStep.inSeconds * combo),
                 style: const TextStyle(color: Colors.white),
               ),
             ),

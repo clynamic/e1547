@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
@@ -14,16 +15,22 @@ Future<void> loadingNotification<T>({
   Duration? timeout,
   Widget? icon,
 }) async {
-  String getStatus(LoadingNotificationStatus status, int progress) {
+  // Resolved once up front, contexts must not cross async gaps.
+  AppLocalizations l10n = AppLocalizations.of(context);
+  String getStatus(
+    AppLocalizations l10n,
+    LoadingNotificationStatus status,
+    int progress,
+  ) {
     return switch (status) {
       LoadingNotificationStatus.loading =>
         onProgress?.call(items, progress) ??
-            'Item ${progress + 1}/${items.length}',
+            l10n.itemProgress(progress + 1, items.length),
       LoadingNotificationStatus.cancelled =>
-        onCancel?.call(items, progress) ?? 'Cancelled task',
+        onCancel?.call(items, progress) ?? l10n.taskCancelled,
       LoadingNotificationStatus.failed =>
-        onFailure?.call(items, progress) ?? 'Failed at Item $progress',
-      LoadingNotificationStatus.done => onDone?.call(items) ?? 'Done',
+        onFailure?.call(items, progress) ?? l10n.taskFailedAt(progress),
+      LoadingNotificationStatus.done => onDone?.call(items) ?? l10n.taskDone,
     };
   }
 
@@ -54,14 +61,15 @@ Future<void> loadingNotification<T>({
       content: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8),
         child: LoadingNotification(
-          messageBuilder: (context, value) => Text(getStatus(status, value)),
+          messageBuilder: (context, value) =>
+              Text(getStatus(l10n, status, value)),
           max: items.length,
           progress: progress,
           animationDuration: timeout,
         ),
       ),
       action: SnackBarAction(
-        label: 'CANCEL',
+        label: l10n.actionCancel,
         onPressed: () => status = LoadingNotificationStatus.cancelled,
       ),
       duration: const Duration(days: 1),
@@ -96,7 +104,7 @@ Future<void> loadingNotification<T>({
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Icon(getStatusIcon(status), color: iconColor),
           ),
-          Flexible(child: Text(getStatus(status, progress.value))),
+          Flexible(child: Text(getStatus(l10n, status, progress.value))),
         ],
       ),
       padding: const EdgeInsets.all(8),

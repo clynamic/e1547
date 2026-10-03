@@ -1,0 +1,10 @@
+### Added
+- simplified and traditional chinese translations of the blacklist editor, search filters and most remaining interface pages
+- regression tests for the follow sync blacklist filtering
+
+### Changed
+- extended the memory friendly default video resolution tier to ios devices
+
+### Fixed
+- history and user date headers not following the app language
+- the wrong subject in the comment report failure message

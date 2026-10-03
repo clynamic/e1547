@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:e1547/l10n/app_localizations.dart';
+import 'package:e1547/settings/data/language.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:media_scanner/media_scanner.dart';
@@ -25,8 +27,12 @@ abstract final class FileDownloader {
       );
       return dir?.uri;
     } else {
+      // Loads localizations from the stored language preference, since
+      // the download stack has no BuildContext of its own.
+      final AppLocalizations localizations =
+          await loadPreferenceLocalizations();
       return FilePicker.platform.getDirectoryPath(
-        dialogTitle: 'Choose a folder',
+        dialogTitle: localizations.downloadChooseFolder,
         initialDirectory: initial,
       );
     }
@@ -118,7 +124,14 @@ abstract final class FileDownloader {
         final targetFile = File(
           join(directoryPath, fileName ?? basename(file.path)),
         );
-        await targetFile.writeAsBytes(await file.readAsBytes());
+        // Copy streams in chunks instead of buffering the whole file; a
+        // same-file copy must stay a no-op, though.
+        final bool sameFile =
+            targetFile.existsSync() &&
+            await file.resolveSymbolicLinks() ==
+                await targetFile.resolveSymbolicLinks();
+        if (sameFile) return;
+        await file.copy(targetFile.path);
       }
     } on Exception catch (e) {
       throw FileDownloadException.from(e);

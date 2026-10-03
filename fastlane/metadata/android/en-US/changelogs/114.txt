@@ -1,0 +1,43 @@
+### Added
+- a system theme that follows the platform dark mode
+- a language setting with full interface translations into simplified and traditional chinese, japanese and russian
+- a language selection step to onboarding
+- more search filters to the posts filter panel: file type, uploader, width, height, tag count and an oldest-first order
+- metatag autocomplete to search inputs, suggesting values for special search terms like order:rank
+- cursor pagination to post searches sorted by recency, keeping browsing stable while new posts arrive
+- a page footer with page and post counts and page jumping to post lists and the follow timeline
+- an offline state to post lists, plus a banner showing cached data while offline
+- undo snackbars for deleted history entries and blacklist entries
+- filtering of blacklisted posts out of follow previews
+- a receive timeout to api and update requests
+### Changed
+- database exports no longer contain saved logins; database imports strip saved logins, reject files from newer app versions, check for missing app tables, and warn about accounts on unexpected hosts
+- the database and its sidecar files are excluded from Android cloud backups and iOS/iCloud backups
+- the cookie capture webview only navigates to its own host; off-site links and non-http schemes are blocked
+- the posts filter panel applies its changes debounced, so typing an uploader name no longer refetches on every keystroke
+- desktop downloads now copy files in chunks instead of buffering them entirely in memory
+- pointed update checks and repository links at this fork
+- tiered the in-memory image cache and capped fullscreen image decoding on android and ios, lowering memory use
+- lowered the default video resolution on mobile devices, it can be raised again in the settings
+- reduced the file cache from 2000 to 500 files, removing the oldest files once after updating
+- excluded x86\_64 from the universal apk, shrinking it from 137 MB to about 87 MB
+- post searches with non-id orderings now stop at e621's page limit instead of failing with a server error
+### Fixed
+- buttons repeating their action or running twice when tapped in quick succession, including the bookmark, follow and login buttons and dialog buttons
+- dialog buttons dismissing the page behind them
+- canceled tasks being revived when their controller was disposed, and task queue races when switching accounts during a download
+- canceled downloads still saving their file to the gallery
+- a crash when leaving a video while its double tap seek animation was still playing, and the video bar freezing on the previous video after the player was replaced
+- the fullscreen video exit dismissing the page behind it when double tapped
+- the blacklist entry undo rolling back later deletions
+- videos creating endless players when swiping through many of them, and cache crashes on devices with low storage
+- the home app bar logo sitting left of the screen center
+- manually typed metatag filters with repeated tokens (like several -type: exclusions) being collapsed when editing any other filter
+- a crash when tapping a stale tag autocomplete suggestion
+- the follow timeline resetting its search when its panel rebuilt
+- empty searches showing a paging footer
+- the tag count filter slider stepping by 10 instead of 5
+- detail page, history and user date headers not following the app language
+- the video seek overlay not following the app language
+- the wrong subject in the comment report failure message, and vote failure messages on timeline tiles
+- translation wording of the uploader filter label, the database export notice and the follow notification counts

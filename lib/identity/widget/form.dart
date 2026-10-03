@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
 import 'package:e1547/identity/identity.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
@@ -65,6 +66,10 @@ class _AccountFormState extends State<AccountForm> {
   void submit() {
     if (!formKey.currentState!.validate()) return;
     if (withAuth == null) return;
+    // A double tap would stack a second loading dialog on the first one.
+    if (ModalRoute.of(context)?.isCurrent == false) return;
+    // Resolved up front, contexts must not cross async gaps.
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -75,8 +80,8 @@ class _AccountFormState extends State<AccountForm> {
         apikey: withAuth! ? apikeyController.text : null,
         activate: !isEditing,
         onError: (value) => setState(() {
-          value ??= 'Check your network connection and login details';
-          error = 'Failed to log in. \n$value';
+          String reason = value ?? l10n.identityLoginCheckDetails;
+          error = l10n.identityLoginFailed(reason);
         }),
         onDone: widget.onSubmitted,
       ),
@@ -95,7 +100,7 @@ class _AccountFormState extends State<AccountForm> {
             alignment: Alignment.centerLeft,
             child: TextButton(
               onPressed: () => launch(apiKeysUrl),
-              child: const Text('Where do I find my API key?'),
+              child: Text(AppLocalizations.of(context).identityApikeyHelp),
             ),
           );
         }
@@ -104,7 +109,7 @@ class _AccountFormState extends State<AccountForm> {
             alignment: Alignment.centerLeft,
             child: TextButton(
               onPressed: () => launch(registrationUrl),
-              child: const Text('Don\'t have an account? Sign up here'),
+              child: Text(AppLocalizations.of(context).identitySignupPrompt),
             ),
           );
         }
@@ -125,7 +130,7 @@ class _AccountFormState extends State<AccountForm> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Text(
-              'The site is where your posts and account live.',
+              AppLocalizations.of(context).identityHostHint,
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
@@ -194,6 +199,7 @@ class _AccountFormState extends State<AccountForm> {
                         apikeyController,
                       ]),
                       builder: (context, _) {
+                        final l10n = AppLocalizations.of(context);
                         Widget child = Padding(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           child: Row(
@@ -202,10 +208,10 @@ class _AccountFormState extends State<AccountForm> {
                             children: [
                               Text(
                                 isEditing
-                                    ? 'Save'
+                                    ? l10n.actionSave
                                     : (withAuth == true
-                                          ? 'Log in'
-                                          : 'Browse anonymously'),
+                                          ? l10n.identityLogin
+                                          : l10n.identityBrowseAnonymously),
                               ),
                               if (!isEditing) ...[
                                 const SizedBox(width: 8),
@@ -276,8 +282,16 @@ class _AuthModeSelector extends StatelessWidget {
       ),
       child: Row(
         children: [
-          segment('Sign in', withAuth == true, () => onChanged(true)),
-          segment('Guest', withAuth == false, () => onChanged(false)),
+          segment(
+            AppLocalizations.of(context).identitySignIn,
+            withAuth == true,
+            () => onChanged(true),
+          ),
+          segment(
+            AppLocalizations.of(context).identityGuest,
+            withAuth == false,
+            () => onChanged(false),
+          ),
         ],
       ),
     );

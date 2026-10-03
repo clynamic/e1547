@@ -1,4 +1,5 @@
 import 'package:e1547/shared/shared.dart';
+import 'package:e1547/tag/tag.dart';
 import 'package:flutter/material.dart';
 
 @immutable
@@ -287,13 +288,19 @@ class FilterTagState<T extends FilterTag> {
   const FilterTagState({required this.config, required this.filter});
 
   static QueryMap _setOrRemove(QueryMap tags, String key, String? value) {
-    tags = Map.of(tags);
+    // A plain map copy collapses repeated tokens, like several "-type:webm"
+    // exclusions, into their first value; copying a TagMap through its
+    // string keeps every entry. Wrapped filters hand over plain maps,
+    // which are keyed and keep no duplicates to lose.
+    final QueryMap copy = tags is TagMap
+        ? TagMap(tags.toString())
+        : Map.of(tags);
     if (value == null) {
-      tags.remove(key);
+      copy.remove(key);
     } else {
-      tags[key] = value;
+      copy[key] = value;
     }
-    return tags;
+    return copy;
   }
 
   final FilterConfigState config;

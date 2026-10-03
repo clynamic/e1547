@@ -1,4 +1,5 @@
 import 'package:e1547/client/client.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/user/user.dart';
@@ -25,6 +26,7 @@ class UserLoadingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final users = context.watch<Client>().users;
     final id = this.id;
+    final l10n = AppLocalizations.of(context);
     return QueryBuilder(
       query: id != null
           ? users.useGet(id: id)
@@ -36,12 +38,12 @@ class UserLoadingPage extends StatelessWidget {
         loadingBuilder: (context, child) => Scaffold(
           appBar: AppBar(
             leading: const CloseButton(),
-            title: Text(id != null ? 'User #$id' : 'User $name'),
+            title: Text(l10n.userTitle(id != null ? '#$id' : name!)),
           ),
           body: child(context),
         ),
-        onError: const Text('Failed to load user'),
-        onEmpty: const Text('User not found'),
+        onError: Text(l10n.failedToLoadUser),
+        onEmpty: Text(l10n.userNotFound),
         child: (context) =>
             UserPage(user: state.data!, initialPage: initalPage),
       ),

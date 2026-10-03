@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:e1547/app/app.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/foundation.dart';
@@ -23,6 +25,14 @@ class Settings extends NotifiedSettings {
     key: 'theme',
     initialValue: AppTheme.values.first,
     values: AppTheme.values,
+  );
+
+  /// The app language, stored as a locale string.
+  ///
+  /// A null value follows the system language.
+  late final ValueNotifier<String?> language = createSetting<String?>(
+    key: 'language',
+    initialValue: null,
   );
 
   late final ValueNotifier<int> tileSize = createSetting(
@@ -57,7 +67,7 @@ class Settings extends NotifiedSettings {
   );
   late final ValueNotifier<VideoResolution> videoResolution = createEnumSetting(
     key: 'videoResolution',
-    initialValue: VideoResolution.source,
+    initialValue: _defaultVideoResolution(),
     values: VideoResolution.values,
   );
 
@@ -91,4 +101,25 @@ class Settings extends NotifiedSettings {
     key: 'showDev',
     initialValue: false,
   );
+}
+
+// Decoding source quality videos can push low end Android devices,
+// especially 32 bit ones, over their memory limits. iOS kills equally
+// greedy apps through Jetsam, so its 64 bit devices get the same tier as
+// Android's. Such devices get a lower default; users can still raise it in
+// the settings. Intel iOS simulators (iosX64) are a development-only
+// scenario on desktop-class hardware and keep the source default.
+VideoResolution _defaultVideoResolution() {
+  switch (Abi.current()) {
+    case Abi.androidArm:
+    case Abi.androidIA32:
+      return VideoResolution.standard;
+    case Abi.androidArm64:
+    case Abi.androidX64:
+    case Abi.androidRiscv64:
+    case Abi.iosArm64:
+      return VideoResolution.high;
+    default:
+      return VideoResolution.source;
+  }
 }

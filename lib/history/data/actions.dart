@@ -1,6 +1,7 @@
 import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
 import 'package:e1547/history/history.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
 import 'package:flutter/widgets.dart';
@@ -17,6 +18,7 @@ extension Identification on History {
   }
 
   String getName(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     Link? parsed = const E621LinkParser().parse(link);
     LinkType? type = parsed?.type;
     if (parsed == null || type == null) {
@@ -37,31 +39,31 @@ extension Identification on History {
       return title!;
     }
 
-    if (parsed.id case final id when id is String) {
+    if (parsed.id case final String id) {
       switch (type) {
         case LinkType.user:
-          return '$id - User';
+          return l10n.historyLinkUserByName(id);
         case LinkType.wiki:
-          return '$id - Wiki';
+          return l10n.historyLinkWikiByName(id);
         default:
           break;
       }
     }
 
-    if (parsed.id case final id when id is int) {
+    if (parsed.id case final int id) {
       switch (type) {
         case LinkType.post:
-          return 'Post #$id';
+          return l10n.historyLinkPost(id);
         case LinkType.pool:
-          return 'Pool #$id';
+          return l10n.poolLink(id);
         case LinkType.user:
-          return 'User #$id';
+          return l10n.historyLinkUser(id);
         case LinkType.wiki:
-          return 'Wiki #$id';
+          return l10n.historyLinkWiki(id);
         case LinkType.topic:
-          return 'Topic #$id';
+          return l10n.topicLink(id);
         case LinkType.reply:
-          return 'Reply #$id';
+          return l10n.replyTitle(id);
       }
     }
 
@@ -72,38 +74,56 @@ extension Identification on History {
           String? username = context.read<Client>().identity.username;
           if (username != null &&
               favRegex(username).hasMatch(search['tags'] ?? '')) {
-            return 'Favorites';
+            return l10n.navFavorites;
           }
           if (search['tags'] == 'order:rank') {
-            return 'Hot posts';
+            return l10n.historyHotPosts;
           }
-          return 'Posts - ${tagToName(search['tags'] ?? '')}';
+          return l10n.historySearchQuery(
+            l10n.postsTitle,
+            tagToName(search['tags'] ?? ''),
+          );
         case LinkType.pool:
-          return 'Pools - ${search['search[name_matches]'] ?? ''}';
+          return l10n.historySearchQuery(
+            l10n.navPools,
+            search['search[name_matches]'] ?? '',
+          );
         case LinkType.user:
-          return 'Users - ${search['search[name_matches]'] ?? ''}';
+          return l10n.historySearchQuery(
+            l10n.historyUsers,
+            search['search[name_matches]'] ?? '',
+          );
         case LinkType.wiki:
-          return 'Wikis - ${search['search[title]'] ?? ''}';
+          return l10n.historySearchQuery(
+            l10n.historyWikis,
+            search['search[title]'] ?? '',
+          );
         case LinkType.topic:
-          return 'Topics - ${search['search[title_matches]'] ?? ''}';
+          return l10n.historySearchQuery(
+            l10n.topicsTitle,
+            search['search[title_matches]'] ?? '',
+          );
         case LinkType.reply:
-          return 'Replies - ${search['search[topic_title_matches]'] ?? ''}';
+          return l10n.historySearchQuery(
+            l10n.repliesTitle,
+            search['search[topic_title_matches]'] ?? '',
+          );
       }
     }
 
     switch (type) {
       case LinkType.post:
-        return 'Posts';
+        return l10n.postsTitle;
       case LinkType.pool:
-        return 'Pools';
+        return l10n.navPools;
       case LinkType.user:
-        return 'Users';
+        return l10n.historyUsers;
       case LinkType.wiki:
-        return 'Wikis';
+        return l10n.historyWikis;
       case LinkType.topic:
-        return 'Topics';
+        return l10n.topicsTitle;
       case LinkType.reply:
-        return 'Replies';
+        return l10n.repliesTitle;
     }
   }
 }

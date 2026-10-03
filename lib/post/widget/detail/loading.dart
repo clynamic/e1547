@@ -1,4 +1,5 @@
 import 'package:e1547/client/client.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
@@ -18,8 +19,8 @@ class PostLoadingPage extends StatelessWidget {
         isLoading: state.isLoading,
         isError: state.isError,
         isEmpty: state.data == null,
-        onError: const Text('Failed to load post'),
-        onEmpty: const Text('Post not found'),
+        onError: Text(AppLocalizations.of(context).failedToLoadPost),
+        onEmpty: Text(AppLocalizations.of(context).postNotFound),
         child: (context) => PostDetail(post: state.data!),
       ),
     );

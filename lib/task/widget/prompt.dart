@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/task/task.dart';
 import 'package:flutter/material.dart';
@@ -59,6 +60,7 @@ class _GlobalActionsBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final bool hasActive = layoutData.items.any((t) => t.status.isActive);
     final bool hasDone = layoutData.items.any(
       (t) =>
@@ -73,7 +75,7 @@ class _GlobalActionsBar extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Text(
-                'Tasks',
+                l10n.navTasks,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
@@ -81,13 +83,13 @@ class _GlobalActionsBar extends StatelessWidget {
             if (hasActive)
               ActionButton(
                 icon: const Icon(Icons.block),
-                label: const Text('Cancel all'),
+                label: Text(l10n.taskCancelAll),
                 onTap: controller.cancelAll,
               ),
             if (hasDone)
               ActionButton(
                 icon: const Icon(Icons.delete_sweep),
-                label: const Text('Clear done'),
+                label: Text(l10n.taskClearDone),
                 onTap: controller.clearDone,
               ),
           ],
@@ -109,6 +111,7 @@ class _SelectionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final Set<Task> selected = layoutData.selections;
     return SizedBox(
       height: 56,
@@ -117,21 +120,21 @@ class _SelectionBar extends StatelessWidget {
         child: Row(
           children: [
             IconButton(
-              tooltip: 'clear selection',
+              tooltip: l10n.taskClearSelection,
               icon: const Icon(Icons.close),
               onPressed: layoutData.clear,
             ),
             Text(
-              '${selected.length} selected',
+              l10n.taskSelectionCount(selected.length),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const Spacer(),
             IconButton(
-              tooltip: 'select all',
+              tooltip: l10n.actionSelectAll,
               icon: const Icon(Icons.select_all),
               onPressed: layoutData.selectAll,
             ),
-            ...taskBulkActions(controller, layoutData),
+            ...taskBulkActions(context, controller, layoutData),
           ],
         ),
       ),

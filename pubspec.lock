@@ -173,7 +173,7 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/cached_query"
-      ref: main
+      ref: "5d63291bc9ca14c74c202b641c5683e62c654135"
       resolved-ref: "5d63291bc9ca14c74c202b641c5683e62c654135"
       url: "https://github.com/clragon/cached_query.git"
     source: git
@@ -182,7 +182,7 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/cached_query_flutter"
-      ref: main
+      ref: "5d63291bc9ca14c74c202b641c5683e62c654135"
       resolved-ref: "5d63291bc9ca14c74c202b641c5683e62c654135"
       url: "https://github.com/clragon/cached_query.git"
     source: git
@@ -1200,7 +1200,7 @@ packages:
     source: hosted
     version: "2.2.1"
   path_provider_platform_interface:
-    dependency: "direct dev"
+    dependency: transitive
     description:
       name: path_provider_platform_interface
       sha256: "88f5779f72ba699763fa3a3b06aa4bf6de76c8e5de842cf6f29e2e06476c2334"

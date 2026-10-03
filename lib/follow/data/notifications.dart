@@ -9,7 +9,9 @@ import 'package:e1547/client/client.dart';
 import 'package:e1547/files/files.dart';
 import 'package:e1547/follow/follow.dart';
 import 'package:e1547/identity/identity.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/logs/logs.dart';
+import 'package:e1547/settings/data/language.dart';
 import 'package:e1547/traits/traits.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
@@ -119,6 +121,29 @@ Future<void> updateFollowNotifications({
     }
   }
 
+  // Loads localizations from the stored language preference; this runs
+  // without a BuildContext, since it may run in a background isolate.
+  //
+  // This is also what keeps the notification channel's name and description
+  // localized: Android only allows changing a channel's name and description
+  // after creation, so re-registering it renames the channel for existing
+  // users after they change the app language.
+  final AppLocalizations localizations = await loadPreferenceLocalizations();
+
+  if (Platform.isAndroid) {
+    await notifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
+        ?.createNotificationChannel(
+          AndroidNotificationChannel(
+            'follows',
+            localizations.followChannelName,
+            description: localizations.followChannelDescription,
+          ),
+        );
+  }
+
   for (final MapEntry(key: follow, value: unseen) in updates.entries) {
     String? thumbnail = follow.thumbnail;
     String? picture;
@@ -142,13 +167,11 @@ Future<void> updateFollowNotifications({
 
     NotificationDetails notificationDetails = _createNotificationDetails(
       thumbnailPath: picture,
+      localizations: localizations,
     );
 
     String title = follow.name;
-    String description = 'has $unseen new posts!';
-    if (unseen == 1) {
-      description = 'has a new post!';
-    }
+    String description = localizations.followNotificationBody(unseen);
 
     await notifications.show(
       id: follow.id,
@@ -176,10 +199,11 @@ Future<void> updateFollowNotifications({
       if (grouped.length > 3) {
         NotificationDetails notificationDetails = _createNotificationDetails(
           summary: true,
+          localizations: localizations,
         );
         await notifications.show(
           id: followsBackgroundTaskKey.hashCode,
-          title: 'New posts!',
+          title: localizations.followNotificationSummary,
           notificationDetails: notificationDetails,
           payload: json.encode(
             NotificationPayload(identity: identity, type: 'follow'),
@@ -204,12 +228,13 @@ Future<void> updateFollowNotifications({
 NotificationDetails _createNotificationDetails({
   String? thumbnailPath,
   bool? summary,
+  required AppLocalizations localizations,
 }) {
   return NotificationDetails(
     android: AndroidNotificationDetails(
       'follows',
-      'Followed Tags',
-      channelDescription: 'Notifications for tags you are following',
+      localizations.followChannelName,
+      channelDescription: localizations.followChannelDescription,
       largeIcon: thumbnailPath != null
           ? FilePathAndroidBitmap(thumbnailPath)
           : null,

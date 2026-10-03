@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:e1547/l10n/app_localizations.dart';
+import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -267,7 +269,7 @@ class _RangeDialogState extends State<RangeDialog> {
   late RangeDialogMode mode =
       widget.initialMode ??
       RangeDialogMode.fromComparison(widget.value?.comparison);
-  String? errorMessage;
+  bool hasError = false;
 
   @override
   void dispose() {
@@ -281,10 +283,11 @@ class _RangeDialogState extends State<RangeDialog> {
       if (output.isNotEmpty) {
         range = NumberRange.parse(output);
       }
-      widget.onSubmit(range);
-      Navigator.of(context).maybePop();
+      if (popDialog(context)) {
+        widget.onSubmit(range);
+      }
     } on FormatException {
-      setState(() => errorMessage = 'Invalid format');
+      setState(() => hasError = true);
     }
   }
 
@@ -410,11 +413,13 @@ class _RangeDialogState extends State<RangeDialog> {
                     textAlign: TextAlign.center,
                     decoration: InputDecoration(
                       border: InputBorder.none,
-                      errorText: errorMessage,
+                      errorText: hasError
+                          ? AppLocalizations.of(context).rangeInvalidFormat
+                          : null,
                     ),
                     controller: controller,
                     onChanged: (value) => setState(() {
-                      errorMessage = null;
+                      hasError = false;
                       mode = getCurrentMode();
                     }),
                     onSubmitted: submit,
@@ -494,11 +499,11 @@ class _RangeDialogState extends State<RangeDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: Navigator.of(context).maybePop,
-          child: const Text('CANCEL'),
+          onPressed: () => popDialog(context),
+          child: Text(AppLocalizations.of(context).actionCancel),
         ),
         TextButton(
-          child: const Text('OK'),
+          child: Text(AppLocalizations.of(context).actionOk),
           onPressed: () => submit(controller.text),
         ),
       ],

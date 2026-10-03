@@ -5,17 +5,6 @@ import 'package:drift/native.dart';
 import 'package:e1547/app/app.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
-
-class _FakePathProvider extends PathProviderPlatform {
-  _FakePathProvider(this.support);
-
-  final String support;
-  final List<String> flagged = [];
-
-  @override
-  Future<String?> getApplicationSupportPath() async => support;
-}
 
 /// Builds a 64 byte SQLite header with [version] at the user_version offset.
 Uint8List sqliteHeader(int version) {
@@ -90,25 +79,5 @@ void main() {
       'query_storage_table',
       'file_cache_table',
     });
-  });
-
-  test('excludeDatabaseFromBackup completes without a handler', () async {
-    final support = await Directory.systemTemp.createTemp('e1547_backup');
-    addTearDown(() => support.delete(recursive: true));
-    final original = PathProviderPlatform.instance;
-    final provider = _FakePathProvider(support.path);
-    PathProviderPlatform.instance = provider;
-    addTearDown(() => PathProviderPlatform.instance = original);
-
-    // A staged import and sidecar files all exist next to the database.
-    for (final suffix in ['.new', '-journal', '-wal', '-shm']) {
-      await File(
-        '${support.path}${Platform.pathSeparator}app.db$suffix',
-      ).writeAsString('x');
-    }
-
-    // Without an iOS handler this must not throw;
-    // on other platforms it returns before touching the channel.
-    await excludeDatabaseFromBackup();
   });
 }

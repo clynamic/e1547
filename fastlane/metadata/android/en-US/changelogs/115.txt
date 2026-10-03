@@ -1,0 +1,9 @@
+### Added
+- german and spanish translations of the whole interface
+- a chinese description for common tags in the tag prompt, served offline without a wiki request
+### Changed
+- the japanese and russian translations received a native quality review
+### Fixed
+- canceling a download now aborts its network transfer, instead of letting it finish invisibly in the background
+- download tasks enqueued while another download is running start immediately again; the queue had collapsed to a single lane whenever a worker was busy
+- unsupported system languages fall back to english again; adding german had made the fallback pick the alphabetically first language

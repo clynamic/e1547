@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/tag/tag.dart';
 import 'package:e1547/user/user.dart';
@@ -32,7 +33,9 @@ class ArtistDisplay extends StatelessWidget {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         duration: const Duration(seconds: 1),
-                        content: Text('Copied post id #${post.id}'),
+                        content: Text(
+                          AppLocalizations.of(context).postCopiedId(post.id),
+                        ),
                       ),
                     );
                   },
@@ -111,7 +114,7 @@ class ArtistName extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.all(8),
         child: Text(
-          'no artist',
+          AppLocalizations.of(context).detailNoArtist,
           style: TextStyle(
             color: Theme.of(context).textTheme.titleSmall!.color,
             fontStyle: FontStyle.italic,

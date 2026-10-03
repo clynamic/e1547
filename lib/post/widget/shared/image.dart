@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io' show Platform;
+import 'dart:math' show sqrt;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e1547/post/post.dart';
@@ -19,6 +21,7 @@ class PostImageWidget extends StatelessWidget {
     this.fit = BoxFit.contain,
     this.cacheSize,
     this.lowResCacheSize,
+    this.maxPixels,
   });
 
   /// The post which provides the image.
@@ -42,6 +45,12 @@ class PostImageWidget extends StatelessWidget {
   /// The cache size of a previously loaded lower resolution image.
   /// Used to bridge the gap between loading a downsized image and the full sized one.
   final int? lowResCacheSize;
+
+  /// The maximum number of pixels this image may decode to.
+  ///
+  /// Constrains the total decoded size of images whose extreme aspect
+  /// ratios would defeat a one dimensional [cacheSize] limit.
+  final int? maxPixels;
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +103,7 @@ class PostImageWidget extends StatelessWidget {
                 showProgress: showProgress,
                 fit: fit,
                 cacheSize: cacheSize,
+                maxPixels: maxPixels,
                 progressIndicatorBuilder: (context, url, progress) =>
                     ImageProgressWrapper(
                       progress: progress.progress,
@@ -124,6 +134,7 @@ class RawPostImageWidget extends StatelessWidget {
     this.stacked = false,
     this.showProgress = true,
     this.cacheSize,
+    this.maxPixels,
   });
 
   final Post post;
@@ -133,6 +144,9 @@ class RawPostImageWidget extends StatelessWidget {
   final bool stacked;
   final bool showProgress;
   final int? cacheSize;
+
+  /// The maximum number of pixels this image may decode to.
+  final int? maxPixels;
 
   @override
   Widget build(BuildContext context) {
@@ -167,10 +181,30 @@ class RawPostImageWidget extends StatelessWidget {
     int? memCacheWidth;
     int? memCacheHeight;
 
-    if (aspectRatio > 1) {
-      memCacheHeight = cacheSize;
-    } else {
-      memCacheWidth = cacheSize;
+    int? cacheSize = this.cacheSize;
+    int? maxPixels = this.maxPixels;
+    if (cacheSize != null || maxPixels != null) {
+      double scale = 1;
+      if (cacheSize != null) {
+        if (aspectRatio > 1) {
+          scale = cacheSize / dimensions.height;
+        } else {
+          scale = cacheSize / dimensions.width;
+        }
+      }
+      if (maxPixels != null) {
+        double pixelScale = sqrt(
+          maxPixels / (dimensions.width * dimensions.height),
+        );
+        if (pixelScale < scale) {
+          scale = pixelScale;
+        }
+      }
+      // Never upscale, mirroring ResizeImage's default.
+      if (scale < 1) {
+        memCacheWidth = (dimensions.width * scale).round();
+        memCacheHeight = (dimensions.height * scale).round();
+      }
     }
 
     return CachedNetworkImage(
@@ -258,6 +292,28 @@ class _ImageProgressWrapperState extends State<ImageProgressWrapper> {
 /// Shows a centered icon.
 Widget defaultErrorBuilder(BuildContext context, String url, dynamic error) =>
     const Center(child: Icon(Icons.warning_amber_outlined));
+
+/// The cache size of images shown in fullscreen views on mobile.
+///
+/// Fullscreen images are e621 originals, which can exceed 4000px. Decoding
+/// them at full size fills the image cache of low end devices within a
+/// few posts, so their decoded size is capped. 2048px covers the physical
+/// resolution of the 1080p screens such devices usually have. Other
+/// platforms keep the uncapped fullscreen originals.
+int? get fullscreenImageCacheSize =>
+    Platform.isAndroid || Platform.isIOS ? 2048 : null;
+
+/// The maximum number of pixels a decoded fullscreen image may occupy on
+/// mobile.
+///
+/// The one dimensional [fullscreenImageCacheSize] limit alone lets extreme
+/// aspect ratios decode to 25-30 MB, more than a 32 bit device's image
+/// cache is willing to hold, so such images are never cached and get
+/// redecoded whenever they scroll back into view. A pixel budget caps
+/// every fullscreen image equally. Other platforms keep the uncapped
+/// fullscreen originals.
+int? get fullscreenImageMaxPixels =>
+    Platform.isAndroid || Platform.isIOS ? 2048 * 2048 : null;
 
 class ImageCacheSize {
   /// Configures the cache size for images.

@@ -2,6 +2,7 @@ import 'package:drift/native.dart';
 import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
 import 'package:e1547/identity/identity.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
@@ -74,6 +75,10 @@ void main() {
         sqlite: sqlite,
       ),
     );
+    // The fake clock would otherwise leave dio's timeout timers pending
+    // on requests that are still in flight when the test ends.
+    client.dio.options.connectTimeout = null;
+    client.dio.options.receiveTimeout = null;
   });
 
   tearDown(() async {
@@ -98,6 +103,8 @@ void main() {
               ListenableProvider<FilterController<Post>>.value(value: filter),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(body: SingleChildScrollView(child: child)),
           ),
         ),

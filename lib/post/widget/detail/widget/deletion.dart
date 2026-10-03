@@ -1,5 +1,6 @@
 import 'package:e1547/client/client.dart';
 import 'package:e1547/flag/flag.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/markup/markup.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/shared/shared.dart';
@@ -31,9 +32,12 @@ class DeletionDisplay extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              child: Text('Deletion', style: TextStyle(fontSize: 16)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              child: Text(
+                AppLocalizations.of(context).detailDeletion,
+                style: const TextStyle(fontSize: 16),
+              ),
             ),
             Row(
               children: [

@@ -3,6 +3,7 @@ import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
 import 'package:e1547/follow/follow.dart';
 import 'package:e1547/identity/identity.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
@@ -60,6 +61,10 @@ void main() {
         sqlite: sqlite,
       ),
     );
+    // The fake clock would otherwise leave dio's timeout timers pending
+    // on requests that are still in flight when the test ends.
+    client.dio.options.connectTimeout = null;
+    client.dio.options.receiveTimeout = null;
   });
 
   tearDown(() async {
@@ -93,6 +98,8 @@ void main() {
             ),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: FilterControllerProvider<PostFilter, Post>.value(
               value: filter,
               child: ChangeNotifierProvider(
@@ -119,9 +126,17 @@ void main() {
 
     await visit(tester, 'tag_1');
 
-    final updated = await tester.runAsync(
-      () => client.follows.get(id: follow.id),
-    );
+    // The seen marker travels a chain of a landing request and a write,
+    // which a fixed window can cut short under the suite's load.
+    Follow? updated;
+    for (var i = 0; i < 10; i++) {
+      await tester.runAsync(() async {
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+      });
+      await tester.pump(const Duration(milliseconds: 200));
+      updated = await tester.runAsync(() => client.follows.get(id: follow.id));
+      if (updated!.unseen == 0) break;
+    }
     expect(updated!.unseen, 0);
     expect(updated.latest, 1042);
     expect(updated.thumbnail, isNotNull);

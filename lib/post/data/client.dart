@@ -27,8 +27,10 @@ class PostClient {
       .then(unwrapRailsArray)
       .then((response) => E621Post.fromJson(response.data));
 
+  /// [page] is either a 1-based page number or a `b<id>` cursor, which the
+  /// server serves with the posts before that id in descending id order.
   Future<List<Post>> page({
-    int? page,
+    Object? page,
     int? limit,
     QueryMap? query,
     CancelToken? cancelToken,
@@ -92,7 +94,10 @@ class PostClient {
     CancelToken? cancelToken,
   }) async {
     page ??= 1;
-    tags.removeWhere((e) => e.contains(' ') || e.contains(':'));
+    // The list is filtered through a copy: it belongs to the caller, and
+    // callers embed it in query keys, which an in-place edit would leave
+    // behind as a different key.
+    tags = tags.where((e) => !e.contains(' ') && !e.contains(':')).toList();
     if (tags.isEmpty) return [];
     int max = 40;
     int pages = (tags.length / max).ceil();
@@ -127,7 +132,7 @@ class PostClient {
   );
 
   Future<List<Post>> favorites({
-    int? page,
+    Object? page,
     int? limit,
     QueryMap? query,
     CancelToken? cancelToken,

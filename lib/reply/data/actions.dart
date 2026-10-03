@@ -1,4 +1,5 @@
 import 'package:e1547/client/client.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/markup/markup.dart';
 import 'package:e1547/reply/reply.dart';
 import 'package:e1547/shared/shared.dart';
@@ -28,11 +29,12 @@ Future<bool> writeReply({
   String? text,
   Reply? reply,
 }) async {
+  final l10n = AppLocalizations.of(context);
   bool sent = false;
   await Navigator.of(context).push(
     MaterialPageRoute(
       builder: (context) => DTextEditor(
-        title: Text('#$topicId reply'),
+        title: Text(l10n.replyEditorTitle(topicId)),
         content: text ?? (reply?.body),
         onSubmitted: (text) async {
           final messenger = ScaffoldMessenger.of(context);
@@ -45,13 +47,13 @@ Future<bool> writeReply({
                 await client.replies.useUpdate(id: reply.id).mutate(text);
               }
             } on ClientException {
-              return 'Failed to send reply!';
+              return l10n.replySendFailed;
             }
             sent = true;
             messenger.showSnackBar(
-              const SnackBar(
-                duration: Duration(seconds: 1),
-                content: Text('Reply sent!'),
+              SnackBar(
+                duration: const Duration(seconds: 1),
+                content: Text(l10n.replySent),
               ),
             );
           }

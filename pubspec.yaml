@@ -114,22 +114,22 @@ dev_dependencies:
   freezed: ^3.0.6
   json_serializable: ^6.9.5
 
-  path_provider_platform_interface: any
 dependency_overrides:
   # per call site shouldFetch, see clragon/cached_query
   cached_query:
     git:
       url: https://github.com/clragon/cached_query.git
-      ref: main
+      ref: 5d63291bc9ca14c74c202b641c5683e62c654135
       path: packages/cached_query
   cached_query_flutter:
     git:
       url: https://github.com/clragon/cached_query.git
-      ref: main
+      ref: 5d63291bc9ca14c74c202b641c5683e62c654135
       path: packages/cached_query_flutter
 
 flutter:
   uses-material-design: true
+  generate: true
   assets:
     - assets/icon/app/
     - assets/static/

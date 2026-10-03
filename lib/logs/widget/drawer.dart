@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/logs/logs.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
@@ -34,14 +35,15 @@ class LogsDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final LogLevel? recording = this.recording;
     final ValueSetter<bool>? onVerbose = this.onVerbose;
+    final l10n = AppLocalizations.of(context);
     return ContextDrawer(
-      title: const Text('Logs'),
+      title: Text(l10n.logsTitle),
       children: [
-        const Padding(
-          padding: EdgeInsets.only(left: 12),
+        Padding(
+          padding: const EdgeInsets.only(left: 12),
           child: SectionHeader(
             indent: SectionHeader.listTileIndent,
-            title: 'Levels',
+            title: l10n.logsLevels,
           ),
         ),
         for (final LogLevel level in LogLevel.values)
@@ -59,22 +61,22 @@ class LogsDrawer extends StatelessWidget {
               ),
             ),
         if (recording != null && onVerbose != null) ...[
-          const Padding(
-            padding: EdgeInsets.only(left: 12),
+          Padding(
+            padding: const EdgeInsets.only(left: 12),
             child: SectionHeader(
               indent: SectionHeader.listTileIndent,
-              title: 'Recording',
+              title: l10n.logsRecording,
             ),
           ),
           Padding(
             padding: const EdgeInsets.only(left: 16),
             child: SwitchListTile(
               secondary: const Icon(Icons.data_object),
-              title: const Text('Verbose'),
+              title: Text(l10n.logsVerbose),
               subtitle: Text(
                 verbose
-                    ? 'all levels recorded'
-                    : '${recording.name.pascalCase} and above',
+                    ? l10n.logsVerboseAll
+                    : l10n.logsVerboseMinimum(recording.name.pascalCase),
               ),
               value: verbose,
               onChanged: onVerbose,

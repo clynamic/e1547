@@ -9,6 +9,7 @@ import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
 import 'package:e1547/files/files.dart';
 import 'package:e1547/identity/identity.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/traits/traits.dart';
@@ -37,12 +38,18 @@ class IdentityClientProvider
             builder: (context) => SubValue<Future<void>>(
               create: () => client.activate(settings.identity.value),
               keys: [client],
-              builder: (context, future) => LoadingLayer(
-                future: future,
-                builder: (context, _) =>
-                    builder?.call(context, child) ?? child!,
-                errorToString: (error) => 'Failed to activate identity: $error',
-              ),
+              builder: (context, future) {
+                // This layer lives below the app's Localizations scope, so
+                // the error text can be resolved up front, before the future
+                // completes in a post frame callback.
+                final l10n = AppLocalizations.of(context);
+                return LoadingLayer(
+                  future: future,
+                  builder: (context, _) =>
+                      builder?.call(context, child) ?? child!,
+                  errorToString: (error) => l10n.identityActivateFailed(error),
+                );
+              },
             ),
           ),
           child: child,
@@ -73,12 +80,16 @@ class TraitsClientProvider
               SubValue<Future<void>>(
                 create: () => traits.activate(identities.identity.id),
                 keys: [traits, identities, identities.identity],
-                builder: (context, future) => LoadingLayer(
-                  future: future,
-                  builder: (context, _) =>
-                      builder?.call(context, child) ?? child!,
-                  errorToString: (error) => 'Failed to activate traits: $error',
-                ),
+                builder: (context, future) {
+                  // See the identity provider above for why this is safe.
+                  final l10n = AppLocalizations.of(context);
+                  return LoadingLayer(
+                    future: future,
+                    builder: (context, _) =>
+                        builder?.call(context, child) ?? child!,
+                    errorToString: (error) => l10n.traitsActivateFailed(error),
+                  );
+                },
               ),
           child: child,
         ),

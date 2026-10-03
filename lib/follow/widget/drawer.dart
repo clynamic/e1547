@@ -1,5 +1,6 @@
 import 'package:e1547/client/client.dart';
 import 'package:e1547/follow/follow.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
@@ -24,16 +25,18 @@ class FollowMarkReadTile extends StatelessWidget {
         return ListTile(
           enabled: unseenCount > 0,
           leading: Icon(unseenCount > 0 ? Icons.mark_email_read : Icons.drafts),
-          title: const Text('unseen posts'),
+          title: Text(AppLocalizations.of(context).followUnseenPosts),
           subtitle: unseenCount > 0
               ? TweenAnimationBuilder<int>(
                   tween: IntTween(begin: 0, end: unseenCount),
                   duration: defaultAnimationDuration,
                   builder: (context, value, child) {
-                    return Text('mark $value posts as seen');
+                    return Text(
+                      AppLocalizations.of(context).followMarkPostsSeen(value),
+                    );
                   },
                 )
-              : const Text('no unseen posts'),
+              : Text(AppLocalizations.of(context).followNoUnseenPosts),
           onTap: () {
             Scaffold.of(context).closeEndDrawer();
             client.follows.markAllSeen(null);
@@ -61,10 +64,10 @@ class FollowFilterReadTile extends StatelessWidget {
         secondary: Icon(
           filterUnseenFollows ? Icons.mark_email_unread : Icons.email,
         ),
-        title: const Text('show unseen first'),
+        title: Text(AppLocalizations.of(context).followShowUnseenFirst),
         subtitle: filterUnseenFollows
-            ? const Text('filtering for unseen')
-            : const Text('all posts shown'),
+            ? Text(AppLocalizations.of(context).followFilteringUnseen)
+            : Text(AppLocalizations.of(context).followAllPostsShown),
       ),
     );
   }
@@ -76,7 +79,7 @@ class FollowEditingTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: const Text('Edit'),
+      title: Text(AppLocalizations.of(context).menuEdit),
       leading: const Icon(Icons.edit),
       onTap: () {
         Scaffold.of(context).closeEndDrawer();
@@ -108,13 +111,16 @@ class FollowForceSyncTile extends StatelessWidget {
           builder: (context, progressSnapshot) => Column(
             children: [
               ListTile(
-                title: const Text('Force sync'),
+                title: Text(AppLocalizations.of(context).followForceSync),
                 leading: const Icon(Icons.sync),
                 subtitle: (sync?.completed ?? true)
-                    ? const Text('sync all follows')
+                    ? Text(AppLocalizations.of(context).followSyncAllFollows)
                     : Text(
-                        'syncing follows... '
-                        '${NumberFormat('0.#%').format(progressSnapshot.data ?? 0)}',
+                        AppLocalizations.of(context).followSyncingFollows(
+                          NumberFormat(
+                            '0.#%',
+                          ).format(progressSnapshot.data ?? 0),
+                        ),
                       ),
                 enabled: enabled,
                 onTap: () {

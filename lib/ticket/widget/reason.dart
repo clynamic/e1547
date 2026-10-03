@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/ticket/ticket.dart';
 import 'package:flutter/material.dart';
@@ -14,19 +15,20 @@ class ReportFormReason extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: defaultFormPadding,
       child: TextFormField(
         enabled: !isLoading,
         controller: controller,
-        decoration: const InputDecoration(
-          labelText: 'Reason',
-          border: OutlineInputBorder(),
+        decoration: InputDecoration(
+          labelText: l10n.reportReason,
+          border: const OutlineInputBorder(),
         ),
         maxLines: null,
         validator: (value) {
           if (value!.trim().isEmpty) {
-            return 'Reason cannot be empty';
+            return l10n.reportReasonRequired;
           }
           return null;
         },
@@ -84,6 +86,8 @@ class _ReasonReportScreenState extends State<ReasonReportScreen> {
                   ? null
                   : () async {
                       if (Form.of(context).validate()) {
+                        // Resolved up front, the context must not cross async gaps.
+                        final l10n = AppLocalizations.of(context);
                         setState(() {
                           isLoading = true;
                         });
@@ -103,7 +107,7 @@ class _ReasonReportScreenState extends State<ReasonReportScreen> {
                             SnackBar(
                               duration: const Duration(seconds: 1),
                               content: Text(
-                                widget.onSuccess ?? 'Submitted report',
+                                widget.onSuccess ?? l10n.reportSubmitted,
                               ),
                               behavior: SnackBarBehavior.floating,
                             ),
@@ -114,7 +118,7 @@ class _ReasonReportScreenState extends State<ReasonReportScreen> {
                             SnackBar(
                               duration: const Duration(seconds: 1),
                               content: Text(
-                                widget.onFailure ?? 'Failed to submit report',
+                                widget.onFailure ?? l10n.reportSubmitFailed,
                               ),
                             ),
                           );
@@ -149,7 +153,9 @@ class _ReasonReportScreenState extends State<ReasonReportScreen> {
                       ],
                     ),
                   ),
-                  const ReportFormHeader(title: Text('Report')),
+                  ReportFormHeader(
+                    title: Text(AppLocalizations.of(context).menuReport),
+                  ),
                   ReportFormReason(
                     controller: reasonController,
                     isLoading: isLoading,

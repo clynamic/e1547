@@ -141,7 +141,8 @@ Future<AppStorage> initializeAppStorage() async {
         config: const GlobalQueryConfig(
           staleDuration: Duration(minutes: 5),
           refetchOnResume: false,
-          refetchOnConnection: false,
+          // Leaving refetchOnConnection at its default (true), so queries
+          // with active listeners refetch when the network returns.
         ),
       ),
     sqlite: sqlite,

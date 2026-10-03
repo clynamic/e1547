@@ -60,9 +60,15 @@ class FollowServer with Disposable {
     Pool? pool,
     bool? seen,
   }) async {
-    final latest = posts == null || posts.isEmpty
+    // The background sync filters denied posts, but this foreground path
+    // used to write them straight into the follow preview, leaking
+    // blacklisted thumbnails into the subscription list (issue #189).
+    List<Post> allowed =
+        posts?.where((e) => !e.isDeniedBy(traits.value.denylist)).toList() ??
+        <Post>[];
+    final latest = allowed.isEmpty
         ? null
-        : posts.reduce((a, b) => a.id > b.id ? a : b);
+        : allowed.reduce((a, b) => a.id > b.id ? a : b);
     await ((repository.update(
       repository.followsTable,
     ))..where((tbl) => tbl.id.equals(id))).write(

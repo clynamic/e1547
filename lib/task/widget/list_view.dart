@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/task/task.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +29,18 @@ int _itemComparator(Task a, Task b) {
   return b.id.compareTo(a.id);
 }
 
+/// Task group names double as grouping keys.
+///
+/// This maps them to their localized display names.
+String localizedTaskGroupName(BuildContext context, String group) {
+  final l10n = AppLocalizations.of(context);
+  return switch (group) {
+    'active' => l10n.taskGroupActive,
+    'failed' => l10n.taskGroupFailed,
+    _ => l10n.taskDone,
+  };
+}
+
 class TasksListView extends StatelessWidget {
   const TasksListView({super.key});
 
@@ -41,6 +54,7 @@ class SliverTasksList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final TasksListController controller = context.watch<TasksListController>();
     final SelectionLayoutData<Task> layoutData = SelectionLayout.of<Task>(
       context,
@@ -53,12 +67,12 @@ class SliverTasksList extends StatelessWidget {
       itemComparator: _itemComparator,
       groupSeparatorBuilder: (value) => Padding(
         padding: const EdgeInsets.only(top: 8),
-        child: SectionHeader(title: value),
+        child: SectionHeader(title: localizedTaskGroupName(context, value)),
       ),
       builderDelegate: defaultPagedChildBuilderDelegate<Task>(
         onRetry: () {},
-        onEmpty: const Text('No tasks'),
-        onError: const Text('Failed to load tasks'),
+        onEmpty: Text(l10n.taskNoTasks),
+        onError: Text(l10n.taskFailedToLoadTasks),
         itemBuilder: (context, task, index) => TaskTile(
           task: task,
           controller: context.read<TasksController>(),

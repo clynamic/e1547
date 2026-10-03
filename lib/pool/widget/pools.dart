@@ -1,4 +1,5 @@
 import 'package:e1547/client/client.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
@@ -38,14 +39,14 @@ class _PoolsPageState extends State<PoolsPage> with RouterDrawerEntryWidget {
                       .whereType<Post>()
                       .toList();
               return AdaptiveScaffold(
-                appBar: const DefaultAppBar(
-                  title: Text('Pools'),
-                  actions: [ContextDrawerButton()],
+                appBar: DefaultAppBar(
+                  title: Text(AppLocalizations.of(context).navPools),
+                  actions: const [ContextDrawerButton()],
                 ),
                 floatingActionButton: const PoolsPageFab(),
                 drawer: const RouterDrawer(),
                 endDrawer: ContextDrawer(
-                  title: const Text('Pools'),
+                  title: Text(AppLocalizations.of(context).navPools),
                   children: [
                     const DrawerDenySwitch(),
                     DrawerTagCounter(posts: thumbnails, error: state.error),
@@ -95,8 +96,8 @@ class PoolGrid extends StatelessWidget {
               ),
             ),
           ),
-          onEmpty: const Text('No pools'),
-          onError: const Text('Failed to load pools'),
+          onEmpty: Text(AppLocalizations.of(context).poolEmpty),
+          onError: Text(AppLocalizations.of(context).poolFailedToLoadPools),
         ),
       ),
     );

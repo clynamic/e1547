@@ -87,6 +87,20 @@ flutter {
     source = "../.."
 }
 
+androidComponents {
+    onVariants(selector().withBuildType("release")) { variant ->
+        // AAR-provided native libraries (libmpv, cronet, sqlite) ignore
+        // flutter's --target-platform flag, and build type abi filters do
+        // not apply to split outputs. Excluding the paths from the native
+        // library merge drops the x86_64 copies from the release universal
+        // APK. No phone runs x86_64; debug builds stay unfiltered for
+        // emulator developers.
+        variant.packaging.jniLibs.excludes.addAll(
+            listOf("lib/x86_64/**", "**/lib/x86_64/**", "lib/x86/**")
+        )
+    }
+}
+
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }

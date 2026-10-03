@@ -50,7 +50,7 @@ class _PostFullscreenGalleryState extends State<PostFullscreenGallery>
           builder: (context, pageController) => ScaffoldFrame(
             child: GalleryButtons(
               controller: pageController,
-              child: PagedPageView<int, Post>(
+              child: PagedPageView<Object, Post>(
                 pageController: pageController,
                 state: state.paging,
                 fetchNextPage: query.getNextPage,

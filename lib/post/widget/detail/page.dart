@@ -31,7 +31,10 @@ class PostDetail extends StatelessWidget {
             } else {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => PostFullscreen(post: post),
+                  builder: (context) => ImageCacheSizeProvider(
+                    size: fullscreenImageCacheSize,
+                    child: PostFullscreen(post: post),
+                  ),
                 ),
               );
             }

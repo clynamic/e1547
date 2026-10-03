@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e1547/identity/data/client.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
@@ -84,7 +85,7 @@ class Donors extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(4),
           child: Text(
-            'Not on the list? contact us!',
+            AppLocalizations.of(context).aboutDonorsNotListed,
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ),

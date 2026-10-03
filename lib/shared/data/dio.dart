@@ -27,6 +27,32 @@ bool isCloudflareChallenge(Response? response) {
   return false;
 }
 
+/// Whether [error] looks like the device could not reach the network,
+/// as opposed to a server rejecting or failing a request.
+///
+/// Used to pick offline fallbacks over failure states in query UIs.
+bool isConnectionError(Object? error) => switch (error) {
+  DioException e when CancelToken.isCancel(e) => false,
+  DioException(:final type, :final error) => switch (type) {
+    DioExceptionType.connectionTimeout ||
+    DioExceptionType.sendTimeout ||
+    DioExceptionType.receiveTimeout ||
+    DioExceptionType.connectionError => true,
+    DioExceptionType.unknown =>
+      error is SocketException ||
+          // The native dio adapter surfaces platform http failures as unknown
+          // errors wrapping package:http's ClientException family
+          // (CronetClientException, NetworkClientException,
+          // NSErrorClientException, ...). That package is not a direct
+          // dependency, so the family is recognized by its stable
+          // toString format instead of its type.
+          error.toString().startsWith('ClientException:'),
+    _ => false,
+  },
+  SocketException() => true,
+  _ => false,
+};
+
 Future<bool> validateCall(Future<void> Function() call) async {
   try {
     await call();

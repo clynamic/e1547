@@ -99,10 +99,10 @@ class PostFilter extends FilterController<Post>
   }
 
   List<String> entriesFor(Post post) {
-    _evictStaleEntries();
+    final now = DateTime.now();
+    _evictStaleEntries(now);
 
     final cached = _filterCache[post.id];
-    final now = DateTime.now();
 
     if (cached == null || cached.hash != post.hashCode) {
       final deniers = post.getDeniers(client.traits.value.denylist).toList();
@@ -122,8 +122,17 @@ class PostFilter extends FilterController<Post>
     return cached.entries;
   }
 
-  void _evictStaleEntries() {
-    final cutoff = DateTime.now().subtract(const Duration(minutes: 1));
+  // Sweeping the whole cache on every lookup made every refresh O(N²) over
+  // the loaded posts; a throttled sweep keeps the same 60s entry lifetime.
+  static const Duration _sweepInterval = Duration(seconds: 15);
+  DateTime _lastSweep = DateTime.fromMillisecondsSinceEpoch(0);
+
+  void _evictStaleEntries(DateTime now) {
+    // A backwards clock only delays the next sweep; eviction never changes
+    // results, it only costs a recomputation.
+    if (now.difference(_lastSweep) < _sweepInterval) return;
+    _lastSweep = now;
+    final cutoff = now.subtract(const Duration(minutes: 1));
     _filterCache.removeWhere((_, entry) => entry.lastAccessed.isBefore(cutoff));
   }
 

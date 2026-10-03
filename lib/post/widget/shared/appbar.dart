@@ -2,6 +2,7 @@ import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
 import 'package:e1547/comment/comment.dart';
 import 'package:e1547/flag/flag.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/ticket/ticket.dart';
@@ -15,18 +16,18 @@ List<PopupMenuItem<VoidCallback>> postMenuPostActions(
     PopupMenuTile(
       value: () async =>
           Share.text(context, context.read<Client>().withHost(post.link)),
-      title: 'Share',
+      title: AppLocalizations.of(context).menuShare,
       icon: Icons.share,
     ),
     if (post.file != null)
       PopupMenuTile(
         value: () => postDownloadingNotification(context, {post}),
-        title: 'Download',
+        title: AppLocalizations.of(context).menuDownload,
         icon: Icons.file_download,
       ),
     PopupMenuTile(
       value: () async => launch(context.read<Client>().withHost(post.link)),
-      title: 'Browse',
+      title: AppLocalizations.of(context).menuBrowse,
       icon: Icons.open_in_browser,
     ),
   ];
@@ -39,7 +40,7 @@ List<PopupMenuItem<VoidCallback>> postMenuUserActions(
   final cacheSize = context.read<ImageCacheSize?>()?.size;
   return [
     PopupMenuTile(
-      title: 'Edit',
+      title: AppLocalizations.of(context).menuEdit,
       icon: Icons.edit,
       value: () => guardWithLogin(
         context: context,
@@ -51,38 +52,38 @@ List<PopupMenuItem<VoidCallback>> postMenuUserActions(
             ),
           ),
         ),
-        error: 'You must be logged in to edit posts!',
+        error: AppLocalizations.of(context).loginRequiredEdit,
       ),
     ),
     PopupMenuTile(
-      title: 'Comment',
+      title: AppLocalizations.of(context).menuComment,
       icon: Icons.comment,
       value: () => guardWithLogin(
         context: context,
         callback: () => writeComment(context: context, postId: post.id),
-        error: 'You must be logged in to comment!',
+        error: AppLocalizations.of(context).loginRequiredComment,
       ),
     ),
     PopupMenuTile(
-      title: 'Report',
+      title: AppLocalizations.of(context).menuReport,
       icon: Icons.report,
       value: () => guardWithLogin(
         context: context,
         callback: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => PostReportScreen(post: post)),
         ),
-        error: 'You must be logged in to report posts!',
+        error: AppLocalizations.of(context).loginRequiredReport,
       ),
     ),
     PopupMenuTile(
-      title: 'Flag',
+      title: AppLocalizations.of(context).menuFlag,
       icon: Icons.flag,
       value: () => guardWithLogin(
         context: context,
         callback: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => PostFlagScreen(post: post)),
         ),
-        error: 'You must be logged in to flag posts!',
+        error: AppLocalizations.of(context).loginRequiredFlag,
       ),
     ),
   ];

@@ -78,6 +78,8 @@ class _CookieCapturePageState extends State<CookieCapturePage> {
     client.replace(client.identity.copyWith(headers: headers));
   }
 
+  bool submitted = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,6 +88,9 @@ class _CookieCapturePageState extends State<CookieCapturePage> {
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.check),
         onPressed: () async {
+          // A double tap would capture and replace the identity twice.
+          if (submitted) return;
+          submitted = true;
           NavigatorState navigator = Navigator.of(context);
           try {
             await setCookies(context);

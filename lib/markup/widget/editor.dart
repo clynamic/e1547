@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/markup/markup.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +36,7 @@ class DTextEditor extends StatelessWidget {
                 return DText(controller.text);
               } else {
                 return Text(
-                  'your text here',
+                  AppLocalizations.of(context).editorPreviewPlaceholder,
                   style: TextStyle(
                     color: dimTextColor(context),
                     fontStyle: FontStyle.italic,
@@ -102,22 +103,22 @@ class _DTextEditorBarState extends State<DTextEditorBar> {
           IconButton(
             icon: const Icon(Icons.subject),
             onPressed: () => enclose('section,expanded=', endTag: 'section'),
-            tooltip: 'Section',
+            tooltip: AppLocalizations.of(context).editorSection,
           ),
           IconButton(
             icon: const Icon(Icons.format_quote),
             onPressed: () => enclose('quote'),
-            tooltip: 'Quote',
+            tooltip: AppLocalizations.of(context).editorQuote,
           ),
           IconButton(
             icon: const Icon(Icons.code),
             onPressed: () => enclose('code'),
-            tooltip: 'Code',
+            tooltip: AppLocalizations.of(context).editorCode,
           ),
           IconButton(
             icon: const Icon(Icons.warning),
             onPressed: () => enclose('spoiler'),
-            tooltip: 'Spoiler',
+            tooltip: AppLocalizations.of(context).editorSpoiler,
           ),
         ],
       );
@@ -130,22 +131,22 @@ class _DTextEditorBarState extends State<DTextEditorBar> {
           IconButton(
             icon: const Icon(Icons.format_bold),
             onPressed: () => enclose('b'),
-            tooltip: 'Bold',
+            tooltip: AppLocalizations.of(context).editorBold,
           ),
           IconButton(
             icon: const Icon(Icons.format_italic),
             onPressed: () => enclose('i'),
-            tooltip: 'Italic',
+            tooltip: AppLocalizations.of(context).editorItalic,
           ),
           IconButton(
             icon: const Icon(Icons.format_underlined),
             onPressed: () => enclose('u'),
-            tooltip: 'Underlined',
+            tooltip: AppLocalizations.of(context).editorUnderlined,
           ),
           IconButton(
             icon: const Icon(Icons.format_strikethrough),
             onPressed: () => enclose('s'),
-            tooltip: 'Strikethrough',
+            tooltip: AppLocalizations.of(context).editorStrikethrough,
           ),
         ],
       );

@@ -1,5 +1,6 @@
 import 'package:e1547/client/client.dart';
 import 'package:e1547/follow/follow.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
@@ -28,12 +29,14 @@ class FollowsBookmarkPage extends StatelessWidget {
               items: state.data?.pages.expand((p) => p).toList(),
               child: PromptActions(
                 child: AdaptiveScaffold(
-                  appBar: const FollowSelectionAppBar(
-                    child: DefaultAppBar(title: Text('Bookmarks')),
+                  appBar: FollowSelectionAppBar(
+                    child: DefaultAppBar(
+                      title: Text(AppLocalizations.of(context).navBookmarks),
+                    ),
                   ),
                   drawer: const RouterDrawer(),
                   floatingActionButton: AddTagFab(
-                    title: 'Add to bookmarks',
+                    title: AppLocalizations.of(context).followAddToBookmarks,
                     onSubmit: (value) async {
                       value = value.trim();
                       if (value.isEmpty) return;
@@ -57,8 +60,14 @@ class FollowsBookmarkPage extends StatelessWidget {
                             onRetry: query.getNextPage,
                             itemBuilder: (context, item, index) =>
                                 FollowTile(follow: item),
-                            onEmpty: const Text('No bookmarks'),
-                            onError: const Text('Failed to load bookmarks'),
+                            onEmpty: Text(
+                              AppLocalizations.of(context).followNoBookmarks,
+                            ),
+                            onError: Text(
+                              AppLocalizations.of(
+                                context,
+                              ).followFailedToLoadBookmarks,
+                            ),
                           ),
                           crossAxisCount: TileLayout.of(context).crossAxisCount,
                         ),

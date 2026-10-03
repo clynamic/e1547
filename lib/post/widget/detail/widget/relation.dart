@@ -1,4 +1,5 @@
 import 'package:e1547/client/client.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
@@ -143,7 +144,7 @@ class PostRelationTile extends StatelessWidget {
                       showChild: post != null,
                       child: Text(
                         artists.isEmpty
-                            ? 'no artist'
+                            ? AppLocalizations.of(context).detailNoArtist
                             : artists.map(tagToName).join(', '),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,

@@ -1,0 +1,14 @@
+### Added
+- an oldest-first order to the posts filter and its metatag autocomplete
+- a page footer with page and post counts and page jumping to the follow timeline
+- picture and video categories to the file type filter
+
+### Fixed
+- dialog buttons dismissing the page behind them or running twice when tapped in quick succession
+- the home app bar logo sitting left of the screen center
+- manually typed metatag filters with repeated tokens (like several -type: exclusions) being collapsed when editing any other filter
+- a crash when tapping a stale tag autocomplete suggestion
+- the follow timeline resetting its search when its panel rebuilt
+- empty searches showing a paging footer
+- the tag count filter slider stepping by 10 instead of 5
+- the russian wording of the uploader filter label

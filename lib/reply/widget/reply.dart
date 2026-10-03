@@ -1,5 +1,6 @@
 import 'package:e1547/client/client.dart';
 import 'package:e1547/comment/comment.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/markup/markup.dart';
 import 'package:e1547/reply/reply.dart';
 import 'package:e1547/shared/shared.dart';
@@ -134,7 +135,7 @@ class ReplyVisibilityIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!reply.hidden) return const SizedBox();
     return Tooltip(
-      message: 'This reply is hidden',
+      message: AppLocalizations.of(context).replyHidden,
       child: Icon(
         Icons.visibility_off,
         size: smallIconSize(context),
@@ -152,44 +153,45 @@ class ReplyMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final client = context.watch<Client>();
+    final l10n = AppLocalizations.of(context);
     return PopupMenuButton<VoidCallback>(
       icon: const Dimmed(child: Icon(Icons.more_vert)),
       onSelected: (value) => value(),
       itemBuilder: (context) => [
         if (client.identity.username == reply.creator)
           PopupMenuTile(
-            title: 'Edit',
+            title: l10n.menuEdit,
             icon: Icons.edit,
             value: () => guardWithLogin(
               context: context,
               callback: () => editReply(context: context, reply: reply),
-              error: 'You must be logged in to edit replies!',
+              error: l10n.replyLoginRequiredEdit,
             ),
           ),
         PopupMenuTile(
-          title: 'Reply',
+          title: l10n.menuReply,
           icon: Icons.reply,
           value: () => guardWithLogin(
             context: context,
             callback: () => quoteReply(context: context, reply: reply),
-            error: 'You must be logged in to reply!',
+            error: l10n.replyLoginRequiredReply,
           ),
         ),
         PopupMenuTile(
-          title: 'Copy ID',
+          title: l10n.menuCopyId,
           icon: Icons.tag,
           value: () async {
             Clipboard.setData(ClipboardData(text: reply.id.toString()));
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 duration: const Duration(seconds: 1),
-                content: Text('Copied reply id #${reply.id}'),
+                content: Text(l10n.replyCopiedId(reply.id)),
               ),
             );
           },
         ),
         PopupMenuTile(
-          title: 'Report',
+          title: l10n.menuReport,
           icon: Icons.report,
           value: () => guardWithLogin(
             context: context,
@@ -198,7 +200,7 @@ class ReplyMenu extends StatelessWidget {
                 builder: (context) => ReplyReportScreen(reply: reply),
               ),
             ),
-            error: 'You must be logged in to report replies!',
+            error: l10n.replyLoginRequiredReport,
           ),
         ),
       ],
@@ -226,7 +228,15 @@ class ReplyWarning extends StatelessWidget {
           ),
         ),
         Text(
-          warning.message,
+          switch (warning) {
+            WarningType.warning => AppLocalizations.of(
+              context,
+            ).warningUserWarned,
+            WarningType.record => AppLocalizations.of(
+              context,
+            ).warningUserRecorded,
+            WarningType.ban => AppLocalizations.of(context).warningUserBanned,
+          },
           style: Theme.of(context).textTheme.bodyMedium!.copyWith(
             color: Theme.of(context).colorScheme.error,
           ),

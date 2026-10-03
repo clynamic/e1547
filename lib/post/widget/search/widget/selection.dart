@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
@@ -14,8 +15,16 @@ class PostSelectionAppBar extends StatelessWidget with AppBarBuilderWidget {
     return SelectionAppBar<Post>(
       child: child,
       titleBuilder: (context, data) => data.selections.length == 1
-          ? Text('post #${data.selections.first.id}')
-          : Text('${data.selections.length} posts'),
+          ? Text(
+              AppLocalizations.of(
+                context,
+              ).selectionPost(data.selections.first.id),
+            )
+          : Text(
+              AppLocalizations.of(
+                context,
+              ).selectionPostsCount(data.selections.length),
+            ),
       actionBuilder: (context, data) => [
         IconButton(
           icon: const Icon(Icons.file_download),

@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -20,10 +21,45 @@ enum AppTheme {
   dark,
   amoled,
   light,
-  blue;
+  blue,
+  system;
+
+  /// Resolves [AppTheme.system] against a platform brightness.
+  ///
+  /// All other themes resolve to themselves.
+  AppTheme resolve(Brightness brightness) => switch (this) {
+    AppTheme.system =>
+      brightness == Brightness.dark ? AppTheme.dark : AppTheme.light,
+    _ => this,
+  };
+
+  /// A preview decoration for theme pickers.
+  ///
+  /// [AppTheme.system] gets a split light and dark circle, since it has
+  /// no colors of its own.
+  BoxDecoration get swatch => switch (this) {
+    AppTheme.system => BoxDecoration(
+      shape: BoxShape.circle,
+      gradient: LinearGradient(
+        stops: const [0, 0.5, 0.5, 1],
+        colors: [
+          AppTheme.light.data.cardColor,
+          AppTheme.light.data.cardColor,
+          AppTheme.dark.data.cardColor,
+          AppTheme.dark.data.cardColor,
+        ],
+      ),
+    ),
+    _ => BoxDecoration(shape: BoxShape.circle, color: data.cardColor),
+  };
 
   ThemeData get data {
     switch (this) {
+      case AppTheme.system:
+        throw UnsupportedError(
+          'AppTheme.system has no ThemeData of its own, resolve it against '
+          'the platform brightness first',
+        );
       case AppTheme.light:
         return M2ThemeData.from(
           colorScheme: ColorScheme.fromSwatch(
@@ -159,3 +195,13 @@ class AndroidStretchScrollBehaviour extends ScrollBehavior {
     return super.buildOverscrollIndicator(context, child, details);
   }
 }
+
+/// Localized display names for theme pickers.
+String localizedThemeName(BuildContext context, AppTheme theme) =>
+    switch (theme) {
+      AppTheme.dark => AppLocalizations.of(context).themeDark,
+      AppTheme.amoled => AppLocalizations.of(context).themeAmoled,
+      AppTheme.light => AppLocalizations.of(context).themeLight,
+      AppTheme.blue => AppLocalizations.of(context).themeBlue,
+      AppTheme.system => AppLocalizations.of(context).themeSystem,
+    };

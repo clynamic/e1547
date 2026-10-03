@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
@@ -13,7 +14,10 @@ class PagedChildBuilderRetryButton extends StatelessWidget {
     }
     return Padding(
       padding: const EdgeInsets.all(4),
-      child: TextButton(onPressed: onRetry, child: const Text('Try again')),
+      child: TextButton(
+        onPressed: onRetry,
+        child: Text(AppLocalizations.of(context).actionTryAgain),
+      ),
     );
   }
 }
@@ -52,14 +56,14 @@ PagedChildBuilderDelegate<T> defaultPagedChildBuilderDelegate<T>({
       context,
       IconMessage(
         icon: const Icon(Icons.clear),
-        title: onEmpty ?? const Text('Nothing to see here'),
+        title: onEmpty ?? Text(AppLocalizations.of(context).nothingToSeeHere),
       ),
     ),
     firstPageErrorIndicatorBuilder: (context) => pageBuilder!(
       context,
       IconMessage(
         icon: const Icon(Icons.warning_amber_outlined),
-        title: onError ?? const Text('Failed to load'),
+        title: onError ?? Text(AppLocalizations.of(context).failedToLoad),
         action: PagedChildBuilderRetryButton(onRetry),
       ),
     ),
@@ -68,7 +72,7 @@ PagedChildBuilderDelegate<T> defaultPagedChildBuilderDelegate<T>({
       IconMessage(
         direction: Axis.horizontal,
         icon: const Icon(Icons.warning_amber_outlined),
-        title: onError ?? const Text('Failed to load'),
+        title: onError ?? Text(AppLocalizations.of(context).failedToLoad),
         action: PagedChildBuilderRetryButton(onRetry),
       ),
     ),

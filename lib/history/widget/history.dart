@@ -1,4 +1,5 @@
 import 'package:e1547/history/history.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
@@ -14,13 +15,13 @@ class HistoriesPage extends StatelessWidget {
       child: HistoryPageQueryBuilder(
         builder: (context, state, query) => SelectionLayout<History>(
           items: state.data?.pages.expand((p) => p).toList(),
-          child: const AdaptiveScaffold(
-            appBar: HistoryAppBar(),
-            floatingActionButton: HistorySearchFab(),
-            drawer: RouterDrawer(),
+          child: AdaptiveScaffold(
+            appBar: const HistoryAppBar(),
+            floatingActionButton: const HistorySearchFab(),
+            drawer: const RouterDrawer(),
             endDrawer: ContextDrawer(
-              title: Text('History'),
-              children: [
+              title: Text(AppLocalizations.of(context).navHistory),
+              children: const [
                 HistoryEnableTile(),
                 HistoryLimitTile(),
                 HistoryClearTile(),
@@ -29,7 +30,7 @@ class HistoriesPage extends StatelessWidget {
                 HistoryTypeFilterTile(),
               ],
             ),
-            body: HistoryList(),
+            body: const HistoryList(),
           ),
         ),
       ),

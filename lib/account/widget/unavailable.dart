@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:e1547/account/account.dart';
 import 'package:e1547/client/client.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
@@ -23,19 +24,18 @@ class HostUnavailablePage extends StatelessWidget {
               const Icon(Icons.cloud_off, size: 60),
               const SizedBox(height: 8),
               Text(
-                'Host unavailable',
+                AppLocalizations.of(context).hostUnavailableTitle,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 20),
               Text(
-                'It appears that ${linkToDisplay(context.watch<Client>().host)} is not available!',
+                AppLocalizations.of(context).hostUnavailableBody(
+                  linkToDisplay(context.watch<Client>().host),
+                ),
               ),
               const SizedBox(height: 16),
               if (offerResolve && (Platform.isAndroid || Platform.isIOS)) ...[
-                const Text(
-                  'Please resolve the issue in the following browser window. '
-                  '\n\nCloudflare captcha cookies will be saved. ',
-                ),
+                Text(AppLocalizations.of(context).hostUnavailableResolveHint),
                 const SizedBox(height: 16),
                 TextButton(
                   onPressed: () => Navigator.of(context).pushReplacement(
@@ -43,12 +43,16 @@ class HostUnavailablePage extends StatelessWidget {
                       builder: (context) => const CookieCapturePage(),
                     ),
                   ),
-                  child: const Text('Resolve'),
+                  child: Text(
+                    AppLocalizations.of(context).hostUnavailableResolve,
+                  ),
                 ),
               ] else
                 Dimmed(
                   child: Text(
-                    '\nPlease wait for ${linkToDisplay(context.watch<Client>().host)} to resolve the situation on their end.',
+                    AppLocalizations.of(context).hostUnavailableWaitBody(
+                      linkToDisplay(context.watch<Client>().host),
+                    ),
                   ),
                 ),
             ],

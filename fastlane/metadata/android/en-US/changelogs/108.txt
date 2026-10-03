@@ -1,0 +1,11 @@
+### Added
+- cursor pagination to post searches sorted by recency, keeping browsing stable while new posts arrive
+- a page footer with page and post counts and page jumping to post lists
+- translations of the remaining status and error messages
+
+### Changed
+- post searches with non-id orderings now stop at e621's page limit instead of failing with a server error
+
+### Fixed
+- detail page dates not following the app language
+- a russian plural mismatch in follow notification counts

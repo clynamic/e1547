@@ -1,4 +1,6 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/post/post.dart';
+import 'package:e1547/shared/shared.dart';
 import 'package:e1547/ticket/ticket.dart';
 import 'package:flutter/material.dart';
 
@@ -26,6 +28,18 @@ extension ExtraRatingData on Rating {
   }
 }
 
+/// Rating titles double as stable data keys.
+///
+/// This maps them to their localized display names.
+String localizedRatingName(BuildContext context, Rating rating) {
+  final l10n = AppLocalizations.of(context);
+  return switch (rating) {
+    Rating.s => l10n.filterSafe,
+    Rating.q => l10n.filterQuestionable,
+    Rating.e => l10n.filterExplicit,
+  };
+}
+
 class RatingEditDisplay extends StatelessWidget {
   const RatingEditDisplay({super.key, required this.rating, this.onChanged});
 
@@ -34,12 +48,13 @@ class RatingEditDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: defaultFormPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Rating', style: TextStyle(fontSize: 16)),
+          Text(l10n.filterRating, style: const TextStyle(fontSize: 16)),
           const SizedBox(height: 8),
           DropdownButtonFormField<Rating>(
             initialValue: rating,
@@ -52,7 +67,7 @@ class RatingEditDisplay extends StatelessWidget {
                       children: [
                         rating.icon,
                         const SizedBox(width: 8),
-                        Text(rating.title),
+                        Text(localizedRatingName(context, rating)),
                       ],
                     ),
                   ),
@@ -75,15 +90,16 @@ Future<Rating?> showRatingDialog({
   return showDialog<Rating>(
     context: context,
     builder: (context) => SimpleDialog(
-      title: const Text('Rating'),
+      title: Text(AppLocalizations.of(context).filterRating),
       children: Rating.values
           .map(
             (rating) => ListTile(
-              title: Text(rating.title),
+              title: Text(localizedRatingName(context, rating)),
               leading: rating.icon,
               onTap: () {
-                onSelected?.call(rating);
-                Navigator.of(context).pop(rating);
+                if (popDialog(context, rating)) {
+                  onSelected?.call(rating);
+                }
               },
             ),
           )

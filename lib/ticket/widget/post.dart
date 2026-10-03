@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:e1547/client/client.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/markup/markup.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/shared/shared.dart';
@@ -53,6 +54,34 @@ class PostReportImage extends StatelessWidget {
   }
 }
 
+/// Post report type titles are pure display values.
+///
+/// This maps them to their localized display names.
+String localizedPostReportTypeName(BuildContext context, PostReportType type) {
+  final l10n = AppLocalizations.of(context);
+  return switch (type) {
+    PostReportType.rating => l10n.reportTypeRating,
+    PostReportType.file => l10n.reportTypeFile,
+    PostReportType.source => l10n.reportTypeSource,
+    PostReportType.description => l10n.reportTypeDescription,
+    PostReportType.note => l10n.reportTypeNote,
+    PostReportType.tagging => l10n.reportTypeTagging,
+  };
+}
+
+/// Returns the localized body text of a post report type.
+String localizedPostReportTypeBody(BuildContext context, PostReportType type) {
+  final l10n = AppLocalizations.of(context);
+  return switch (type) {
+    PostReportType.rating => l10n.reportTypeRatingBody,
+    PostReportType.file => l10n.reportTypeFileBody,
+    PostReportType.source => l10n.reportTypeSourceBody,
+    PostReportType.description => l10n.reportTypeDescriptionBody,
+    PostReportType.note => l10n.reportTypeNoteBody,
+    PostReportType.tagging => l10n.reportTypeTaggingBody,
+  };
+}
+
 class PostReportScreen extends StatefulWidget {
   const PostReportScreen({super.key, required this.post});
 
@@ -85,6 +114,8 @@ class _PostReportScreenState extends State<PostReportScreen> {
         curve: Curves.easeInOut,
       );
       ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+      // Resolved up front, the context must not cross async gaps.
+      final l10n = AppLocalizations.of(context);
       try {
         await context.read<Client>().tickets.create(
           type: TicketType.post,
@@ -98,7 +129,7 @@ class _PostReportScreenState extends State<PostReportScreen> {
         messenger.showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 1),
-            content: Text('Reported post #${widget.post.id}'),
+            content: Text(l10n.reportPostSuccess(widget.post.id)),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -106,7 +137,7 @@ class _PostReportScreenState extends State<PostReportScreen> {
         messenger.showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 1),
-            content: Text('Failed to report post #${widget.post.id}'),
+            content: Text(l10n.reportPostFailed(widget.post.id)),
           ),
         );
       }
@@ -121,7 +152,9 @@ class _PostReportScreenState extends State<PostReportScreen> {
         child: Scaffold(
           appBar: DefaultAppBar(
             elevation: 0,
-            title: Text('Post #${widget.post.id}'),
+            title: Text(
+              AppLocalizations.of(context).historyLinkPost(widget.post.id),
+            ),
             leading: const CloseButton(),
           ),
           floatingActionButton: Builder(
@@ -144,7 +177,7 @@ class _PostReportScreenState extends State<PostReportScreen> {
                     isLoading: isLoading,
                   ),
                   ReportFormHeader(
-                    title: const Text('Report'),
+                    title: Text(AppLocalizations.of(context).menuReport),
                     icon: IconButton(
                       onPressed: () => showTagSearchPrompt(
                         context: context,
@@ -155,7 +188,10 @@ class _PostReportScreenState extends State<PostReportScreen> {
                   ),
                   ReportFormDropdown<PostReportType?>(
                     type: type,
-                    types: {for (final e in PostReportType.values) e: e.title},
+                    types: {
+                      for (final e in PostReportType.values)
+                        e: localizedPostReportTypeName(context, e),
+                    },
                     onChanged: (value) => setState(() => type = value),
                     isLoading: isLoading,
                   ),
@@ -172,7 +208,9 @@ class _PostReportScreenState extends State<PostReportScreen> {
                             child: Card(
                               child: Padding(
                                 padding: const EdgeInsets.all(16),
-                                child: DText(type!.body),
+                                child: DText(
+                                  localizedPostReportTypeBody(context, type!),
+                                ),
                               ),
                             ),
                           ),

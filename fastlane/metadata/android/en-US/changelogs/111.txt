@@ -1,0 +1,11 @@
+### Fixed
+- a crash when leaving a video while its double tap seek animation was still playing
+- the video bar freezing on the previous video after the player was replaced
+- task queue races when switching accounts during a download, which could leave tasks stuck or marked failed
+- canceled downloads still saving their file to the gallery
+- the fullscreen video exit dismissing the page behind it when double tapped
+- follow and login buttons repeating their action when double tapped
+
+### Changed
+- desktop downloads now copy files in chunks instead of buffering them entirely in memory
+- the denylist filter cache cleans up in throttled sweeps instead of on every lookup

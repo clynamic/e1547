@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:e1547/client/client.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
@@ -19,7 +20,7 @@ class PoolDisplay extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const RelationHeader(title: 'Pools'),
+        RelationHeader(title: AppLocalizations.of(context).navPools),
         ...pools.map((id) => PoolRelationTile(id: id)),
         const Divider(),
       ],
@@ -80,7 +81,9 @@ class PoolRelationTile extends StatelessWidget {
                       child: pool == null
                           ? const SizedBox.shrink()
                           : Text(
-                              '${pool.postCount} ${pool.postCount == 1 ? 'post' : 'posts'}',
+                              AppLocalizations.of(
+                                context,
+                              ).detailPoolPosts(pool.postCount),
                               style: TextStyle(color: dimTextColor(context)),
                             ),
                     ),

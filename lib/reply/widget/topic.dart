@@ -1,4 +1,5 @@
 import 'package:e1547/client/client.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/reply/reply.dart';
 import 'package:e1547/shared/shared.dart';
@@ -34,7 +35,7 @@ class TopicRepliesPage extends StatelessWidget {
               actions: [
                 IconButton(
                   icon: const Icon(Icons.info_outline),
-                  tooltip: 'Info',
+                  tooltip: AppLocalizations.of(context).info,
                   onPressed: () =>
                       showTopicPrompt(context: context, topic: topic),
                 ),

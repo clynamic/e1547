@@ -1,11 +1,17 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart' as intl_dates;
 import 'package:intl/intl.dart';
 
 /// Primitive default date formatting.
-/// Has no translation support.
+///
+/// Has no translation support and follows the platform locale.
+/// Prefer the localized variants in `shared/widget/date.dart`
+/// for any user-visible dates.
+///
+/// The logs UI and log file names keep using these on purpose:
+/// they are technical diagnostics whose timestamps
+/// should not depend on the app language.
 abstract final class DateFormatting {
   static Future<void> ensureInitialized() =>
       intl_dates.initializeDateFormatting();
@@ -16,20 +22,4 @@ abstract final class DateFormatting {
       DateFormat.yMd(Platform.localeName).format(date);
   static String time(DateTime time) =>
       DateFormat.jm(Platform.localeName).format(time);
-
-  static String named(DateTime date) {
-    DateTime today = DateUtils.dateOnly(DateTime.now());
-    if (today.isAtSameMomentAs(DateUtils.dateOnly(date))) {
-      return 'Today';
-    }
-    if (today
-        .subtract(const Duration(days: 1))
-        .isAtSameMomentAs(DateUtils.dateOnly(date))) {
-      return 'Yesterday';
-    }
-    if (today.subtract(const Duration(days: 7)).isBefore(date)) {
-      return DateFormat.EEEE().format(date);
-    }
-    return DateFormatting.date(date);
-  }
 }

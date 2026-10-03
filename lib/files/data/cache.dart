@@ -13,7 +13,10 @@ CacheManager createFileCache({
   required Dio dio,
   required GeneratedDatabase database,
   Duration stalePeriod = const Duration(days: 7),
-  int maxNrOfCacheObjects = 2000,
+  // e621 originals are large; the old default of 2000 objects could pile
+  // up gigabytes on old devices, filling their storage and inviting the
+  // OS to wipe the cache directory altogether (see issue #178).
+  int maxNrOfCacheObjects = 500,
 }) => CacheManager(
   Config(
     fileCacheKey,

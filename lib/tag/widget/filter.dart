@@ -1,3 +1,4 @@
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
 import 'package:flutter/material.dart';
@@ -319,7 +320,9 @@ class _TextFilterState extends State<TextFilter> {
       autofocus: theme.primary,
       focusNode: theme.focusNode,
       decoration: theme.decoration.copyWith(
-        labelText: state.filter.name,
+        labelText: state.filter.name != null
+            ? localizedFilterName(context, state.filter.name!)
+            : null,
         suffixIcon: mergeSuffixIcons(theme.decoration, state.filter.icon),
       ),
       controller: _controller,
@@ -343,7 +346,9 @@ class NumberFilter extends StatelessWidget {
     return TextFormField(
       key: Key('FilterList/${state.filter.tag}'),
       decoration: theme.decoration.copyWith(
-        labelText: state.filter.name,
+        labelText: state.filter.name != null
+            ? localizedFilterName(context, state.filter.name!)
+            : null,
         suffixIcon: mergeSuffixIcons(theme.decoration, state.filter.icon),
       ),
       keyboardType: TextInputType.number,
@@ -365,12 +370,15 @@ class NumberRangeFilter extends StatelessWidget {
       onTap: () => showDialog(
         context: context,
         builder: (context) => RangeDialog(
-          title: state.filter.name != null ? Text(state.filter.name!) : null,
+          title: state.filter.name != null
+              ? Text(localizedFilterName(context, state.filter.name!))
+              : null,
           value: state.value != null
               ? NumberRange.tryParse(state.value!)
               : state.filter.initial,
-          division: 10,
-          max: 100,
+          min: (state.filter.min ?? 0).toDouble(),
+          max: state.filter.max.toDouble(),
+          division: state.filter.division,
           onSubmit: (value) => state.onChanged(value?.toString()),
         ),
       ),
@@ -379,7 +387,9 @@ class NumberRangeFilter extends StatelessWidget {
           child: TextFormField(
             key: Key('FilterList/${state.filter.tag}:${state.value}'),
             decoration: theme.decoration.copyWith(
-              labelText: state.filter.name,
+              labelText: state.filter.name != null
+                  ? localizedFilterName(context, state.filter.name!)
+                  : null,
               suffixIcon: mergeSuffixIcons(theme.decoration, state.filter.icon),
             ),
             readOnly: true,
@@ -406,12 +416,19 @@ class ChoiceFilter extends StatelessWidget {
     return DropdownButtonFormField<String>(
       key: Key('FilterList/${state.filter.tag}'),
       initialValue: value,
-      decoration: theme.decoration.copyWith(labelText: state.filter.name),
+      decoration: theme.decoration.copyWith(
+        labelText: state.filter.name != null
+            ? localizedFilterName(context, state.filter.name!)
+            : null,
+      ),
       icon: state.filter.icon,
       isExpanded: true,
       items: [
         for (final option in state.filter.options)
-          DropdownMenuItem(value: option.value, child: Text(option.title)),
+          DropdownMenuItem(
+            value: option.value,
+            child: Text(localizedFilterName(context, option.title)),
+          ),
       ],
       onChanged: state.onChanged,
     );
@@ -451,14 +468,17 @@ class MultiChoiceFilter extends StatelessWidget {
       key: Key('FilterList/${state.filter.tag}'),
       options: stringOptions,
       valueMapper: (value) => value,
-      titleMapper: (value) => titleMap[value] ?? value,
+      titleMapper: (value) =>
+          localizedFilterName(context, titleMap[value] ?? value),
       value: selectedValues,
       onChanged: (newSelection) {
         String newValue = newSelection.join(',');
         state.onChanged(newValue);
       },
       decoration: theme.decoration.copyWith(
-        labelText: state.filter.name,
+        labelText: state.filter.name != null
+            ? localizedFilterName(context, state.filter.name!)
+            : null,
         suffixIcon: mergeSuffixIcons(theme.decoration, state.filter.icon),
       ),
       icon: state.filter.icon,
@@ -504,9 +524,11 @@ class ToggleFilter extends StatelessWidget {
           state.onChanged(null);
         }
       },
-      label: state.filter.name,
+      label: state.filter.name != null
+          ? localizedFilterName(context, state.filter.name!)
+          : null,
       title: state.filter.description != null
-          ? Text(state.filter.description!)
+          ? Text(localizedFilterName(context, state.filter.description!))
           : null,
       decoration: theme.decoration,
     );
@@ -521,3 +543,81 @@ class BuilderTagFilter extends StatelessWidget {
   @override
   Widget build(BuildContext context) => state.filter.builder(context, state);
 }
+
+/// Filter names double as stable keys.
+///
+/// This maps them to their localized display names.
+String localizedFilterName(BuildContext context, String name) => switch (name) {
+  'Score' => AppLocalizations.of(context).filterScore,
+  'Favorite count' => AppLocalizations.of(context).filterFavoriteCount,
+  'Sort by' => AppLocalizations.of(context).filterSortBy,
+  'New' => AppLocalizations.of(context).filterNew,
+  'Oldest' => AppLocalizations.of(context).filterOldestFirst,
+  'Favorites' => AppLocalizations.of(context).navFavorites,
+  'Rank' => AppLocalizations.of(context).filterRank,
+  'Random' => AppLocalizations.of(context).filterRandom,
+  'Default' => AppLocalizations.of(context).filterDefault,
+  'Rating' => AppLocalizations.of(context).filterRating,
+  'Safe' => AppLocalizations.of(context).filterSafe,
+  'Questionable' => AppLocalizations.of(context).filterQuestionable,
+  'Explicit' => AppLocalizations.of(context).filterExplicit,
+  'All' => AppLocalizations.of(context).filterAll,
+  'Pool' => AppLocalizations.of(context).filterPool,
+  'Has pool' => AppLocalizations.of(context).filterHasPool,
+  'Child' => AppLocalizations.of(context).filterChild,
+  'Is child post' => AppLocalizations.of(context).filterIsChildPost,
+  'Parent' => AppLocalizations.of(context).filterParent,
+  'Is parent post' => AppLocalizations.of(context).filterIsParentPost,
+  'Upload date' => AppLocalizations.of(context).filterUploadDate,
+  'Last day' => AppLocalizations.of(context).filterLastDay,
+  'Last week' => AppLocalizations.of(context).filterLastWeek,
+  'Last Month' => AppLocalizations.of(context).filterLastMonth,
+  'Last Year' => AppLocalizations.of(context).filterLastYear,
+  'Status' => AppLocalizations.of(context).filterStatus,
+  'Active' => AppLocalizations.of(context).filterActive,
+  'Pending' => AppLocalizations.of(context).filterPending,
+  'Deleted' => AppLocalizations.of(context).filterDeleted,
+  'Flagged' => AppLocalizations.of(context).filterFlagged,
+  'Any' => AppLocalizations.of(context).filterAny,
+  'File type' => AppLocalizations.of(context).filterFileType,
+  'Uploader' => AppLocalizations.of(context).filterUploader,
+  'Width' => AppLocalizations.of(context).filterWidth,
+  'Height' => AppLocalizations.of(context).filterHeight,
+  'Tag count' => AppLocalizations.of(context).filterTagCount,
+  'True' => AppLocalizations.of(context).filterTrue,
+  'False' => AppLocalizations.of(context).filterFalse,
+  'Images' => AppLocalizations.of(context).filterImages,
+  'Videos' => AppLocalizations.of(context).filterVideos,
+  'Title contains' => AppLocalizations.of(context).filterTitleContains,
+  'Category' => AppLocalizations.of(context).filterCategory,
+  'General' => AppLocalizations.of(context).filterGeneral,
+  'Site Bug Reports & Feature Requests' => AppLocalizations.of(
+    context,
+  ).filterSiteBugReports,
+  'Tag/Wiki Projects and Questions' => AppLocalizations.of(
+    context,
+  ).filterTagWikiProjects,
+  'Tag Alias and Implication Suggestions' => AppLocalizations.of(
+    context,
+  ).filterTagAliasSuggestions,
+  'Art Talk' => AppLocalizations.of(context).filterArtTalk,
+  'Off Topic' => AppLocalizations.of(context).filterOffTopic,
+  'e621 Tools and Applications' => AppLocalizations.of(context).filterE621Tools,
+  'Newest first' => AppLocalizations.of(context).filterNewestFirst,
+  'Oldest first' => AppLocalizations.of(context).filterOldestFirst,
+  'Sticky' => AppLocalizations.of(context).filterSticky,
+  'Is sticky' => AppLocalizations.of(context).filterIsSticky,
+  'Locked' => AppLocalizations.of(context).filterLocked,
+  'Is locked' => AppLocalizations.of(context).filterIsLocked,
+  'Description' => AppLocalizations.of(context).filterDescription,
+  'Creator' => AppLocalizations.of(context).filterCreator,
+  'Is active' => AppLocalizations.of(context).filterIsActive,
+  'Series' => AppLocalizations.of(context).filterSeries,
+  'Collection' => AppLocalizations.of(context).filterCollection,
+  'Name' => AppLocalizations.of(context).filterName,
+  'Created' => AppLocalizations.of(context).filterCreated,
+  'Updated' => AppLocalizations.of(context).filterUpdated,
+  'Post count' => AppLocalizations.of(context).filterPostCount,
+  'Tags' => AppLocalizations.of(context).filterTags,
+  _ => name,
+};

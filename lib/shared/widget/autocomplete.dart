@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -93,12 +94,12 @@ class AutocompleteTextField<T> extends StatelessWidget {
           children: [SizedCircularProgressIndicator(size: 24)],
         ),
       ),
-      errorBuilder: (context, error) => const Column(
+      errorBuilder: (context, error) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           IconMessage(
-            icon: Icon(Icons.error),
-            title: Text('Failed to load suggestions'),
+            icon: const Icon(Icons.error),
+            title: Text(AppLocalizations.of(context).failedToLoadSuggestions),
           ),
         ],
       ),

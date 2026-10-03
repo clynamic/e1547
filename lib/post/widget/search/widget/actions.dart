@@ -1,19 +1,40 @@
 import 'package:collection/collection.dart';
 import 'package:e1547/client/client.dart';
 import 'package:e1547/follow/follow.dart';
+import 'package:e1547/l10n/app_localizations.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
 import 'package:flutter/material.dart';
 
-class TagListActions extends StatelessWidget {
+class TagListActions extends StatefulWidget {
   const TagListActions({super.key, required this.tag});
 
   final String tag;
 
   @override
+  State<TagListActions> createState() => _TagListActionsState();
+}
+
+class _TagListActionsState extends State<TagListActions> {
+  bool _busy = false;
+
+  // Follow, notify, bookmark and block actions mutate the server; a second
+  // tap while a request is in flight would repeat the mutation.
+  Future<void> guard(Future<void> Function() action) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      await action();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final String tag = widget.tag;
     if (wikiMetaTags.any((prefix) => tag.startsWith(prefix))) {
       return const SizedBox.shrink();
     }
@@ -81,9 +102,15 @@ class TagListActions extends StatelessWidget {
                                 ? const Icon(Icons.person_remove_alt_1)
                                 : const Icon(Icons.person_add_alt_1),
                             label: following
-                                ? const Text('Unfollow')
-                                : const Text('Follow'),
-                            onTap: () => applyFollowMutation(FollowType.update),
+                                ? Text(
+                                    AppLocalizations.of(context).actionUnfollow,
+                                  )
+                                : Text(
+                                    AppLocalizations.of(context).actionFollow,
+                                  ),
+                            onTap: () => guard(
+                              () => applyFollowMutation(FollowType.update),
+                            ),
                           ),
                           CrossFade(
                             showChild: following,
@@ -92,9 +119,13 @@ class TagListActions extends StatelessWidget {
                                   ? const Icon(Icons.notifications_active)
                                   : const Icon(Icons.notifications_none),
                               label: notifying
-                                  ? const Text('Mute')
-                                  : const Text('Notify'),
-                              onTap: () async {
+                                  ? Text(
+                                      AppLocalizations.of(context).actionMute,
+                                    )
+                                  : Text(
+                                      AppLocalizations.of(context).actionNotify,
+                                    ),
+                              onTap: () => guard(() async {
                                 if (!hasFollow) return;
                                 await client.follows.update(
                                   id: follow.id,
@@ -103,7 +134,7 @@ class TagListActions extends StatelessWidget {
                                       : FollowType.notify,
                                 );
                                 query.invalidate();
-                              },
+                              }),
                             ),
                           ),
                           ActionButton(
@@ -111,10 +142,17 @@ class TagListActions extends StatelessWidget {
                                 ? const Icon(Icons.turned_in)
                                 : const Icon(Icons.turned_in_not),
                             label: bookmarked
-                                ? const Text('Unbookmark')
-                                : const Text('Bookmark'),
-                            onTap: () =>
-                                applyFollowMutation(FollowType.bookmark),
+                                ? Text(
+                                    AppLocalizations.of(
+                                      context,
+                                    ).actionUnbookmark,
+                                  )
+                                : Text(
+                                    AppLocalizations.of(context).actionBookmark,
+                                  ),
+                            onTap: () => guard(
+                              () => applyFollowMutation(FollowType.bookmark),
+                            ),
                           ),
                         ],
                       ),
@@ -128,9 +166,9 @@ class TagListActions extends StatelessWidget {
                           child: const Icon(Icons.check),
                         ),
                         label: denied
-                            ? const Text('Unblock')
-                            : const Text('Block'),
-                        onTap: () async {
+                            ? Text(AppLocalizations.of(context).actionUnblock)
+                            : Text(AppLocalizations.of(context).actionBlock),
+                        onTap: () => guard(() async {
                           if (denied) {
                             await client.accounts.push(
                               traits: traits.copyWith(
@@ -150,7 +188,7 @@ class TagListActions extends StatelessWidget {
                               ),
                             );
                           }
-                        },
+                        }),
                       ),
                     ),
                   ],
@@ -175,10 +213,11 @@ class RemoveTagAction extends StatelessWidget {
 
     return ActionButton(
       icon: const Icon(Icons.search_off),
-      label: const Text('Remove'),
+      label: Text(AppLocalizations.of(context).actionRemove),
       onTap: () {
-        Navigator.of(context).maybePop();
-        controller.removeTag(tag);
+        if (popDialog(context)) {
+          controller.removeTag(tag);
+        }
       },
     );
   }
@@ -195,10 +234,11 @@ class AddTagAction extends StatelessWidget {
 
     return ActionButton(
       icon: const Icon(Icons.zoom_in),
-      label: const Text('Add'),
+      label: Text(AppLocalizations.of(context).actionAdd),
       onTap: () {
-        Navigator.of(context).maybePop();
-        controller.addTag(tag);
+        if (popDialog(context)) {
+          controller.addTag(tag);
+        }
       },
     );
   }
@@ -215,10 +255,11 @@ class SubtractTagAction extends StatelessWidget {
 
     return ActionButton(
       icon: const Icon(Icons.zoom_out),
-      label: const Text('Subtract'),
+      label: Text(AppLocalizations.of(context).actionSubtract),
       onTap: () {
-        Navigator.of(context).maybePop();
-        controller.subtractTag(tag);
+        if (popDialog(context)) {
+          controller.subtractTag(tag);
+        }
       },
     );
   }

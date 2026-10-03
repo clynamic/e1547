@@ -1,0 +1,11 @@
+### Added
+- an offline state to post lists, plus a banner showing cached data while offline
+- undo snackbars for deleted history entries and blacklist entries
+- a receive timeout to api and update requests
+
+### Changed
+- database exports no longer contain saved logins; they are stripped from the exported file before it is saved
+- database imports strip saved logins, reject files from newer app versions, check for missing app tables, and warn about accounts on unexpected hosts
+- the database and its sidecar files are excluded from Android cloud backups and iOS/iCloud backups
+- the cookie capture webview only navigates to its own host; off-site links and non-http schemes are blocked
+- the posts filter panel applies its changes debounced, so typing an uploader name no longer refetches on every keystroke
