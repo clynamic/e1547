@@ -48,10 +48,8 @@ void main() {
   });
 
   group('allowsCookieCaptureNavigation', () {
-    NavigationRequest request(
-      String url, {
-      bool isMainFrame = true,
-    }) => NavigationRequest(url: url, isMainFrame: isMainFrame);
+    NavigationRequest request(String url, {bool isMainFrame = true}) =>
+        NavigationRequest(url: url, isMainFrame: isMainFrame);
 
     test('allows same-host http and https', () {
       const host = 'https://e621.net';
@@ -77,7 +75,10 @@ void main() {
       expect(
         allowsCookieCaptureNavigation(
           host,
-          request('https://challenges.cloudflare.com/widget', isMainFrame: false),
+          request(
+            'https://challenges.cloudflare.com/widget',
+            isMainFrame: false,
+          ),
         ),
         isTrue,
       );
@@ -101,7 +102,10 @@ void main() {
         isFalse,
       );
       expect(
-        allowsCookieCaptureNavigation(host, request('https://static1.e621.net')),
+        allowsCookieCaptureNavigation(
+          host,
+          request('https://static1.e621.net'),
+        ),
         isFalse,
       );
     });
