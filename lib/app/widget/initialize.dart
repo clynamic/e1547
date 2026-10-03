@@ -36,6 +36,9 @@ class AppInitState extends State<AppInit> {
     final logs = await initializeLogger();
     final storage = await initializeAppStorage();
     await backfillOnboardingSeen(storage);
+    // Re-applied on every launch, so a database imported or renamed
+    // after the last check is covered too.
+    await excludeDatabaseFromBackup();
     unawaited(initializeBackgroundTasks());
     VideoService.ensureInitialized();
     return (
