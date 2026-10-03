@@ -123,6 +123,41 @@ class IdentityRepository extends DatabaseAccessor<GeneratedDatabase>
   Future<void> replace(Identity item) async => (update(
     identitiesTable,
   )..where((tbl) => tbl.id.equals(item.id))).write(item.toInsertable());
+
+  /// Strips credential-like headers from every identity row.
+  ///
+  /// Used by database export and import, so account credentials never
+  /// travel through database files.
+  Future<int> removeCredentials() async {
+    final rows = await select(identitiesTable).get();
+    var updated = 0;
+    await batch((batch) {
+      for (final row in rows) {
+        final headers = row.headers;
+        if (headers == null) continue;
+        final sanitized = Map.of(headers)
+          ..removeWhere((name, _) => isSecretHeader(name));
+        if (sanitized.length == headers.length) continue;
+        // write '{}' rather than null: avoids the nullable-map-converter edge
+        batch.update(
+          identitiesTable,
+          IdentityCompanion(
+            headers: Value(
+              sanitized.isEmpty ? const <String, String>{} : sanitized,
+            ),
+          ),
+          where: (tbl) => tbl.id.equals(row.id),
+        );
+        updated++;
+      }
+    });
+    return updated;
+  }
+
+  /// Returns the normalized hosts of all identities.
+  Future<Set<String>> hosts() async => (await select(
+    identitiesTable,
+  ).get()).map((row) => normalizeHostUrl(row.host)).toSet();
 }
 
 extension IdentityRequestCompanion on IdentityRequest {

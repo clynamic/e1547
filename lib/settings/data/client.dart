@@ -20,7 +20,11 @@ class AppInfoClient {
   final AppInfo info = AppInfo.instance;
   final CachedQuery queryCache;
   late final Dio _dio = Dio(
-    BaseOptions(headers: {HttpHeaders.userAgentHeader: info.userAgent}),
+    BaseOptions(
+      headers: {HttpHeaders.userAgentHeader: info.userAgent},
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 15),
+    ),
   );
 
   Future<List<AppVersion>> getVersions() async {

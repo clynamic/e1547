@@ -114,6 +114,7 @@ dev_dependencies:
   freezed: ^3.0.6
   json_serializable: ^6.9.5
 
+  path_provider_platform_interface: any
 dependency_overrides:
   # per call site shouldFetch, see clragon/cached_query
   cached_query:

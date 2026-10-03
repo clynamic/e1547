@@ -1,19 +1,47 @@
 import 'dart:io';
-
 import 'package:drift/drift.dart' show driftRuntimeOptions;
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:e1547/app/app.dart';
 import 'package:e1547/app/widget/initialize.dart';
+import 'package:e1547/identity/identity.dart';
 import 'package:e1547/logs/logs.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:filesize/filesize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sub/flutter_sub.dart';
+import 'package:path/path.dart';
 
-typedef DatabaseInfo = ({String name, String size});
+typedef DatabaseInfo = ({String name, String? size});
 
 final _logger = Logger('DbManagement');
+
+/// The schema version this build understands.
+///
+/// Files from newer versions are rejected by the import. Keep in sync with
+/// AppDatabase.schemaVersion; test/app/data/initialize_test.dart guards it.
+const int supportedSchemaVersion = 9;
+
+/// The tables a complete app database must have.
+const Set<String> appTables = {
+  'identities_table',
+  'traits_table',
+  'histories_table',
+  'histories_identities_table',
+  'follows_table',
+  'follows_identities_table',
+  'tasks_table',
+  'tasks_identities_table',
+  'query_storage_table',
+  'file_cache_table',
+};
+
+/// The hosts identities are expected to live on.
+///
+/// Accounts on any other host are called out during imports: a crafted
+/// database could otherwise quietly point the app, and its login form,
+/// at a server the user never chose.
+const Set<String> defaultHosts = {'https://e621.net', 'https://e926.net'};
 
 class DatabaseManagementPage extends StatelessWidget {
   const DatabaseManagementPage({super.key});
@@ -55,9 +83,7 @@ class DatabaseInfoDisplay extends StatelessWidget {
     final dbFile = File(dbPath);
 
     final name = dbPath.split(Platform.pathSeparator).last;
-    final size = dbFile.existsSync()
-        ? filesize(dbFile.lengthSync())
-        : 'Unknown';
+    final size = dbFile.existsSync() ? filesize(dbFile.lengthSync()) : null;
 
     return (name: name, size: size);
   }
@@ -88,7 +114,7 @@ class DatabaseInfoDisplay extends StatelessWidget {
               const SizedBox(height: 8),
               Dimmed(
                 child: Text(
-                  dbInfo.size,
+                  dbInfo.size ?? 'Unknown',
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ),
@@ -104,10 +130,40 @@ class DatabaseInfoDisplay extends StatelessWidget {
 class DatabaseExportTile extends StatelessWidget {
   const DatabaseExportTile({super.key});
 
+  Future<bool> _showExportWarning(BuildContext context) => showDialog<bool>(
+    context: context,
+    builder: (context) => Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 600),
+        child: AlertDialog(
+          title: const Text('Export Database'),
+          content: const Text(
+            'The exported file will not contain your logins or API keys.\nEverything else, including accounts, hosts, history, follows and tasks, is included.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('CANCEL'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('EXPORT'),
+            ),
+          ],
+        ),
+      ),
+    ),
+  ).then((value) => value ?? false);
+
   Future<void> _exportDatabase(BuildContext context) async {
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    final sqlite = context.read<AppStorage>().sqlite;
 
+    if (!await _showExportWarning(context)) return;
+    if (!context.mounted) return;
+
+    File? tempFile;
     try {
       showDialog(
         context: context,
@@ -139,12 +195,52 @@ class DatabaseExportTile extends StatelessWidget {
         throw Exception('Database file does not exist');
       }
 
+      final tempPath = join(
+        await getTemporaryAppDirectory(),
+        'e1547_export.db',
+      );
+      await Directory(dirname(tempPath)).create(recursive: true);
+      tempFile = File(tempPath);
+      if (tempFile.existsSync()) await tempFile.delete();
+
+      // A consistent, compact snapshot through the live connection.
+      try {
+        await sqlite.customStatement('VACUUM INTO ?', [tempPath]);
+      } on Exception {
+        // Not worse than what a plain file copy would produce.
+        await dbFile.copy(tempPath);
+      }
+
+      driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+      try {
+        final sanitizeDb = AppDatabase(
+          driftDatabase(
+            name: 'export-sanitize',
+            native: DriftNativeOptions(databasePath: () async => tempPath),
+          ),
+        );
+        try {
+          await IdentityRepository(sanitizeDb).removeCredentials();
+          // Rebuild so removed credentials cannot be recovered
+          // from free pages left behind by the UPDATE.
+          await sanitizeDb.customStatement('VACUUM');
+        } finally {
+          await sanitizeDb.close();
+        }
+      } finally {
+        driftRuntimeOptions.dontWarnAboutMultipleDatabases = false;
+      }
+
+      final bytes = await tempFile.readAsBytes();
+      await tempFile.delete();
+      tempFile = null;
+
       String? outputFile = await FilePicker.platform.saveFile(
         dialogTitle: 'Export Database',
         fileName: 'e1547_database_backup.db',
         type: FileType.custom,
         allowedExtensions: ['db'],
-        bytes: await dbFile.readAsBytes(),
+        bytes: bytes,
       );
 
       navigator.pop();
@@ -157,6 +253,14 @@ class DatabaseExportTile extends StatelessWidget {
       navigator.pop();
       messenger.showSnackBar(const SnackBar(content: Text('Export failed')));
       _logger.warn('Database export failed', null, e);
+    } finally {
+      if (tempFile != null && tempFile.existsSync()) {
+        try {
+          await tempFile.delete();
+        } on FileSystemException {
+          // already deleted elsewhere
+        }
+      }
     }
   }
 
@@ -197,6 +301,23 @@ class DatabaseImportTile extends StatelessWidget {
       if (path == null) return;
       if (!context.mounted) return;
 
+      // Reject newer-schema files before touching anything.
+      final version = await readSqliteUserVersion(path);
+      if (version != null && version > supportedSchemaVersion) {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text(
+              'This file was created by a newer app version and cannot be imported.',
+            ),
+          ),
+        );
+        _logger.warn('Rejected database from a newer schema version', {
+          'version': version,
+        });
+        return;
+      }
+      if (!context.mounted) return;
+
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -221,35 +342,61 @@ class DatabaseImportTile extends StatelessWidget {
         ),
       );
 
+      // Copy first, the picked file itself is never modified.
+      final dbPath = await getAppDatabasePath();
+      final newDbPath = '$dbPath.new';
+      final newDbFile = File(newDbPath);
+      if (newDbFile.existsSync()) await newDbFile.delete();
+      await File(path).copy(newDbPath);
+
+      Set<String> hosts;
       try {
         driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
-        final importDb = AppDatabase(
-          driftDatabase(
-            name: 'import',
-            native: DriftNativeOptions(databasePath: () async => path),
-          ),
-        );
-        await importDb.customSelect('SELECT 1').get();
-        await importDb.close();
+        try {
+          final importDb = AppDatabase(
+            driftDatabase(
+              name: 'import',
+              native: DriftNativeOptions(databasePath: () async => newDbPath),
+            ),
+          );
+          try {
+            await importDb.customSelect('SELECT 1').get();
+            final tables = await importDb
+                .customSelect(
+                  "SELECT name FROM sqlite_master WHERE type = 'table'",
+                )
+                .get();
+            final present = tables
+                .map((row) => row.read<String>('name'))
+                .toSet();
+            final missing = appTables.difference(present);
+            if (missing.isNotEmpty) {
+              throw Exception('Missing app tables: ${missing.join(', ')}');
+            }
+            // Strip untrusted credentials in the installed copy.
+            await IdentityRepository(importDb).removeCredentials();
+            hosts = await IdentityRepository(importDb).hosts();
+            // No free-page remnants of the stripped credentials.
+            await importDb.customStatement('VACUUM');
+          } finally {
+            await importDb.close();
+          }
+        } finally {
+          driftRuntimeOptions.dontWarnAboutMultipleDatabases = false;
+        }
+        await excludeDatabaseFromBackup();
+
+        navigator.pop();
+        if (context.mounted) {
+          await _showRestartDialog(context, hosts: hosts);
+        }
       } on Exception catch (e) {
+        if (newDbFile.existsSync()) await newDbFile.delete();
         navigator.pop();
         messenger.showSnackBar(
           SnackBar(content: Text('Invalid database file: $e')),
         );
         _logger.warn('Database validation failed', null, e);
-        return;
-      } finally {
-        driftRuntimeOptions.dontWarnAboutMultipleDatabases = false;
-      }
-
-      final importFile = File(path);
-      final dbPath = await getAppDatabasePath();
-      final newDbPath = '$dbPath.new';
-      await importFile.copy(newDbPath);
-
-      navigator.pop();
-      if (context.mounted) {
-        await _showRestartDialog(context);
       }
     } on Exception catch (e) {
       navigator.pop();
@@ -265,8 +412,7 @@ class DatabaseImportTile extends StatelessWidget {
         child: AlertDialog(
           title: const Text('Import Database'),
           content: const Text(
-            'This will replace your current database. \n'
-            'All data will be lost. This cannot be undone!',
+            'This will replace your current database. \nAll data will be lost. This cannot be undone!',
           ),
           actions: [
             TextButton(
@@ -286,19 +432,64 @@ class DatabaseImportTile extends StatelessWidget {
     ),
   ).then((value) => value ?? false);
 
-  Future<void> _showRestartDialog(BuildContext context) => showDialog(
+  Future<void> _showRestartDialog(
+    BuildContext context, {
+    required Set<String> hosts,
+  }) => showDialog(
     context: context,
     barrierDismissible: false,
-    builder: (context) => AlertDialog(
-      title: const Text('Restart Required'),
-      content: const Text('The app needs to restart to apply changes.'),
-      actions: [
-        TextButton(
-          onPressed: () => AppInit.of(context).reinitialize(),
-          child: const Text('RESTART NOW'),
+    builder: (context) {
+      final foreignHosts = hosts.difference(defaultHosts);
+      return Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: AlertDialog(
+            title: const Text('Restart Required'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('The app needs to restart to apply changes.'),
+                const SizedBox(height: 12),
+                const Text(
+                  'For safety, saved logins were removed from the imported file.',
+                ),
+                if (foreignHosts.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    'Warning: the imported file contains accounts on other sites: ${foreignHosts.join(', ')}',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  // Drop the staged import; the current database stays.
+                  final messenger = ScaffoldMessenger.of(context);
+                  final dbPath = await getAppDatabasePath();
+                  final newDbFile = File('$dbPath.new');
+                  if (newDbFile.existsSync()) await newDbFile.delete();
+                  if (!context.mounted) return;
+                  Navigator.of(context).pop();
+                  messenger.showSnackBar(
+                    const SnackBar(content: Text('Import cancelled')),
+                  );
+                },
+                child: const Text('CANCEL'),
+              ),
+              TextButton(
+                onPressed: () => AppInit.of(context).reinitialize(),
+                child: const Text('RESTART NOW'),
+              ),
+            ],
+          ),
         ),
-      ],
-    ),
+      );
+    },
   );
 
   @override
