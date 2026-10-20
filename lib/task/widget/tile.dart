@@ -47,7 +47,10 @@ class TaskTile extends StatelessWidget {
             isRunning: isRunning,
           ),
           title: Text(
-            '${taskActionLabel(task.action, task.status)} post #${task.postId}',
+            tf('{action} post #{id}', params: {
+              'action': taskActionLabel(task.action, task.status),
+              'id': task.postId,
+            }),
           ),
           subtitle: Text(
             RelativeTime.locale(
@@ -80,26 +83,28 @@ class TaskTile extends StatelessWidget {
 
 String taskActionLabel(TaskAction action, TaskStatus status) {
   final String present = switch (action) {
-    TaskAction.download => 'download',
-    TaskAction.favorite => 'favorite',
-    TaskAction.unfavorite => 'unfavorite',
+    TaskAction.download => t('download'),
+    TaskAction.favorite => t('favorite'),
+    TaskAction.unfavorite => t('unfavorite'),
   };
   final String gerund = switch (action) {
-    TaskAction.download => 'downloading',
-    TaskAction.favorite => 'favoriting',
-    TaskAction.unfavorite => 'unfavoriting',
+    TaskAction.download => t('downloading'),
+    TaskAction.favorite => t('favoriting'),
+    TaskAction.unfavorite => t('unfavoriting'),
   };
   final String past = switch (action) {
-    TaskAction.download => 'downloaded',
-    TaskAction.favorite => 'favorited',
-    TaskAction.unfavorite => 'unfavorited',
+    TaskAction.download => t('downloaded'),
+    TaskAction.favorite => t('favorited'),
+    TaskAction.unfavorite => t('unfavorited'),
   };
   return switch (status) {
-    TaskStatus.pending => 'queued to $present',
+    TaskStatus.pending => tf('queued to {action}', params: {'action': present}),
     TaskStatus.running => gerund,
     TaskStatus.completed => past,
-    TaskStatus.failed => 'failed to $present',
-    TaskStatus.canceled => 'canceled $present',
+    TaskStatus.failed => tf('failed to {action}', params: {'action': present}),
+    TaskStatus.canceled => tf('canceled {action}', params: {
+      'action': present,
+    }),
   };
 }
 

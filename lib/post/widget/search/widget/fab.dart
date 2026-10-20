@@ -15,7 +15,7 @@ class PostsPageFab extends StatelessWidget {
           controller.update((p) => p.copyWith(tags: value['tags'])),
       filters: [
         PrimaryFilterConfig(
-          filter: TagSearchFilterTag(tag: 'tags', name: 'Tags'),
+          filter: TagSearchFilterTag(tag: 'tags', name: t('Tags')),
           filters: [PostParams.tagsFilter],
         ),
       ],

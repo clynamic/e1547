@@ -44,49 +44,60 @@ class App extends StatelessWidget {
                     const SystemUiOverlayStyle(),
                 child: SubValue<GlobalKey<NavigatorState>>(
                   create: () => GlobalKey<NavigatorState>(),
-                  builder: (context, navigatorKey) => MaterialApp(
-                    title: AppInfo.instance.appName,
-                    theme: value.data,
-                    scrollBehavior: AndroidStretchScrollBehaviour(),
-                    localizationsDelegates: const [
-                      GlobalWidgetsLocalizations.delegate,
-                      GlobalMaterialLocalizations.delegate,
-                      GlobalCupertinoLocalizations.delegate,
-                      RelativeTimeLocalizations.delegate,
-                    ],
-                    navigatorKey: navigatorKey,
-                    navigatorObservers: [
-                      context.watch<AnyRouteObserver>(),
-                      RouteLoggerObserver(),
-                      MaterialApp.createMaterialHeroController(),
-                    ],
-                    routes: context.watch<RouterDrawerController>().routes,
-                    builder: (context, child) => WindowFrame(
-                      child: WindowShortcuts(
-                        navigatorKey: navigatorKey,
-                        child: SecureDisplay(
-                          child: LockScreen(
-                            child: LoadingShell(
-                              child: MultiProvider(
-                                providers: [
-                                  IdentityClientProvider(),
-                                  TraitsClientProvider(),
-                                  ClientProvider(),
-                                  FileCacheProvider(),
-                                  TasksControllerProvider(),
-                                ],
-                                child: LoadingCore(
-                                  child: OnboardingGate(
-                                    child: AccountConnector(
-                                      navigatorKey: navigatorKey,
-                                      child: FollowConnector(
-                                        child: AppLinkHandler(
-                                          navigatorKey: navigatorKey,
-                                          child: NotificationHandler(
+                  builder: (context, navigatorKey) =>
+                      ValueListenableBuilder<AppLanguage>(
+                        valueListenable: appLanguage,
+                        builder: (context, language, child) => MaterialApp(
+                          title: AppInfo.instance.appName,
+                          theme: value.data,
+                          scrollBehavior: AndroidStretchScrollBehaviour(),
+                          locale: language.locale,
+                          supportedLocales: AppLanguage.values
+                              .map((language) => language.locale)
+                              .whereType<Locale>()
+                              .toList(),
+                          localizationsDelegates: const [
+                            GlobalWidgetsLocalizations.delegate,
+                            GlobalMaterialLocalizations.delegate,
+                            GlobalCupertinoLocalizations.delegate,
+                            RelativeTimeLocalizations.delegate,
+                          ],
+                          navigatorKey: navigatorKey,
+                          navigatorObservers: [
+                            context.watch<AnyRouteObserver>(),
+                            RouteLoggerObserver(),
+                            MaterialApp.createMaterialHeroController(),
+                          ],
+                          routes: context.watch<RouterDrawerController>().routes,
+                          builder: (context, child) => WindowFrame(
+                            child: WindowShortcuts(
+                              navigatorKey: navigatorKey,
+                              child: SecureDisplay(
+                                child: LockScreen(
+                                  child: LoadingShell(
+                                    child: MultiProvider(
+                                      providers: [
+                                        IdentityClientProvider(),
+                                        TraitsClientProvider(),
+                                        ClientProvider(),
+                                        FileCacheProvider(),
+                                        TasksControllerProvider(),
+                                      ],
+                                      child: LoadingCore(
+                                        child: OnboardingGate(
+                                          child: AccountConnector(
                                             navigatorKey: navigatorKey,
-                                            child: AppBubbleOverlay(
-                                              navigatorKey: navigatorKey,
-                                              child: child!,
+                                            child: FollowConnector(
+                                              child: AppLinkHandler(
+                                                navigatorKey: navigatorKey,
+                                                child: NotificationHandler(
+                                                  navigatorKey: navigatorKey,
+                                                  child: AppBubbleOverlay(
+                                                    navigatorKey: navigatorKey,
+                                                    child: child!,
+                                                  ),
+                                                ),
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -105,8 +116,6 @@ class App extends StatelessWidget {
               ),
             ),
           ),
-        ),
-      ),
     );
   }
 }

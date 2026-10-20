@@ -14,8 +14,8 @@ class PostSelectionAppBar extends StatelessWidget with AppBarBuilderWidget {
     return SelectionAppBar<Post>(
       child: child,
       titleBuilder: (context, data) => data.selections.length == 1
-          ? Text('post #${data.selections.first.id}')
-          : Text('${data.selections.length} posts'),
+          ? Text(tf('post #{id}', params: {'id': data.selections.first.id}))
+          : Text(tf('{n} posts', params: {'n': data.selections.length})),
       actionBuilder: (context, data) => [
         IconButton(
           icon: const Icon(Icons.file_download),

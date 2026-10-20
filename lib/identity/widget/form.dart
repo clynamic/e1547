@@ -75,8 +75,8 @@ class _AccountFormState extends State<AccountForm> {
         apikey: withAuth! ? apikeyController.text : null,
         activate: !isEditing,
         onError: (value) => setState(() {
-          value ??= 'Check your network connection and login details';
-          error = 'Failed to log in. \n$value';
+          value ??= t('Check your network connection and login details');
+          error = tf('Failed to log in. \n{error}', params: {'error': value});
         }),
         onDone: widget.onSubmitted,
       ),
@@ -95,7 +95,7 @@ class _AccountFormState extends State<AccountForm> {
             alignment: Alignment.centerLeft,
             child: TextButton(
               onPressed: () => launch(apiKeysUrl),
-              child: const Text('Where do I find my API key?'),
+              child: Text(t('Where do I find my API key?')),
             ),
           );
         }
@@ -104,7 +104,7 @@ class _AccountFormState extends State<AccountForm> {
             alignment: Alignment.centerLeft,
             child: TextButton(
               onPressed: () => launch(registrationUrl),
-              child: const Text('Don\'t have an account? Sign up here'),
+              child: Text(t('Don\'t have an account? Sign up here')),
             ),
           );
         }
@@ -125,7 +125,7 @@ class _AccountFormState extends State<AccountForm> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Text(
-              'The site is where your posts and account live.',
+              t('The site is where your posts and account live.'),
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
@@ -201,11 +201,13 @@ class _AccountFormState extends State<AccountForm> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                isEditing
-                                    ? 'Save'
-                                    : (withAuth == true
-                                          ? 'Log in'
-                                          : 'Browse anonymously'),
+                                t(
+                                  isEditing
+                                      ? 'Save'
+                                      : (withAuth == true
+                                            ? 'Log in'
+                                            : 'Browse anonymously'),
+                                ),
                               ),
                               if (!isEditing) ...[
                                 const SizedBox(width: 8),
@@ -276,8 +278,8 @@ class _AuthModeSelector extends StatelessWidget {
       ),
       child: Row(
         children: [
-          segment('Sign in', withAuth == true, () => onChanged(true)),
-          segment('Guest', withAuth == false, () => onChanged(false)),
+          segment(t('Sign in'), withAuth == true, () => onChanged(true)),
+          segment(t('Guest'), withAuth == false, () => onChanged(false)),
         ],
       ),
     );

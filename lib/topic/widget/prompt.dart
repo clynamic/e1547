@@ -26,7 +26,7 @@ Future<void> showTopicPrompt({
           icon: const Icon(Icons.share),
           onTap: () async =>
               Share.text(context, context.read<Client>().withHost(topic.link)),
-          label: const Text('Share'),
+          label: Text(t('Share')),
         ),
       ],
     ),
@@ -64,13 +64,13 @@ class TopicInfo extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          textInfoRow('replies', topic.responseCount.toString()),
+          textInfoRow(t('replies'), topic.responseCount.toString()),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('id'),
+              Text(t('id')),
               InkWell(
-                child: Text('#${topic.id}'),
+                child: Text(tf('#{id}', params: {'id': topic.id})),
                 onLongPress: () async {
                   ScaffoldMessengerState messenger = ScaffoldMessenger.of(
                     context,
@@ -80,20 +80,22 @@ class TopicInfo extends StatelessWidget {
                   messenger.showSnackBar(
                     SnackBar(
                       duration: const Duration(seconds: 1),
-                      content: Text('Copied topic id #${topic.id}'),
+                      content: Text(
+                        tf('Copied topic id #{id}', params: {'id': topic.id}),
+                      ),
                     ),
                   );
                 },
               ),
             ],
           ),
-          textInfoRow('locked', topic.locked ? 'yes' : 'no'),
+          textInfoRow(t('locked'), topic.locked ? t('yes') : t('no')),
           textInfoRow(
-            'created',
+            t('created'),
             DateFormatting.dateTime(topic.createdAt.toLocal()),
           ),
           textInfoRow(
-            'updated',
+            t('updated'),
             DateFormatting.dateTime(topic.updatedAt.toLocal()),
           ),
         ],

@@ -1,3 +1,4 @@
+import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
 class ReportFormDropdown<T> extends StatelessWidget {
@@ -20,15 +21,15 @@ class ReportFormDropdown<T> extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       child: DropdownButtonFormField<T>(
         isExpanded: true,
-        decoration: const InputDecoration(
-          labelText: 'Type',
-          border: OutlineInputBorder(),
+        decoration: InputDecoration(
+          labelText: t('Type'),
+          border: const OutlineInputBorder(),
         ),
         initialValue: type,
         onChanged: isLoading ? null : onChanged,
         validator: (value) {
           if (value == null) {
-            return 'Type cannot be empty';
+            return t('Type cannot be empty');
           }
           return null;
         },

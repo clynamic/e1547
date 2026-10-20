@@ -98,7 +98,9 @@ class _PostReportScreenState extends State<PostReportScreen> {
         messenger.showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 1),
-            content: Text('Reported post #${widget.post.id}'),
+            content: Text(
+              tf('Reported post #{id}', params: {'id': widget.post.id}),
+            ),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -106,7 +108,9 @@ class _PostReportScreenState extends State<PostReportScreen> {
         messenger.showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 1),
-            content: Text('Failed to report post #${widget.post.id}'),
+            content: Text(
+              tf('Failed to report post #{id}', params: {'id': widget.post.id}),
+            ),
           ),
         );
       }
@@ -121,7 +125,7 @@ class _PostReportScreenState extends State<PostReportScreen> {
         child: Scaffold(
           appBar: DefaultAppBar(
             elevation: 0,
-            title: Text('Post #${widget.post.id}'),
+            title: Text(tf('Post #{id}', params: {'id': widget.post.id})),
             leading: const CloseButton(),
           ),
           floatingActionButton: Builder(
@@ -144,7 +148,7 @@ class _PostReportScreenState extends State<PostReportScreen> {
                     isLoading: isLoading,
                   ),
                   ReportFormHeader(
-                    title: const Text('Report'),
+                    title: Text(t('Report')),
                     icon: IconButton(
                       onPressed: () => showTagSearchPrompt(
                         context: context,
@@ -155,7 +159,9 @@ class _PostReportScreenState extends State<PostReportScreen> {
                   ),
                   ReportFormDropdown<PostReportType?>(
                     type: type,
-                    types: {for (final e in PostReportType.values) e: e.title},
+                    types: {
+                      for (final e in PostReportType.values) e: t(e.title),
+                    },
                     onChanged: (value) => setState(() => type = value),
                     isLoading: isLoading,
                   ),
@@ -172,7 +178,7 @@ class _PostReportScreenState extends State<PostReportScreen> {
                             child: Card(
                               child: Padding(
                                 padding: const EdgeInsets.all(16),
-                                child: DText(type!.body),
+                                child: DText(t(type!.body)),
                               ),
                             ),
                           ),

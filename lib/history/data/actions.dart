@@ -40,9 +40,9 @@ extension Identification on History {
     if (parsed.id case final id when id is String) {
       switch (type) {
         case LinkType.user:
-          return '$id - User';
+          return tf('{id} - User', params: {'id': id});
         case LinkType.wiki:
-          return '$id - Wiki';
+          return tf('{id} - Wiki', params: {'id': id});
         default:
           break;
       }
@@ -51,17 +51,17 @@ extension Identification on History {
     if (parsed.id case final id when id is int) {
       switch (type) {
         case LinkType.post:
-          return 'Post #$id';
+          return tf('Post #{id}', params: {'id': id});
         case LinkType.pool:
-          return 'Pool #$id';
+          return tf('Pool #{id}', params: {'id': id});
         case LinkType.user:
-          return 'User #$id';
+          return tf('User #{id}', params: {'id': id});
         case LinkType.wiki:
-          return 'Wiki #$id';
+          return tf('Wiki #{id}', params: {'id': id});
         case LinkType.topic:
-          return 'Topic #$id';
+          return tf('Topic #{id}', params: {'id': id});
         case LinkType.reply:
-          return 'Reply #$id';
+          return tf('Reply #{id}', params: {'id': id});
       }
     }
 
@@ -72,38 +72,50 @@ extension Identification on History {
           String? username = context.read<Client>().identity.username;
           if (username != null &&
               favRegex(username).hasMatch(search['tags'] ?? '')) {
-            return 'Favorites';
+            return t('Favorites');
           }
           if (search['tags'] == 'order:rank') {
-            return 'Hot posts';
+            return t('Hot posts');
           }
-          return 'Posts - ${tagToName(search['tags'] ?? '')}';
+          return tf('Posts - {tags}', params: {
+            'tags': tagToName(search['tags'] ?? ''),
+          });
         case LinkType.pool:
-          return 'Pools - ${search['search[name_matches]'] ?? ''}';
+          return tf('Pools - {query}', params: {
+            'query': search['search[name_matches]'] ?? '',
+          });
         case LinkType.user:
-          return 'Users - ${search['search[name_matches]'] ?? ''}';
+          return tf('Users - {query}', params: {
+            'query': search['search[name_matches]'] ?? '',
+          });
         case LinkType.wiki:
-          return 'Wikis - ${search['search[title]'] ?? ''}';
+          return tf('Wikis - {query}', params: {
+            'query': search['search[title]'] ?? '',
+          });
         case LinkType.topic:
-          return 'Topics - ${search['search[title_matches]'] ?? ''}';
+          return tf('Topics - {query}', params: {
+            'query': search['search[title_matches]'] ?? '',
+          });
         case LinkType.reply:
-          return 'Replies - ${search['search[topic_title_matches]'] ?? ''}';
+          return tf('Replies - {query}', params: {
+            'query': search['search[topic_title_matches]'] ?? '',
+          });
       }
     }
 
     switch (type) {
       case LinkType.post:
-        return 'Posts';
+        return t('Posts');
       case LinkType.pool:
-        return 'Pools';
+        return t('Pools');
       case LinkType.user:
-        return 'Users';
+        return t('Users');
       case LinkType.wiki:
-        return 'Wikis';
+        return t('Wikis');
       case LinkType.topic:
-        return 'Topics';
+        return t('Topics');
       case LinkType.reply:
-        return 'Replies';
+        return t('Replies');
     }
   }
 }

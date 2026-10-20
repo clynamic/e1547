@@ -18,8 +18,8 @@ class PostLoadingPage extends StatelessWidget {
         isLoading: state.isLoading,
         isError: state.isError,
         isEmpty: state.data == null,
-        onError: const Text('Failed to load post'),
-        onEmpty: const Text('Post not found'),
+        onError: Text(t('Failed to load post')),
+        onEmpty: Text(t('Post not found')),
         child: (context) => PostDetail(post: state.data!),
       ),
     );

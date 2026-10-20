@@ -23,12 +23,12 @@ class ReplyLoadingPage extends StatelessWidget {
         loadingBuilder: (context, child) => Scaffold(
           appBar: AppBar(
             leading: const CloseButton(),
-            title: Text('Reply #$id'),
+            title: Text(tf('Reply #{id}', params: {'id': id})),
           ),
           body: child(context),
         ),
-        onError: const Text('Failed to load reply'),
-        onEmpty: const Text('Reply not found'),
+        onError: Text(t('Failed to load reply')),
+        onEmpty: Text(t('Reply not found')),
         child: (context) =>
             TopicLoadingPage(state.data!.topicId, orderByOldest: orderByOldest),
       ),

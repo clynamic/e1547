@@ -24,16 +24,18 @@ class FollowMarkReadTile extends StatelessWidget {
         return ListTile(
           enabled: unseenCount > 0,
           leading: Icon(unseenCount > 0 ? Icons.mark_email_read : Icons.drafts),
-          title: const Text('unseen posts'),
+          title: Text(t('unseen posts')),
           subtitle: unseenCount > 0
               ? TweenAnimationBuilder<int>(
                   tween: IntTween(begin: 0, end: unseenCount),
                   duration: defaultAnimationDuration,
                   builder: (context, value, child) {
-                    return Text('mark $value posts as seen');
+                    return Text(
+                      tf('mark {n} posts as seen', params: {'n': value}),
+                    );
                   },
                 )
-              : const Text('no unseen posts'),
+              : Text(t('no unseen posts')),
           onTap: () {
             Scaffold.of(context).closeEndDrawer();
             client.follows.markAllSeen(null);
@@ -61,10 +63,10 @@ class FollowFilterReadTile extends StatelessWidget {
         secondary: Icon(
           filterUnseenFollows ? Icons.mark_email_unread : Icons.email,
         ),
-        title: const Text('show unseen first'),
+        title: Text(t('show unseen first')),
         subtitle: filterUnseenFollows
-            ? const Text('filtering for unseen')
-            : const Text('all posts shown'),
+            ? Text(t('filtering for unseen'))
+            : Text(t('all posts shown')),
       ),
     );
   }
@@ -76,7 +78,7 @@ class FollowEditingTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: const Text('Edit'),
+      title: Text(t('Edit')),
       leading: const Icon(Icons.edit),
       onTap: () {
         Scaffold.of(context).closeEndDrawer();
@@ -108,13 +110,16 @@ class FollowForceSyncTile extends StatelessWidget {
           builder: (context, progressSnapshot) => Column(
             children: [
               ListTile(
-                title: const Text('Force sync'),
+                title: Text(t('Force sync')),
                 leading: const Icon(Icons.sync),
                 subtitle: (sync?.completed ?? true)
-                    ? const Text('sync all follows')
+                    ? Text(t('sync all follows'))
                     : Text(
-                        'syncing follows... '
-                        '${NumberFormat('0.#%').format(progressSnapshot.data ?? 0)}',
+                        tf('syncing follows... {progress}', params: {
+                          'progress': NumberFormat(
+                            '0.#%',
+                          ).format(progressSnapshot.data ?? 0),
+                        }),
                       ),
                 enabled: enabled,
                 onTap: () {

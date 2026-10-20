@@ -23,13 +23,13 @@ class PoolInfo extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          textInfoRow('posts', pool.postIds.length.toString()),
+          textInfoRow(t('posts'), pool.postIds.length.toString()),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('id'),
+              Text(t('id')),
               InkWell(
-                child: Text('#${pool.id}'),
+                child: Text(tf('#{id}', params: {'id': pool.id})),
                 onLongPress: () async {
                   ScaffoldMessengerState messenger = ScaffoldMessenger.of(
                     context,
@@ -39,20 +39,22 @@ class PoolInfo extends StatelessWidget {
                   messenger.showSnackBar(
                     SnackBar(
                       duration: const Duration(seconds: 1),
-                      content: Text('Copied pool id #${pool.id}'),
+                      content: Text(
+                        tf('Copied pool id #{id}', params: {'id': pool.id}),
+                      ),
                     ),
                   );
                 },
               ),
             ],
           ),
-          textInfoRow('activity', pool.active ? 'active' : 'inactive'),
+          textInfoRow(t('activity'), pool.active ? t('active') : t('inactive')),
           textInfoRow(
-            'created',
+            t('created'),
             DateFormatting.dateTime(pool.createdAt.toLocal()),
           ),
           textInfoRow(
-            'updated',
+            t('updated'),
             DateFormatting.dateTime(pool.updatedAt.toLocal()),
           ),
         ],

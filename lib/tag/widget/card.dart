@@ -4,10 +4,16 @@ import 'package:e1547/tag/tag.dart';
 import 'package:flutter/material.dart';
 
 class TagCard extends StatelessWidget {
-  const TagCard({super.key, required this.tag, this.category});
+  const TagCard({
+    super.key,
+    required this.tag,
+    this.category,
+    this.translation,
+  });
 
   final String tag;
   final String? category;
+  final String? translation;
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +28,24 @@ class TagCard extends StatelessWidget {
       ),
       onLongPress: () => showTagSearchPrompt(context: context, tag: tag),
       onSecondaryTap: () => showTagSearchPrompt(context: context, tag: tag),
-      child: Text(tagToTitle(tag), overflow: TextOverflow.ellipsis),
+      child: translation == null
+          ? Text(tagToTitle(tag), overflow: TextOverflow.ellipsis)
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(tagToTitle(tag), overflow: TextOverflow.ellipsis),
+                Text(
+                  translation!,
+                  style: TextStyle(
+                    fontSize:
+                        Theme.of(context).textTheme.bodySmall?.fontSize ?? 12,
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
     );
   }
 }

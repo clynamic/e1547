@@ -73,9 +73,9 @@ class DrawerTagCounterBody extends StatelessWidget {
               iconColor: Theme.of(context).iconTheme.color,
             ),
             child: ExpandablePanel(
-              header: const ListTile(
-                title: Text('Tags'),
-                leading: Icon(Icons.tag),
+              header: ListTile(
+                title: Text(t('Tags')),
+                leading: const Icon(Icons.tag),
               ),
               collapsed: const SizedBox.shrink(),
               expanded: Column(
@@ -86,7 +86,7 @@ class DrawerTagCounterBody extends StatelessWidget {
                     builder: (context) => CrossFade(
                       showChild: children!.isNotEmpty,
                       secondChild: Text(
-                        'no tags',
+                        t('no tags'),
                         style: TextStyle(
                           fontStyle: FontStyle.italic,
                           color: dimTextColor(context),
@@ -113,16 +113,18 @@ class DrawerTagCounterBody extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: const Dimmed(
+                      child: Dimmed(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.warning_amber, size: 12),
+                            const Icon(Icons.warning_amber, size: 12),
                             Padding(
-                              padding: EdgeInsets.all(8),
+                              padding: const EdgeInsets.all(8),
                               child: Text(
-                                'failed to load tags',
-                                style: TextStyle(fontStyle: FontStyle.italic),
+                                t('failed to load tags'),
+                                style: const TextStyle(
+                                  fontStyle: FontStyle.italic,
+                                ),
                               ),
                             ),
                           ],

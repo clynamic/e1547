@@ -111,15 +111,15 @@ class PostDetailImageActions extends StatelessWidget {
         color: Colors.black12,
         child: InkWell(
           onTap: onTap,
-          child: const Row(
+          child: Row(
             children: [
-              Padding(
+              const Padding(
                 padding: EdgeInsets.symmetric(vertical: 2),
                 child: Icon(Icons.open_in_new, size: 16),
               ),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 5),
-                child: Text('Open'),
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                child: Text(t('Open')),
               ),
             ],
           ),
@@ -170,7 +170,7 @@ class PostDetailImageActions extends StatelessWidget {
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 5),
-                  child: Text(denied ? 'show' : 'hide'),
+                  child: Text(t(denied ? 'show' : 'hide')),
                 ),
               ],
             ),

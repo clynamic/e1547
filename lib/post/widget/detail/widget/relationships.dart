@@ -19,12 +19,12 @@ class RelationshipDisplay extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (parentId != null) ...[
-          const RelationHeader(title: 'Parent'),
+          RelationHeader(title: t('Parent')),
           PostRelationTile(id: parentId),
           const Divider(),
         ],
         if (children.isNotEmpty) ...[
-          RelationHeader(title: 'Children', count: children.length),
+          RelationHeader(title: t('Children'), count: children.length),
           SizedBox(
             height: postRelationPreviewSize,
             child: ScrollEdgeFade(

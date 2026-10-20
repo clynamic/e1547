@@ -10,6 +10,7 @@ import 'package:e1547/files/files.dart';
 import 'package:e1547/follow/follow.dart';
 import 'package:e1547/identity/identity.dart';
 import 'package:e1547/logs/logs.dart';
+import 'package:e1547/shared/shared.dart';
 import 'package:e1547/traits/traits.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
@@ -145,9 +146,9 @@ Future<void> updateFollowNotifications({
     );
 
     String title = follow.name;
-    String description = 'has $unseen new posts!';
+    String description = tf('has {n} new posts!', params: {'n': unseen});
     if (unseen == 1) {
-      description = 'has a new post!';
+      description = t('has a new post!');
     }
 
     await notifications.show(
@@ -179,7 +180,7 @@ Future<void> updateFollowNotifications({
         );
         await notifications.show(
           id: followsBackgroundTaskKey.hashCode,
-          title: 'New posts!',
+          title: t('New posts!'),
           notificationDetails: notificationDetails,
           payload: json.encode(
             NotificationPayload(identity: identity, type: 'follow'),

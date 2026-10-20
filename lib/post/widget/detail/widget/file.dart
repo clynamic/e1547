@@ -14,9 +14,9 @@ class FileDisplay extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-          child: Text('File', style: TextStyle(fontSize: 16)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          child: Text(t('File'), style: const TextStyle(fontSize: 16)),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
@@ -25,7 +25,7 @@ class FileDisplay extends StatelessWidget {
             children: [
               TagGesture(
                 tag: 'rating:${post.rating.name}',
-                child: Text(post.rating.title),
+                child: Text(t(post.rating.title)),
               ),
               Text('${post.width} x ${post.height}'),
             ],

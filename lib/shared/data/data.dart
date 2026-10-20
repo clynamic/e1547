@@ -14,3 +14,5 @@ export 'rails.dart';
 export 'share.dart';
 export 'sql.dart';
 export 'text.dart';
+export 'trans.dart';
+export 'translate.dart';

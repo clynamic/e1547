@@ -5,9 +5,9 @@ extension GridQuiltDescription on GridQuilt {
   String get description {
     switch (this) {
       case GridQuilt.square:
-        return 'tiles are quadratic';
+        return t('tiles are quadratic');
       case GridQuilt.vertical:
-        return 'tiles expand vertically';
+        return t('tiles expand vertically');
     }
   }
 
@@ -30,13 +30,13 @@ class GridSettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: const Text('Quilt'),
+      title: Text(t('Quilt')),
       subtitle: Text(state.description),
       leading: Icon(state.icon),
       onTap: () => showDialog(
         context: context,
         builder: (context) => SimpleDialog(
-          title: const Text('Grid'),
+          title: Text(t('Grid')),
           children: [
             Column(
               mainAxisSize: MainAxisSize.min,

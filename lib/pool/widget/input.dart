@@ -25,49 +25,55 @@ class PoolsPageFab extends StatelessWidget {
           filters: [
             PrimaryFilterConfig(
               filter: PoolNameFilterTag(tag: 'name_matches'),
-              filters: const [
+              filters: [
                 TextFilterTag(
                   tag: 'description_matches',
-                  name: 'Description',
-                  icon: Icon(Icons.description),
+                  name: t('Description'),
+                  icon: const Icon(Icons.description),
                 ),
                 TextFilterTag(
                   tag: 'creator_name',
-                  name: 'Creator',
-                  icon: Icon(Icons.person),
+                  name: t('Creator'),
+                  icon: const Icon(Icons.person),
                 ),
                 ToggleFilterTag(
                   tag: 'is_active',
-                  name: 'Active',
+                  name: t('Active'),
                   enabled: 'true',
                   disabled: 'false',
-                  description: 'Is active',
+                  description: t('Is active'),
                 ),
                 ChoiceFilterTag(
                   tag: 'category',
-                  name: 'Category',
-                  icon: Icon(Icons.category),
+                  name: t('Category'),
+                  icon: const Icon(Icons.category),
                   options: [
-                    ChoiceFilterTagValue(value: null, name: 'Default'),
-                    ChoiceFilterTagValue(value: 'series', name: 'Series'),
+                    ChoiceFilterTagValue(value: null, name: t('Default')),
+                    ChoiceFilterTagValue(value: 'series', name: t('Series')),
                     ChoiceFilterTagValue(
                       value: 'collection',
-                      name: 'Collection',
+                      name: t('Collection'),
                     ),
                   ],
                 ),
                 ChoiceFilterTag(
                   tag: 'order',
-                  name: 'Sort by',
-                  icon: Icon(Icons.sort),
+                  name: t('Sort by'),
+                  icon: const Icon(Icons.sort),
                   options: [
-                    ChoiceFilterTagValue(value: null, name: 'Default'),
-                    ChoiceFilterTagValue(value: 'name', name: 'Name'),
-                    ChoiceFilterTagValue(value: 'created_at', name: 'Created'),
-                    ChoiceFilterTagValue(value: 'updated_at', name: 'Updated'),
+                    ChoiceFilterTagValue(value: null, name: t('Default')),
+                    ChoiceFilterTagValue(value: 'name', name: t('Name')),
+                    ChoiceFilterTagValue(
+                      value: 'created_at',
+                      name: t('Created'),
+                    ),
+                    ChoiceFilterTagValue(
+                      value: 'updated_at',
+                      name: t('Updated'),
+                    ),
                     ChoiceFilterTagValue(
                       value: 'post_count',
-                      name: 'Post count',
+                      name: t('Post count'),
                     ),
                   ],
                 ),
@@ -115,7 +121,7 @@ class PoolNameFilter extends StatelessWidget {
             direction: VerticalDirection.up,
             submit: (value) => state.onSubmit?.call(value),
             controller: controller,
-            labelText: 'Pool title',
+            labelText: t('Pool title'),
             decoration: theme.decoration,
             focusNode: theme.focusNode,
             onSelected: (value) {

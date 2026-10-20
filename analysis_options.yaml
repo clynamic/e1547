@@ -168,6 +168,13 @@ linter:
     - avoid_classes_with_only_static_members: false
 
 analyzer:
-  exclude: [build/**, lib/**.freezed.dart, lib/**.g.dart]
+  exclude:
+    - build/**
+    - lib/**.freezed.dart
+    - lib/**.g.dart
+    - android/**
+    - ios/**
+    - windows/**
+    - linux/**
   errors:
     invalid_annotation_target: ignore

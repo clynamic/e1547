@@ -23,12 +23,12 @@ class TopicLoadingPage extends StatelessWidget {
         loadingBuilder: (context, child) => Scaffold(
           appBar: AppBar(
             leading: const CloseButton(),
-            title: Text('Topic #$id'),
+            title: Text(tf('Topic #{id}', params: {'id': id})),
           ),
           body: child(context),
         ),
-        onError: const Text('Failed to load topic'),
-        onEmpty: const Text('Topic not found'),
+        onError: Text(t('Failed to load topic')),
+        onEmpty: Text(t('Topic not found')),
         child: (context) =>
             TopicRepliesPage(topic: state.data!, orderByOldest: orderByOldest),
       ),

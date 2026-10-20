@@ -47,16 +47,16 @@ class FollowsSubscriptionsPage extends StatelessWidget {
                 items: state.data?.pages.expand((p) => p).toList(),
                 child: PromptActions(
                   child: AdaptiveScaffold(
-                    appBar: const FollowSelectionAppBar(
+                    appBar: FollowSelectionAppBar(
                       child: DefaultAppBar(
-                        title: Text('Subscriptions'),
-                        actions: [ContextDrawerButton()],
+                        title: Text(t('Subscriptions')),
+                        actions: const [ContextDrawerButton()],
                       ),
                     ),
                     drawer: const RouterDrawer(),
-                    endDrawer: const ContextDrawer(
-                      title: Text('Subscriptions'),
-                      children: [
+                    endDrawer: ContextDrawer(
+                      title: Text(t('Subscriptions')),
+                      children: const [
                         FollowEditingTile(),
                         Divider(),
                         FollowFilterReadTile(),
@@ -66,7 +66,7 @@ class FollowsSubscriptionsPage extends StatelessWidget {
                       ],
                     ),
                     floatingActionButton: AddTagFab(
-                      title: 'Add to subscriptions',
+                      title: t('Add to subscriptions'),
                       onSubmit: (value) async {
                         value = value.trim();
                         if (value.isEmpty) return;
@@ -90,9 +90,9 @@ class FollowsSubscriptionsPage extends StatelessWidget {
                               onRetry: query.getNextPage,
                               itemBuilder: (context, item, index) =>
                                   FollowTile(follow: item),
-                              onEmpty: const Text('No subscriptions'),
-                              onError: const Text(
-                                'Failed to load subscriptions',
+                              onEmpty: Text(t('No subscriptions')),
+                              onError: Text(
+                                t('Failed to load subscriptions'),
                               ),
                             ),
                             crossAxisCount: TileLayout.of(

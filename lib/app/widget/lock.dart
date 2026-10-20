@@ -32,7 +32,7 @@ class _LockScreenState extends State<LockScreen> {
 
     if (pin != null) {
       lock = ScreenLock(
-        title: const Text('Enter PIN'),
+        title: Text(t('Enter PIN')),
         correctString: pin!,
         customizedButtonChild: biometrics
             ? const Icon(Icons.fingerprint)
@@ -118,12 +118,11 @@ class _BiometricsLockScreenState extends State<BiometricsLockScreen> {
             const Icon(Icons.fingerprint, size: 60),
             const SizedBox(height: 20),
             Text(
-              failed ? 'Failed to authenticate' : 'Please authenticate',
+              t(failed ? 'Failed to authenticate' : 'Please authenticate'),
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
-            if (failed)
-              TextButton(onPressed: tryAuth, child: const Text('Retry')),
+            if (failed) TextButton(onPressed: tryAuth, child: Text(t('Retry'))),
           ],
         ),
       ),
@@ -141,7 +140,7 @@ Future<void> tryLocalAuth({
   await localAuth.stopAuthentication();
   try {
     bool success = await localAuth.authenticate(
-      localizedReason: 'Authenticate to unlock.',
+      localizedReason: t('Authenticate to unlock.'),
       persistAcrossBackgrounding: true,
     );
     if (success) {
@@ -151,9 +150,9 @@ Future<void> tryLocalAuth({
     }
   } on LocalAuthException {
     messenger.showSnackBar(
-      const SnackBar(
-        content: Text('Severe failure in biometric authentication'),
-        duration: Duration(milliseconds: 300),
+      SnackBar(
+        content: Text(t('Severe failure in biometric authentication')),
+        duration: const Duration(milliseconds: 300),
       ),
     );
     onFailure?.call();
@@ -163,8 +162,8 @@ Future<void> tryLocalAuth({
 Future<String?> registerPin(BuildContext context) async {
   Completer<String?> completer = Completer();
   await screenLockCreate(
-    title: const Text('Enter new PIN'),
-    confirmTitle: const Text('Confirm new PIN'),
+    title: Text(t('Enter new PIN')),
+    confirmTitle: Text(t('Confirm new PIN')),
     context: context,
     onConfirmed: (result) {
       completer.complete(result);

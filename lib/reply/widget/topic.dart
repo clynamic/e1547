@@ -34,7 +34,7 @@ class TopicRepliesPage extends StatelessWidget {
               actions: [
                 IconButton(
                   icon: const Icon(Icons.info_outline),
-                  tooltip: 'Info',
+                  tooltip: t('Info'),
                   onPressed: () =>
                       showTopicPrompt(context: context, topic: topic),
                 ),

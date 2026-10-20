@@ -38,14 +38,14 @@ class _PoolsPageState extends State<PoolsPage> with RouterDrawerEntryWidget {
                       .whereType<Post>()
                       .toList();
               return AdaptiveScaffold(
-                appBar: const DefaultAppBar(
-                  title: Text('Pools'),
-                  actions: [ContextDrawerButton()],
+                appBar: DefaultAppBar(
+                  title: Text(t('Pools')),
+                  actions: const [ContextDrawerButton()],
                 ),
                 floatingActionButton: const PoolsPageFab(),
                 drawer: const RouterDrawer(),
                 endDrawer: ContextDrawer(
-                  title: const Text('Pools'),
+                  title: Text(t('Pools')),
                   children: [
                     const DrawerDenySwitch(),
                     DrawerTagCounter(posts: thumbnails, error: state.error),
@@ -95,8 +95,8 @@ class PoolGrid extends StatelessWidget {
               ),
             ),
           ),
-          onEmpty: const Text('No pools'),
-          onError: const Text('Failed to load pools'),
+          onEmpty: Text(t('No pools')),
+          onError: Text(t('Failed to load pools')),
         ),
       ),
     );

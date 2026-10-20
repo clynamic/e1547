@@ -16,9 +16,9 @@ class SourceDisplay extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-            child: Text('Sources', style: TextStyle(fontSize: 16)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            child: Text(t('Sources'), style: const TextStyle(fontSize: 16)),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
@@ -32,7 +32,7 @@ class SourceDisplay extends StatelessWidget {
                 : Padding(
                     padding: const EdgeInsets.all(4),
                     child: Text(
-                      'no sources',
+                      t('no sources'),
                       style: TextStyle(
                         color: dimTextColor(context),
                         fontStyle: FontStyle.italic,

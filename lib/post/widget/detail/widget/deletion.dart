@@ -31,9 +31,9 @@ class DeletionDisplay extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              child: Text('Deletion', style: TextStyle(fontSize: 16)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              child: Text(t('Deletion'), style: const TextStyle(fontSize: 16)),
             ),
             Row(
               children: [

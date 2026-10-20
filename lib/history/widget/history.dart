@@ -14,13 +14,13 @@ class HistoriesPage extends StatelessWidget {
       child: HistoryPageQueryBuilder(
         builder: (context, state, query) => SelectionLayout<History>(
           items: state.data?.pages.expand((p) => p).toList(),
-          child: const AdaptiveScaffold(
-            appBar: HistoryAppBar(),
-            floatingActionButton: HistorySearchFab(),
-            drawer: RouterDrawer(),
+          child: AdaptiveScaffold(
+            appBar: const HistoryAppBar(),
+            floatingActionButton: const HistorySearchFab(),
+            drawer: const RouterDrawer(),
             endDrawer: ContextDrawer(
-              title: Text('History'),
-              children: [
+              title: Text(t('History')),
+              children: const [
                 HistoryEnableTile(),
                 HistoryLimitTile(),
                 HistoryClearTile(),
@@ -29,7 +29,7 @@ class HistoriesPage extends StatelessWidget {
                 HistoryTypeFilterTile(),
               ],
             ),
-            body: HistoryList(),
+            body: const HistoryList(),
           ),
         ),
       ),

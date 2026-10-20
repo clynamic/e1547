@@ -53,12 +53,12 @@ class SliverTasksList extends StatelessWidget {
       itemComparator: _itemComparator,
       groupSeparatorBuilder: (value) => Padding(
         padding: const EdgeInsets.only(top: 8),
-        child: SectionHeader(title: value),
+        child: SectionHeader(title: t(value)),
       ),
       builderDelegate: defaultPagedChildBuilderDelegate<Task>(
         onRetry: () {},
-        onEmpty: const Text('No tasks'),
-        onError: const Text('Failed to load tasks'),
+        onEmpty: Text(t('No tasks')),
+        onError: Text(t('Failed to load tasks')),
         itemBuilder: (context, task, index) => TaskTile(
           task: task,
           controller: context.read<TasksController>(),

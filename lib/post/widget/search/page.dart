@@ -41,7 +41,7 @@ class PostsPage extends StatelessWidget {
                           : null,
                       drawer: const RouterDrawer(),
                       endDrawer: ContextDrawer(
-                        title: const Text('Posts'),
+                        title: Text(t('Posts')),
                         children: [
                           ...drawerActions,
                           if (drawerActions.isNotEmpty) const Divider(),

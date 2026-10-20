@@ -143,7 +143,7 @@ class PostRelationTile extends StatelessWidget {
                       showChild: post != null,
                       child: Text(
                         artists.isEmpty
-                            ? 'no artist'
+                            ? t('no artist')
                             : artists.map(tagToName).join(', '),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,

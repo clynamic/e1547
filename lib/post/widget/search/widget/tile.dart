@@ -107,13 +107,13 @@ class PostTileOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (post.isDeleted) {
-      return const Center(child: Text('deleted'));
+      return Center(child: Text(t('deleted')));
     }
     if (post.type == PostType.unsupported) {
-      return const Center(child: Text('unsupported'));
+      return Center(child: Text(t('unsupported')));
     }
     if (post.file == null) {
-      return const Center(child: Text('unavailable'));
+      return Center(child: Text(t('unavailable')));
     }
     return child;
   }
@@ -310,7 +310,10 @@ class PostFeedTile extends StatelessWidget {
                               SnackBar(
                                 duration: const Duration(seconds: 1),
                                 content: Text(
-                                  'Failed to upvote Post #${post.id}',
+                                  tf(
+                                    'Failed to upvote Post #{id}',
+                                    params: {'id': post.id},
+                                  ),
                                 ),
                               ),
                             );
@@ -327,7 +330,10 @@ class PostFeedTile extends StatelessWidget {
                                 SnackBar(
                                   duration: const Duration(seconds: 1),
                                   content: Text(
-                                    'Failed to downvote Post #${post.id}',
+                                    tf(
+                                      'Failed to downvote Post #{id}',
+                                      params: {'id': post.id},
+                                    ),
                                   ),
                                 ),
                               );
@@ -368,12 +374,12 @@ class PostFeedTile extends StatelessWidget {
           if (post.file != null)
             PopupMenuTile(
               value: () => postDownloadingNotification(context, {post}),
-              title: 'Download',
+              title: t('Download'),
               icon: Icons.file_download,
             ),
           PopupMenuTile(
             value: () => launch(context.read<Client>().withHost(post.link)),
-            title: 'Browse',
+            title: t('Browse'),
             icon: Icons.open_in_browser,
           ),
         ],

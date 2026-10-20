@@ -314,7 +314,7 @@ class _VideoGestureState extends State<VideoGesture>
                 color: Colors.white,
               ),
               title: Text(
-                '${videoSeekStep.inSeconds * combo} seconds',
+                tf('{n} seconds', params: {'n': videoSeekStep.inSeconds * combo}),
                 style: const TextStyle(color: Colors.white),
               ),
             ),

@@ -37,9 +37,9 @@ Future<void> showPoolPrompt({
         padding: const EdgeInsets.all(16),
         child: pool.description.isNotEmpty
             ? DText(pool.description)
-            : const Text(
-                'no description',
-                style: TextStyle(fontStyle: FontStyle.italic),
+            : Text(
+                t('no description'),
+                style: const TextStyle(fontStyle: FontStyle.italic),
               ),
       ),
       const Divider(),
@@ -66,7 +66,7 @@ class PoolActions extends StatelessWidget {
         children: [
           ActionButton(
             icon: const Icon(Icons.share),
-            label: const Text('share'),
+            label: Text(t('share')),
             onTap: () async =>
                 Share.text(context, context.read<Client>().withHost(pool.link)),
           ),

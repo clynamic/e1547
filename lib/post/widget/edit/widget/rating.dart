@@ -1,4 +1,5 @@
 import 'package:e1547/post/post.dart';
+import 'package:e1547/shared/shared.dart';
 import 'package:e1547/ticket/ticket.dart';
 import 'package:flutter/material.dart';
 
@@ -39,7 +40,7 @@ class RatingEditDisplay extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Rating', style: TextStyle(fontSize: 16)),
+          Text(t('Rating'), style: const TextStyle(fontSize: 16)),
           const SizedBox(height: 8),
           DropdownButtonFormField<Rating>(
             initialValue: rating,
@@ -52,7 +53,7 @@ class RatingEditDisplay extends StatelessWidget {
                       children: [
                         rating.icon,
                         const SizedBox(width: 8),
-                        Text(rating.title),
+                        Text(t(rating.title)),
                       ],
                     ),
                   ),
@@ -75,11 +76,11 @@ Future<Rating?> showRatingDialog({
   return showDialog<Rating>(
     context: context,
     builder: (context) => SimpleDialog(
-      title: const Text('Rating'),
+      title: Text(t('Rating')),
       children: Rating.values
           .map(
             (rating) => ListTile(
-              title: Text(rating.title),
+              title: Text(t(rating.title)),
               leading: rating.icon,
               onTap: () {
                 onSelected?.call(rating);

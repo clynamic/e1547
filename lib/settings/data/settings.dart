@@ -4,10 +4,19 @@ import 'package:flutter/foundation.dart';
 import 'package:notified_preferences/notified_preferences.dart';
 
 class Settings extends NotifiedSettings {
-  Settings(super.preferences);
+  Settings(super.preferences) {
+    appLanguage.value = language.value;
+    language.addListener(() => appLanguage.value = language.value);
+  }
 
   static Future<Settings> getInstance() async =>
       Settings(await SharedPreferences.getInstance());
+
+  late final ValueNotifier<AppLanguage> language = createEnumSetting(
+    key: 'language',
+    initialValue: AppLanguage.system,
+    values: AppLanguage.values,
+  );
 
   late final ValueNotifier<int> identity = createSetting(
     key: 'identity',

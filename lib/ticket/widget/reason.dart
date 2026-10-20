@@ -19,14 +19,14 @@ class ReportFormReason extends StatelessWidget {
       child: TextFormField(
         enabled: !isLoading,
         controller: controller,
-        decoration: const InputDecoration(
-          labelText: 'Reason',
-          border: OutlineInputBorder(),
+        decoration: InputDecoration(
+          labelText: t('Reason'),
+          border: const OutlineInputBorder(),
         ),
         maxLines: null,
         validator: (value) {
           if (value!.trim().isEmpty) {
-            return 'Reason cannot be empty';
+            return t('Reason cannot be empty');
           }
           return null;
         },
@@ -103,7 +103,7 @@ class _ReasonReportScreenState extends State<ReasonReportScreen> {
                             SnackBar(
                               duration: const Duration(seconds: 1),
                               content: Text(
-                                widget.onSuccess ?? 'Submitted report',
+                                widget.onSuccess ?? t('Submitted report'),
                               ),
                               behavior: SnackBarBehavior.floating,
                             ),
@@ -114,7 +114,7 @@ class _ReasonReportScreenState extends State<ReasonReportScreen> {
                             SnackBar(
                               duration: const Duration(seconds: 1),
                               content: Text(
-                                widget.onFailure ?? 'Failed to submit report',
+                                widget.onFailure ?? t('Failed to submit report'),
                               ),
                             ),
                           );
@@ -149,7 +149,7 @@ class _ReasonReportScreenState extends State<ReasonReportScreen> {
                       ],
                     ),
                   ),
-                  const ReportFormHeader(title: Text('Report')),
+                  ReportFormHeader(title: Text(t('Report'))),
                   ReportFormReason(
                     controller: reasonController,
                     isLoading: isLoading,

@@ -37,7 +37,7 @@ Future<void> showHistoryPrompt({
         ? DText(entry.subtitle!)
         : Center(
             child: Text(
-              'no description',
+              t('no description'),
               style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                 color: dimTextColor(context),
                 fontStyle: FontStyle.italic,

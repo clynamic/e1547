@@ -72,7 +72,7 @@ class AppInitState extends State<AppInit> {
                         const AppIcon(radius: 64),
                         if (snapshot.error != null) ...[
                           const SizedBox(height: 16),
-                          const Text('Failed to initialize'),
+                          Text(t('Failed to initialize')),
                           if (kDebugMode) ...[
                             const SizedBox(height: 8),
                             Text(snapshot.error.toString()),

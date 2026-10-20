@@ -27,12 +27,16 @@ class WikiLoadingPage extends StatelessWidget {
         loadingBuilder: (context, child) => Scaffold(
           appBar: AppBar(
             leading: const CloseButton(),
-            title: Text(id != null ? 'Wiki #$id' : 'Wiki $title'),
+            title: Text(
+              id != null
+                  ? tf('Wiki #{id}', params: {'id': id})
+                  : tf('Wiki {title}', params: {'title': title}),
+            ),
           ),
           body: child(context),
         ),
-        onError: const Text('Failed to load wiki'),
-        onEmpty: const Text('Wiki not found'),
+        onError: Text(t('Failed to load wiki')),
+        onEmpty: Text(t('Wiki not found')),
         child: (context) => WikiPage(wiki: state.data!),
       ),
     );

@@ -21,12 +21,12 @@ class CommentLoadingPage extends StatelessWidget {
         loadingBuilder: (context, child) => Scaffold(
           appBar: AppBar(
             leading: const CloseButton(),
-            title: Text('Comment #$id'),
+            title: Text(tf('Comment #{id}', params: {'id': id})),
           ),
           body: child(context),
         ),
-        onError: const Text('Failed to load comment'),
-        onEmpty: const Text('Comment not found'),
+        onError: Text(t('Failed to load comment')),
+        onEmpty: Text(t('Comment not found')),
         child: (context) => PostCommentsPage(postId: state.data!.postId),
       ),
     );

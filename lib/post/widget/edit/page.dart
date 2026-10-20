@@ -94,14 +94,22 @@ class _PostEditPageState extends State<PostEditPage> {
 
       if (state.isError) {
         messenger.showSnackBar(
-          SnackBar(content: Text('Failed to update post #${widget.post.id}')),
+          SnackBar(
+            content: Text(
+              tf('Failed to update post #{id}', params: {'id': widget.post.id}),
+            ),
+          ),
         );
         return;
       }
 
       if (mounted) {
         messenger.showSnackBar(
-          SnackBar(content: Text('Updated post #${widget.post.id}')),
+          SnackBar(
+            content: Text(
+              tf('Updated post #{id}', params: {'id': widget.post.id}),
+            ),
+          ),
         );
         Navigator.of(context).pop();
       }

@@ -45,8 +45,8 @@ class SliverHistoryList extends StatelessWidget {
         itemComparator: (a, b) => a.visitedAt.compareTo(b.visitedAt),
         builderDelegate: defaultPagedChildBuilderDelegate<History>(
           onRetry: query.getNextPage,
-          onEmpty: const Text('Your history is empty'),
-          onError: const Text('Failed to load history'),
+          onEmpty: Text(t('Your history is empty')),
+          onError: Text(t('Failed to load history')),
           itemBuilder: (context, item, index) => HistoryTile(entry: item),
         ),
       ),

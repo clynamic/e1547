@@ -35,13 +35,13 @@ class LogsDrawer extends StatelessWidget {
     final LogLevel? recording = this.recording;
     final ValueSetter<bool>? onVerbose = this.onVerbose;
     return ContextDrawer(
-      title: const Text('Logs'),
+      title: Text(t('Logs')),
       children: [
-        const Padding(
-          padding: EdgeInsets.only(left: 12),
+        Padding(
+          padding: const EdgeInsets.only(left: 12),
           child: SectionHeader(
             indent: SectionHeader.listTileIndent,
-            title: 'Levels',
+            title: t('Levels'),
           ),
         ),
         for (final LogLevel level in LogLevel.values)
@@ -50,7 +50,7 @@ class LogsDrawer extends StatelessWidget {
               padding: const EdgeInsets.only(left: 16),
               child: CheckboxListTile(
                 secondary: Icon(level.icon),
-                title: Text(level.name.pascalCase),
+                title: Text(t(level.name.pascalCase)),
                 value: levels.contains(level),
                 onChanged: (value) {
                   if (value == null) return;
@@ -59,22 +59,24 @@ class LogsDrawer extends StatelessWidget {
               ),
             ),
         if (recording != null && onVerbose != null) ...[
-          const Padding(
-            padding: EdgeInsets.only(left: 12),
+          Padding(
+            padding: const EdgeInsets.only(left: 12),
             child: SectionHeader(
               indent: SectionHeader.listTileIndent,
-              title: 'Recording',
+              title: t('Recording'),
             ),
           ),
           Padding(
             padding: const EdgeInsets.only(left: 16),
             child: SwitchListTile(
               secondary: const Icon(Icons.data_object),
-              title: const Text('Verbose'),
+              title: Text(t('Verbose')),
               subtitle: Text(
                 verbose
-                    ? 'all levels recorded'
-                    : '${recording.name.pascalCase} and above',
+                    ? t('all levels recorded')
+                    : tf('{level} and above', params: {
+                        'level': recording.name.pascalCase,
+                      }),
               ),
               value: verbose,
               onChanged: onVerbose,

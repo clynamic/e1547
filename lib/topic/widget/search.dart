@@ -14,16 +14,16 @@ class TopicsPage extends StatelessWidget {
       create: (_) => TopicFilter(),
       child: ChangeNotifierProvider(
         create: (_) => TopicParamsController(TopicParams.fromQuery(query)),
-        child: const TopicsHistoryConnector(
+        child: TopicsHistoryConnector(
           child: AdaptiveScaffold(
             appBar: DefaultAppBar(
-              title: Text('Topics'),
-              actions: [ContextDrawerButton()],
+              title: Text(t('Topics')),
+              actions: const [ContextDrawerButton()],
             ),
-            floatingActionButton: TopicSearchFab(),
-            drawer: RouterDrawer(),
-            endDrawer: TopicListDrawer(),
-            body: TopicList(),
+            floatingActionButton: const TopicSearchFab(),
+            drawer: const RouterDrawer(),
+            endDrawer: const TopicListDrawer(),
+            body: const TopicList(),
           ),
         ),
       ),

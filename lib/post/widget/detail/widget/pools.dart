@@ -19,7 +19,7 @@ class PoolDisplay extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const RelationHeader(title: 'Pools'),
+        RelationHeader(title: t('Pools')),
         ...pools.map((id) => PoolRelationTile(id: id)),
         const Divider(),
       ],
@@ -80,7 +80,9 @@ class PoolRelationTile extends StatelessWidget {
                       child: pool == null
                           ? const SizedBox.shrink()
                           : Text(
-                              '${pool.postCount} ${pool.postCount == 1 ? 'post' : 'posts'}',
+                              pool.postCount == 1
+                                  ? tf('{n} post', params: {'n': pool.postCount})
+                                  : tf('{n} posts', params: {'n': pool.postCount}),
                               style: TextStyle(color: dimTextColor(context)),
                             ),
                     ),

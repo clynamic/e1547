@@ -132,7 +132,7 @@ class LoadingDialogActionController extends PromptActionController {
         child: Builder(
           builder: (context) {
             if (isLoading) {
-              return const Text('Loading...');
+              return Text(t('Loading...'));
             } else if (isError) {
               return Text(error!.message);
             } else {

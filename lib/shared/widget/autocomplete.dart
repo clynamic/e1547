@@ -93,12 +93,12 @@ class AutocompleteTextField<T> extends StatelessWidget {
           children: [SizedCircularProgressIndicator(size: 24)],
         ),
       ),
-      errorBuilder: (context, error) => const Column(
+      errorBuilder: (context, error) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           IconMessage(
-            icon: Icon(Icons.error),
-            title: Text('Failed to load suggestions'),
+            icon: const Icon(Icons.error),
+            title: Text(t('Failed to load suggestions')),
           ),
         ],
       ),

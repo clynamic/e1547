@@ -17,9 +17,9 @@ class DenylistTagDisplay extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-          child: Text('Blacklisted', style: TextStyle(fontSize: 16)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          child: Text(t('Blacklisted'), style: const TextStyle(fontSize: 16)),
         ),
         ...deniers.map(
           (e) => Column(

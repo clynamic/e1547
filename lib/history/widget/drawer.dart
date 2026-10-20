@@ -17,8 +17,10 @@ class HistoryEnableTile extends StatelessWidget {
       builder: (context, countSnapshot) => ValueListenableBuilder(
         valueListenable: client.traits,
         builder: (context, traits, child) => SwitchListTile(
-          title: const Text('Enabled'),
-          subtitle: Text('${countSnapshot.data ?? 0} pages visited'),
+          title: Text(t('Enabled')),
+          subtitle: Text(
+            tf('{n} pages visited', params: {'n': countSnapshot.data ?? 0}),
+          ),
           secondary: const Icon(Icons.history),
           value: traits.writeHistory ?? true,
           onChanged: (value) => client.traits.value = client.traits.value
@@ -36,27 +38,29 @@ class HistoryClearTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final client = context.watch<Client>();
     return ListTile(
-      title: const Text('Clear history'),
-      subtitle: const Text('Delete all entries'),
+      title: Text(t('Clear history')),
+      subtitle: Text(t('Delete all entries')),
       leading: const Icon(Icons.clear_all),
       onTap: () => showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Clear history?'),
-          content: const Text(
-            'All history entries will be permanently deleted. This action cannot be undone.',
+          title: Text(t('Clear history?')),
+          content: Text(
+            t(
+              'All history entries will be permanently deleted. This action cannot be undone.',
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              child: Text(t('Cancel')),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 client.histories.useClear().mutate();
               },
-              child: const Text('Clear'),
+              child: Text(t('Clear')),
             ),
           ],
         ),
@@ -83,15 +87,21 @@ class HistoryLimitTile extends StatelessWidget {
             showDialog(
               context: context,
               builder: (context) => AlertDialog(
-                title: const Text('History limit'),
+                title: Text(t('History limit')),
                 content: Text(
-                  'Enabling history limit means all history entries beyond ${NumberFormat.compact().format(trimAmount)} '
-                  'and all entries older than ${trimAge.inDays ~/ 30} months are automatically deleted.',
+                  tf(
+                    'Enabling history limit means all history entries beyond {amount} '
+                    'and all entries older than {months} months are automatically deleted.',
+                    params: {
+                      'amount': NumberFormat.compact().format(trimAmount),
+                      'months': trimAge.inDays ~/ 30,
+                    },
+                  ),
                 ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(context).maybePop(),
-                    child: const Text('CANCEL'),
+                    child: Text(t('CANCEL')),
                   ),
                   TextButton(
                     onPressed: () {
@@ -100,7 +110,7 @@ class HistoryLimitTile extends StatelessWidget {
                       );
                       Navigator.of(context).maybePop();
                     },
-                    child: const Text('OK'),
+                    child: Text(t('OK')),
                   ),
                 ],
               ),
@@ -116,13 +126,19 @@ class HistoryLimitTile extends StatelessWidget {
               ? Icons.hourglass_bottom
               : Icons.hourglass_empty,
         ),
-        title: const Text('Limit history'),
+        title: Text(t('Limit history')),
         subtitle: (traits.trimHistory ?? false)
             ? Text(
-                'Limited to newer than ${trimAge.inDays ~/ 30} months or '
-                'less than ${NumberFormat.compact().format(trimAmount)} entries.',
+                tf(
+                  'Limited to newer than {months} months or '
+                  'less than {amount} entries.',
+                  params: {
+                    'months': trimAge.inDays ~/ 30,
+                    'amount': NumberFormat.compact().format(trimAmount),
+                  },
+                ),
               )
-            : const Text('history is infinite'),
+            : Text(t('history is infinite')),
       ),
     );
   }
@@ -137,11 +153,11 @@ class HistoryCategoryFilterTile extends StatelessWidget {
       builder: (context, controller, _) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(left: 12),
+          Padding(
+            padding: const EdgeInsets.only(left: 12),
             child: SectionHeader(
               indent: SectionHeader.listTileIndent,
-              title: 'Entries',
+              title: t('Entries'),
             ),
           ),
           for (final filter in HistoryCategory.values)
@@ -149,7 +165,7 @@ class HistoryCategoryFilterTile extends StatelessWidget {
               padding: const EdgeInsets.only(left: 16),
               child: CheckboxListTile(
                 secondary: filter.icon,
-                title: Text(filter.title),
+                title: Text(t(filter.title)),
                 value: controller.value.categories?.contains(filter) ?? true,
                 onChanged: (value) {
                   if (value == null) return;
@@ -181,11 +197,11 @@ class HistoryTypeFilterTile extends StatelessWidget {
       builder: (context, controller, _) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(left: 12),
+          Padding(
+            padding: const EdgeInsets.only(left: 12),
             child: SectionHeader(
               indent: SectionHeader.listTileIndent,
-              title: 'Type',
+              title: t('Type'),
             ),
           ),
           for (final filter in HistoryType.values)
@@ -193,7 +209,7 @@ class HistoryTypeFilterTile extends StatelessWidget {
               padding: const EdgeInsets.only(left: 16),
               child: CheckboxListTile(
                 secondary: filter.icon,
-                title: Text(filter.title),
+                title: Text(t(filter.title)),
                 value: controller.value.types?.contains(filter) ?? true,
                 onChanged: (value) {
                   if (value == null) return;

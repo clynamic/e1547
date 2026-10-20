@@ -12,7 +12,7 @@ class UserReportScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ReasonReportScreen(
-      title: Text('User #${user.id}'),
+      title: Text(tf('User #{id}', params: {'id': user.id})),
       onReport: (reason) => validateCall(
         () => context.read<Client>().tickets.create(
           type: TicketType.user,
@@ -20,8 +20,8 @@ class UserReportScreen extends StatelessWidget {
           reason: reason,
         ),
       ),
-      onSuccess: 'Reported user #${user.id}',
-      onFailure: 'Failed to report user #${user.id}',
+      onSuccess: tf('Reported user #{id}', params: {'id': user.id}),
+      onFailure: tf('Failed to report user #{id}', params: {'id': user.id}),
       previewBuilder: (context, isLoading) => Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

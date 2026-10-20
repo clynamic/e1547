@@ -28,12 +28,12 @@ class FollowsBookmarkPage extends StatelessWidget {
               items: state.data?.pages.expand((p) => p).toList(),
               child: PromptActions(
                 child: AdaptiveScaffold(
-                  appBar: const FollowSelectionAppBar(
-                    child: DefaultAppBar(title: Text('Bookmarks')),
+                  appBar: FollowSelectionAppBar(
+                    child: DefaultAppBar(title: Text(t('Bookmarks'))),
                   ),
                   drawer: const RouterDrawer(),
                   floatingActionButton: AddTagFab(
-                    title: 'Add to bookmarks',
+                    title: t('Add to bookmarks'),
                     onSubmit: (value) async {
                       value = value.trim();
                       if (value.isEmpty) return;
@@ -57,8 +57,8 @@ class FollowsBookmarkPage extends StatelessWidget {
                             onRetry: query.getNextPage,
                             itemBuilder: (context, item, index) =>
                                 FollowTile(follow: item),
-                            onEmpty: const Text('No bookmarks'),
-                            onError: const Text('Failed to load bookmarks'),
+                            onEmpty: Text(t('No bookmarks')),
+                            onError: Text(t('Failed to load bookmarks')),
                           ),
                           crossAxisCount: TileLayout.of(context).crossAxisCount,
                         ),

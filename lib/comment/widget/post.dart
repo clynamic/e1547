@@ -25,7 +25,7 @@ class PostCommentsPage extends StatelessWidget {
         ),
         builder: (context, _) => AdaptiveScaffold(
           appBar: DefaultAppBar(
-            title: Text('#$postId comments'),
+            title: Text(tf('#{id} comments', params: {'id': postId})),
             actions: const [ContextDrawerButton()],
           ),
           floatingActionButton: client.hasLogin

@@ -96,7 +96,11 @@ class _TagsEditDisplayState extends State<TagsEditDisplay> {
       _logger.warn('Tag preview failed', null, e, stackTrace);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading tag preview: $e')),
+          SnackBar(
+            content: Text(
+              tf('Error loading tag preview: {e}', params: {'e': e}),
+            ),
+          ),
         );
       }
     }
@@ -111,8 +115,8 @@ class _TagsEditDisplayState extends State<TagsEditDisplay> {
         children: [
           Row(
             children: [
-              const Expanded(
-                child: Text('Tags', style: TextStyle(fontSize: 16)),
+              Expanded(
+                child: Text(t('Tags'), style: const TextStyle(fontSize: 16)),
               ),
               IconButton(
                 onPressed: widget.enabled == false
@@ -126,7 +130,7 @@ class _TagsEditDisplayState extends State<TagsEditDisplay> {
                         }
                       },
                 icon: Icon(_isPreviewMode ? Icons.edit : Icons.visibility),
-                tooltip: _isPreviewMode ? 'Edit' : 'Preview',
+                tooltip: t(_isPreviewMode ? 'Edit' : 'Preview'),
               ),
             ],
           ),
@@ -146,7 +150,7 @@ class _TagsEditDisplayState extends State<TagsEditDisplay> {
                           .toList(),
                     )
                   : Text(
-                      'No tags',
+                      t('No tags'),
                       style: TextStyle(
                         color: dimTextColor(context),
                         fontStyle: FontStyle.italic,
@@ -156,9 +160,9 @@ class _TagsEditDisplayState extends State<TagsEditDisplay> {
           ] else ...[
             TagInput(
               controller: widget.controller,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'space separated tags',
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
+                hintText: t('space separated tags'),
               ),
               readOnly: widget.enabled == false,
               autofocus: false,
@@ -190,23 +194,23 @@ class TagPreviewCard extends StatelessWidget {
     final theme = Theme.of(context);
     if (tag.id == null) {
       return Text(
-        'new',
+        t('new'),
         style: TextStyle(fontSize: 10, color: theme.colorScheme.primary),
       );
     } else if (tag.category == TagCategory.invalid.id) {
       return Text(
-        'invalid',
+        t('invalid'),
         style: TextStyle(fontSize: 10, color: theme.colorScheme.error),
       );
     } else if (tag.postCount == 0) {
       return Text(
-        'empty',
+        t('empty'),
         style: TextStyle(fontSize: 10, color: theme.colorScheme.tertiary),
       );
     } else if (tag.postCount == 1 && tag.category == TagCategory.general.id) {
       // Underused general tag
       return Text(
-        'underused',
+        t('underused'),
         style: TextStyle(fontSize: 10, color: theme.colorScheme.secondary),
       );
     }

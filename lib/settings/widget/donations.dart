@@ -84,7 +84,7 @@ class Donors extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(4),
           child: Text(
-            'Not on the list? contact us!',
+            t('Not on the list? contact us!'),
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ),

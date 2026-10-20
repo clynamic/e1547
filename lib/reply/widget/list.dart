@@ -34,8 +34,8 @@ class SliverReplyList extends StatelessWidget {
       builderDelegate: defaultPagedChildBuilderDelegate(
         onRetry: query.getNextPage,
         itemBuilder: (context, item, index) => ReplyTile(reply: item),
-        onEmpty: const Text('No replies'),
-        onError: const Text('Failed to load replies'),
+        onEmpty: Text(t('No replies')),
+        onError: Text(t('Failed to load replies')),
       ),
     ),
   );

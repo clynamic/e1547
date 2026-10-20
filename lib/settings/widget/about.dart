@@ -93,9 +93,9 @@ class _DevOptionEnablerState extends State<DevOptionEnabler> {
         if (taps == 7) {
           messenger.clearSnackBars();
           messenger.showSnackBar(
-            const SnackBar(
-              duration: Duration(seconds: 2),
-              content: Text('You are now a developer!'),
+            SnackBar(
+              duration: const Duration(seconds: 2),
+              content: Text(t('You are now a developer!')),
             ),
           );
           context.read<Settings>().showDev.value = true;
@@ -151,9 +151,9 @@ class AboutExperimental extends StatelessWidget {
             FontAwesomeIcons.triangleExclamation,
             color: Theme.of(context).colorScheme.error,
           ),
-          title: const Text('Experimental platform'),
-          subtitle: const Text(
-            'This platform is not supported. Expect bugs and missing features.',
+          title: Text(t('Experimental platform')),
+          subtitle: Text(
+            t('This platform is not supported. Expect bugs and missing features.'),
           ),
         ),
         const Divider(),
@@ -187,7 +187,7 @@ class AboutVersion extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'A newer version is available: ',
+                  t('A newer version is available: '),
                   style: TextStyle(color: dimTextColor(context, 0.5)),
                 ),
                 ...versions
@@ -211,9 +211,9 @@ class AboutVersion extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: Navigator.of(context).maybePop,
-            child: const Text('CANCEL'),
+            child: Text(t('CANCEL')),
           ),
-          TextButton(onPressed: openGithub, child: const Text('DOWNLOAD')),
+          TextButton(onPressed: openGithub, child: Text(t('DOWNLOAD'))),
         ],
       );
     }
@@ -224,17 +224,20 @@ class AboutVersion extends StatelessWidget {
       Widget icon;
       VoidCallback? onTap;
       if (data == null && (state?.isLoading ?? true)) {
-        message = 'Fetching updates...';
+        message = t('Fetching updates...');
         icon = const FaIcon(FontAwesomeIcons.clockRotateLeft);
       } else if (data == null) {
-        message = 'Failed to check for updates';
+        message = t('Failed to check for updates');
         onTap = openGithub;
         icon = const FaIcon(FontAwesomeIcons.circleExclamation);
       } else if (data.isEmpty) {
-        message = 'You have the newest version';
+        message = t('You have the newest version');
         icon = const FaIcon(FontAwesomeIcons.clockRotateLeft);
       } else {
-        message = 'A newer version is available: ${data.first.version}';
+        message = tf(
+          'A newer version is available: {version}',
+          params: {'version': data.first.version},
+        );
         onTap = () => showDialog(
           context: context,
           builder: (context) => changesDialog(data),
@@ -249,7 +252,7 @@ class AboutVersion extends StatelessWidget {
             children: [
               ListTile(
                 leading: icon,
-                title: const Text('Version'),
+                title: Text(t('Version')),
                 subtitle: Text(message),
                 onTap: onTap,
               ),
@@ -304,21 +307,23 @@ class AboutLinks extends StatelessWidget {
       children: [
         linkListTile(
           leading: const FaIcon(FontAwesomeIcons.github),
-          title: const Text('GitHub'),
+          title: Text(t('GitHub')),
           link: 'https://github.com/',
           extra: appInfo.github,
         ),
         linkListTile(
           leading: const FaIcon(FontAwesomeIcons.discord),
-          title: const Text('Discord'),
+          title: Text(t('Discord')),
           link: 'https://discord.gg/',
           extra: appInfo.discord,
         ),
         if (appInfo.forumTopicId != null)
           ListTile(
             leading: const FaIcon(FontAwesomeIcons.comments),
-            title: const Text('Forum'),
-            subtitle: Text('e621 thread #${appInfo.forumTopicId}'),
+            title: Text(t('Forum')),
+            subtitle: Text(
+              tf('e621 thread #{n}', params: {'n': appInfo.forumTopicId}),
+            ),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) => TopicLoadingPage(appInfo.forumTopicId!),
@@ -328,7 +333,7 @@ class AboutLinks extends StatelessWidget {
         if (appInfo.website != null)
           linkListTile(
             leading: const FaIcon(FontAwesomeIcons.house),
-            title: const Text('Website'),
+            title: Text(t('Website')),
             link: 'https://',
             extra: appInfo.website,
           ),
@@ -339,21 +344,21 @@ class AboutLinks extends StatelessWidget {
             ].contains(appInfo.source))
           linkListTile(
             leading: const FaIcon(FontAwesomeIcons.mugSaucer),
-            title: const Text('Ko-fi'),
+            title: Text(t('Ko-fi')),
             link: 'https://ko-fi.com/',
             extra: appInfo.kofi,
           ),
         if (appInfo.email != null)
           linkListTile(
             leading: const FaIcon(FontAwesomeIcons.solidEnvelope),
-            title: const Text('Email'),
+            title: Text(t('Email')),
             link: 'mailto:',
             extra: appInfo.email,
           ),
         const Divider(),
         linkListTile(
           leading: const FaIcon(FontAwesomeIcons.googlePlay),
-          title: const Text('Playstore'),
+          title: Text(t('Playstore')),
           link: Platform.isAndroid
               ? 'https://play.google.com/store/apps/details?id='
               : 'https://play.google.com/store/search?q=',
@@ -380,9 +385,9 @@ class AboutDonations extends StatelessWidget {
 
       if ((githubDonations?.isError ?? false) &&
           (assetDonations?.isError ?? false)) {
-        return const IconMessage(
-          icon: Icon(Icons.warning_amber),
-          title: Text('Failed to fetch donors'),
+        return IconMessage(
+          icon: const Icon(Icons.warning_amber),
+          title: Text(t('Failed to fetch donors')),
         );
       }
 
@@ -392,10 +397,10 @@ class AboutDonations extends StatelessWidget {
 
       return Column(
         children: [
-          const ListTile(
-            title: Text('Donors'),
-            leading: FaIcon(FontAwesomeIcons.handHoldingHeart),
-            subtitle: Text('Thanks for helping me keep up development!'),
+          ListTile(
+            title: Text(t('Donors')),
+            leading: const FaIcon(FontAwesomeIcons.handHoldingHeart),
+            subtitle: Text(t('Thanks for helping me keep up development!')),
           ),
           const Divider(),
           const SizedBox(height: 8),
@@ -408,9 +413,9 @@ class AboutDonations extends StatelessWidget {
             )
           else if (donors.isEmpty)
             // I dont like whining about no donors
-            const ListTile(
-              title: Text('No donors yet'),
-              leading: FaIcon(FontAwesomeIcons.heartCrack),
+            ListTile(
+              title: Text(t('No donors yet')),
+              leading: const FaIcon(FontAwesomeIcons.heartCrack),
             )
           else
             Donors(donors: donors),

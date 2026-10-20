@@ -228,9 +228,9 @@ class _SearchTagDisplayState extends State<SearchTagDisplay> {
           if (snapshot.hasData) {
             return DText(snapshot.data!.body);
           } else if (snapshot.hasError) {
-            return const IconMessage(
-              title: Text('unable to retrieve wiki entry'),
-              icon: Icon(Icons.warning_amber_outlined),
+            return IconMessage(
+              title: Text(t('unable to retrieve wiki entry')),
+              icon: const Icon(Icons.warning_amber_outlined),
               direction: Axis.horizontal,
             );
           } else {
@@ -240,7 +240,7 @@ class _SearchTagDisplayState extends State<SearchTagDisplay> {
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    'no wiki entry',
+                    t('no wiki entry'),
                     style: TextStyle(
                       color: dimTextColor(context, 0.5),
                       fontStyle: FontStyle.italic,

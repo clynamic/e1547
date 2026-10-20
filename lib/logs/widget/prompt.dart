@@ -25,10 +25,10 @@ class LogErrorsSliver extends StatelessWidget {
     builder: (context, _) {
       final List<LogEntry> items = errors.errors;
       if (items.isEmpty) {
-        return const SliverToBoxAdapter(
+        return SliverToBoxAdapter(
           child: IconMessage(
-            icon: Icon(Icons.check),
-            title: Text('No errors logged'),
+            icon: const Icon(Icons.check),
+            title: Text(t('No errors logged')),
           ),
         );
       }
@@ -70,7 +70,7 @@ class LogErrorsHeader extends StatelessWidget {
               if (onOpenLogs != null)
                 ActionButton(
                   icon: const Icon(Icons.format_list_numbered),
-                  label: const Text('All logs'),
+                  label: Text(t('All logs')),
                   onTap: () {
                     Navigator.of(context).pop();
                     onOpenLogs!();
@@ -79,7 +79,7 @@ class LogErrorsHeader extends StatelessWidget {
               if (!errors.isEmpty)
                 ActionButton(
                   icon: const Icon(Icons.delete_sweep),
-                  label: const Text('Dismiss all'),
+                  label: Text(t('Dismiss all')),
                   onTap: () {
                     errors.clear();
                     Navigator.of(context).pop();
@@ -93,4 +93,5 @@ class LogErrorsHeader extends StatelessWidget {
   }
 }
 
-String logErrorsTitle(int count) => count == 1 ? '1 error' : '$count errors';
+String logErrorsTitle(int count) =>
+    count == 1 ? t('1 error') : tf('{n} errors', params: {'n': count});

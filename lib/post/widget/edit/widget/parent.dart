@@ -41,7 +41,7 @@ class _ParentEditDisplayState extends State<ParentEditDisplay> {
 
       final parentId = int.tryParse(value);
       if (parentId == null) {
-        setState(() => _errorText = 'Invalid number format');
+        setState(() => _errorText = t('Invalid number format'));
         return;
       }
 
@@ -49,7 +49,7 @@ class _ParentEditDisplayState extends State<ParentEditDisplay> {
         await context.read<Client>().posts.get(id: parentId);
         setState(() => _errorText = null);
       } on ClientException {
-        setState(() => _errorText = 'Invalid parent post');
+        setState(() => _errorText = t('Invalid parent post'));
       }
     }
   }
@@ -61,14 +61,17 @@ class _ParentEditDisplayState extends State<ParentEditDisplay> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Parent ID (optional)', style: TextStyle(fontSize: 16)),
+          Text(
+            t('Parent ID (optional)'),
+            style: const TextStyle(fontSize: 16),
+          ),
           const SizedBox(height: 8),
           TextFormField(
             controller: widget.controller,
             focusNode: _focusNode,
             decoration: InputDecoration(
               border: const OutlineInputBorder(),
-              hintText: 'Parent post ID',
+              hintText: t('Parent post ID'),
               errorText: _errorText,
             ),
             keyboardType: TextInputType.number,

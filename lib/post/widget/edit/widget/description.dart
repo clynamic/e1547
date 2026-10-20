@@ -35,8 +35,11 @@ class _DescriptionEditDisplayState extends State<DescriptionEditDisplay> {
           children: [
             Row(
               children: [
-                const Expanded(
-                  child: Text('Description', style: TextStyle(fontSize: 16)),
+                Expanded(
+                  child: Text(
+                    t('Description'),
+                    style: const TextStyle(fontSize: 16),
+                  ),
                 ),
                 IconButton(
                   onPressed: (widget.enabled ?? true)
@@ -48,7 +51,10 @@ class _DescriptionEditDisplayState extends State<DescriptionEditDisplay> {
                                 MaterialPageRoute(
                                   builder: (context) => DTextEditor(
                                     title: Text(
-                                      '#${widget.postId} description',
+                                      tf(
+                                        '{id} description',
+                                        params: {'id': widget.postId},
+                                      ),
                                     ),
                                     content: widget.controller.text,
                                     onSubmitted: (text) {
@@ -63,9 +69,11 @@ class _DescriptionEditDisplayState extends State<DescriptionEditDisplay> {
                   icon: isWideLayout
                       ? Icon(_isPreviewMode ? Icons.edit : Icons.visibility)
                       : const Icon(Icons.edit),
-                  tooltip: isWideLayout
-                      ? (_isPreviewMode ? 'Edit' : 'Preview')
-                      : 'Edit',
+                  tooltip: t(
+                    isWideLayout
+                        ? (_isPreviewMode ? 'Edit' : 'Preview')
+                        : 'Edit',
+                  ),
                 ),
               ],
             ),
@@ -81,7 +89,7 @@ class _DescriptionEditDisplayState extends State<DescriptionEditDisplay> {
                 child: widget.controller.text.trim().isNotEmpty
                     ? DText(widget.controller.text)
                     : Text(
-                        'No description',
+                        t('No description'),
                         style: TextStyle(
                           color: dimTextColor(context),
                           fontStyle: FontStyle.italic,
@@ -91,9 +99,9 @@ class _DescriptionEditDisplayState extends State<DescriptionEditDisplay> {
             ] else if (isWideLayout) ...[
               TextFormField(
                 controller: widget.controller,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Enter post description...',
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  hintText: t('Enter post description...'),
                 ),
                 maxLines: null,
                 enabled: widget.enabled,
@@ -109,7 +117,7 @@ class _DescriptionEditDisplayState extends State<DescriptionEditDisplay> {
                 child: widget.controller.text.trim().isNotEmpty
                     ? DText(widget.controller.text)
                     : Text(
-                        'No description',
+                        t('No description'),
                         style: TextStyle(
                           color: dimTextColor(context),
                           fontStyle: FontStyle.italic,

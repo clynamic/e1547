@@ -54,7 +54,9 @@ class _PostFlagScreenState extends State<PostFlagScreen> {
         messenger.showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 1),
-            content: Text('Flagged post #${widget.post.id}'),
+            content: Text(
+              tf('Flagged post #{id}', params: {'id': widget.post.id}),
+            ),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -62,7 +64,9 @@ class _PostFlagScreenState extends State<PostFlagScreen> {
         messenger.showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 1),
-            content: Text('Failed to flag post #${widget.post.id}'),
+            content: Text(
+              tf('Failed to flag post #{id}', params: {'id': widget.post.id}),
+            ),
           ),
         );
       }
@@ -79,7 +83,7 @@ class _PostFlagScreenState extends State<PostFlagScreen> {
         child: Scaffold(
           appBar: DefaultAppBar(
             elevation: 0,
-            title: Text('Post #${widget.post.id}'),
+            title: Text(tf('Post #{id}', params: {'id': widget.post.id})),
             leading: const CloseButton(),
           ),
           floatingActionButton: Builder(
@@ -102,7 +106,7 @@ class _PostFlagScreenState extends State<PostFlagScreen> {
                     isLoading: isLoading,
                   ),
                   ReportFormHeader(
-                    title: const Text('Flag'),
+                    title: Text(t('Flag')),
                     icon: IconButton(
                       onPressed: () => showTagSearchPrompt(
                         context: context,
@@ -113,7 +117,9 @@ class _PostFlagScreenState extends State<PostFlagScreen> {
                   ),
                   ReportFormDropdown<FlagType?>(
                     type: type,
-                    types: {for (final e in FlagType.values) e: e.title},
+                    types: {
+                      for (final e in FlagType.values) e: t(e.title),
+                    },
                     onChanged: (value) => setState(() => type = value),
                     isLoading: isLoading,
                   ),
@@ -127,9 +133,9 @@ class _PostFlagScreenState extends State<PostFlagScreen> {
                       child: TextFormField(
                         enabled: !isLoading,
                         controller: parentController,
-                        decoration: const InputDecoration(
-                          labelText: 'Parent ID',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: t('Parent ID'),
+                          border: const OutlineInputBorder(),
                         ),
                         keyboardType: TextInputType.number,
                         inputFormatters: [
@@ -137,10 +143,10 @@ class _PostFlagScreenState extends State<PostFlagScreen> {
                         ],
                         validator: (value) {
                           if (value!.trim().isEmpty) {
-                            return 'Parent ID cannot be empty';
+                            return t('Parent ID cannot be empty');
                           }
                           if (int.tryParse(value) == null) {
-                            return 'Parent ID must be a number';
+                            return t('Parent ID must be a number');
                           }
                           return null;
                         },
@@ -160,7 +166,7 @@ class _PostFlagScreenState extends State<PostFlagScreen> {
                             child: Card(
                               child: Padding(
                                 padding: const EdgeInsets.all(16),
-                                child: DText(type!.body),
+                                child: DText(t(type!.body)),
                               ),
                             ),
                           ),

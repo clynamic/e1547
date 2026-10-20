@@ -41,7 +41,10 @@ class IdentityClientProvider
                 future: future,
                 builder: (context, _) =>
                     builder?.call(context, child) ?? child!,
-                errorToString: (error) => 'Failed to activate identity: $error',
+                errorToString: (error) => tf(
+                  'Failed to activate identity: {e}',
+                  params: {'e': error},
+                ),
               ),
             ),
           ),

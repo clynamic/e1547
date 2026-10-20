@@ -146,7 +146,10 @@ class CommentVotes extends StatelessWidget {
                         SnackBar(
                           duration: const Duration(seconds: 1),
                           content: Text(
-                            'Failed to upvote comment #${comment.id}',
+                            tf(
+                              'Failed to upvote comment #{id}',
+                              params: {'id': comment.id},
+                            ),
                           ),
                         ),
                       );
@@ -164,7 +167,10 @@ class CommentVotes extends StatelessWidget {
                         SnackBar(
                           duration: const Duration(seconds: 1),
                           content: Text(
-                            'Failed to downvote comment #${comment.id}',
+                            tf(
+                              'Failed to downvote comment #{id}',
+                              params: {'id': comment.id},
+                            ),
                           ),
                         ),
                       );
@@ -189,7 +195,7 @@ class CommentVisibilityIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!comment.hidden) return const SizedBox();
     return Tooltip(
-      message: 'This comment is hidden',
+      message: t('This comment is hidden'),
       child: Icon(
         Icons.visibility_off,
         size: smallIconSize(context),
@@ -213,49 +219,51 @@ class CommentMenu extends StatelessWidget {
       itemBuilder: (context) => [
         if (client.identity.username == comment.creatorName)
           PopupMenuTile(
-            title: 'Edit',
+            title: t('Edit'),
             icon: Icons.edit,
             value: () => guardWithLogin(
               context: context,
               callback: () => editComment(context: context, comment: comment),
-              error: 'You must be logged in to edit comments!',
+              error: t('You must be logged in to edit comments!'),
             ),
           ),
-        PopupMenuTile(
-          title: 'Reply',
-          icon: Icons.reply,
-          value: () => guardWithLogin(
-            context: context,
-            callback: () => replyComment(context: context, comment: comment),
-            error: 'You must be logged in to reply to comments!',
-          ),
-        ),
-        PopupMenuTile(
-          title: 'Copy ID',
-          icon: Icons.tag,
-          value: () async {
-            Clipboard.setData(ClipboardData(text: comment.id.toString()));
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                duration: const Duration(seconds: 1),
-                content: Text('Copied comment id #${comment.id}'),
-              ),
-            );
-          },
-        ),
-        PopupMenuTile(
-          title: 'Report',
-          icon: Icons.report,
-          value: () => guardWithLogin(
-            context: context,
-            callback: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => CommentReportScreen(comment: comment),
-              ),
+          PopupMenuTile(
+            title: t('Reply'),
+            icon: Icons.reply,
+            value: () => guardWithLogin(
+              context: context,
+              callback: () => replyComment(context: context, comment: comment),
+              error: t('You must be logged in to reply to comments!'),
             ),
-            error: 'You must be logged in to report comments!',
           ),
-        ),
+          PopupMenuTile(
+            title: t('Copy ID'),
+            icon: Icons.tag,
+            value: () async {
+              Clipboard.setData(ClipboardData(text: comment.id.toString()));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  duration: const Duration(seconds: 1),
+                  content: Text(
+                    tf('Copied comment id #{id}', params: {'id': comment.id}),
+                  ),
+                ),
+              );
+            },
+          ),
+          PopupMenuTile(
+            title: t('Report'),
+            icon: Icons.report,
+            value: () => guardWithLogin(
+              context: context,
+              callback: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => CommentReportScreen(comment: comment),
+                ),
+              ),
+              error: t('You must be logged in to report comments!'),
+            ),
+          ),
       ],
     );
   }

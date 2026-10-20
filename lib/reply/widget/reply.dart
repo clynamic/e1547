@@ -134,7 +134,7 @@ class ReplyVisibilityIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!reply.hidden) return const SizedBox();
     return Tooltip(
-      message: 'This reply is hidden',
+      message: t('This reply is hidden'),
       child: Icon(
         Icons.visibility_off,
         size: smallIconSize(context),
@@ -158,38 +158,40 @@ class ReplyMenu extends StatelessWidget {
       itemBuilder: (context) => [
         if (client.identity.username == reply.creator)
           PopupMenuTile(
-            title: 'Edit',
+            title: t('Edit'),
             icon: Icons.edit,
             value: () => guardWithLogin(
               context: context,
               callback: () => editReply(context: context, reply: reply),
-              error: 'You must be logged in to edit replies!',
+              error: t('You must be logged in to edit replies!'),
             ),
           ),
         PopupMenuTile(
-          title: 'Reply',
+          title: t('Reply'),
           icon: Icons.reply,
           value: () => guardWithLogin(
             context: context,
             callback: () => quoteReply(context: context, reply: reply),
-            error: 'You must be logged in to reply!',
+            error: t('You must be logged in to reply!'),
           ),
         ),
         PopupMenuTile(
-          title: 'Copy ID',
+          title: t('Copy ID'),
           icon: Icons.tag,
           value: () async {
             Clipboard.setData(ClipboardData(text: reply.id.toString()));
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 duration: const Duration(seconds: 1),
-                content: Text('Copied reply id #${reply.id}'),
+                content: Text(
+                  tf('Copied reply id #{id}', params: {'id': reply.id}),
+                ),
               ),
             );
           },
         ),
         PopupMenuTile(
-          title: 'Report',
+          title: t('Report'),
           icon: Icons.report,
           value: () => guardWithLogin(
             context: context,
@@ -198,7 +200,7 @@ class ReplyMenu extends StatelessWidget {
                 builder: (context) => ReplyReportScreen(reply: reply),
               ),
             ),
-            error: 'You must be logged in to report replies!',
+            error: t('You must be logged in to report replies!'),
           ),
         ),
       ],

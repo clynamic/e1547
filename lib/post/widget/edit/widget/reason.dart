@@ -1,3 +1,4 @@
+import 'package:e1547/shared/shared.dart';
 import 'package:e1547/ticket/ticket.dart';
 import 'package:flutter/material.dart';
 
@@ -14,13 +15,16 @@ class EditReasonDisplay extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Edit reason (optional)', style: TextStyle(fontSize: 16)),
+          Text(
+            t('Edit reason (optional)'),
+            style: const TextStyle(fontSize: 16),
+          ),
           const SizedBox(height: 8),
           TextFormField(
             controller: controller,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'Why are you editing this post?',
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              hintText: t('Why are you editing this post?'),
             ),
             enabled: enabled,
           ),

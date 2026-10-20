@@ -26,21 +26,23 @@ class TasksPage extends StatelessWidget {
               child: AdaptiveScaffold(
                 appBar: SelectionAppBar<Task>(
                   titleBuilder: (context, layoutData) =>
-                      Text('${layoutData.selections.length} selected'),
+                      Text(tf('{n} selected', params: {
+                        'n': layoutData.selections.length,
+                      })),
                   actionBuilder: (context, layoutData) =>
                       taskBulkActions(controller, layoutData),
                   child: DefaultAppBar(
-                    title: const Text('Tasks'),
+                    title: Text(t('Tasks')),
                     actions: [
                       if (hasActive)
                         IconButton(
-                          tooltip: 'cancel all',
+                          tooltip: t('cancel all'),
                           icon: const Icon(Icons.block),
                           onPressed: controller.cancelAll,
                         ),
                       if (hasDone)
                         IconButton(
-                          tooltip: 'clear done',
+                          tooltip: t('clear done'),
                           icon: const Icon(Icons.delete_sweep),
                           onPressed: controller.clearDone,
                         ),

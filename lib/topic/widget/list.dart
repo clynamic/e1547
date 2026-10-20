@@ -49,8 +49,8 @@ class SliverTopicList extends StatelessWidget {
             onPressed: () => pushReplies(topic),
             onCountPressed: () => pushReplies(topic, orderByOldest: false),
           ),
-          onEmpty: const Text('No topics'),
-          onError: const Text('Failed to load topics'),
+          onEmpty: Text(t('No topics')),
+          onError: Text(t('Failed to load topics')),
         ),
       ),
     );

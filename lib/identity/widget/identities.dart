@@ -34,7 +34,7 @@ class IdentitiesPage extends StatelessWidget {
               onSelected: (value) => value(),
               itemBuilder: (context) => [
                 PopupMenuTile(
-                  title: 'Edit',
+                  title: t('Edit'),
                   icon: Icons.edit,
                   value: () => Navigator.of(context).push(
                     MaterialPageRoute(
@@ -43,22 +43,25 @@ class IdentitiesPage extends StatelessWidget {
                   ),
                 ),
                 PopupMenuTile(
-                  title: 'Remove',
+                  title: t('Remove'),
                   icon: Icons.delete,
                   value: () => showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: const Text('Remove account?'),
-                      content: const Text(
-                        'All its data will be permanently removed, including history and follows.',
+                      title: Text(t('Remove account?')),
+                      content: Text(
+                        t(
+                          'All its data will be permanently removed, '
+                          'including history and follows.',
+                        ),
                       ),
                       actions: [
                         TextButton(
                           onPressed: Navigator.of(context).maybePop,
-                          child: const Text('CANCEL'),
+                          child: Text(t('CANCEL')),
                         ),
                         ElevatedButton(
-                          child: const Text('REMOVE'),
+                          child: Text(t('REMOVE')),
                           onPressed: () {
                             Navigator.of(context).maybePop();
                             final storage = context.read<AppStorage>();
@@ -94,7 +97,7 @@ class IdentitiesPage extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
           child: Text(
-            'Accounts',
+            t('Accounts'),
             style: Theme.of(context).textTheme.titleLarge,
           ),
         ),
@@ -147,9 +150,9 @@ class IdentitiesPage extends StatelessWidget {
                     if (identities == null)
                       const Center(child: CircularProgressIndicator())
                     else if (snapshot.hasError)
-                      const IconMessage(
-                        icon: Icon(Icons.warning_amber),
-                        title: Text('Failed to load identities'),
+                      IconMessage(
+                        icon: const Icon(Icons.warning_amber),
+                        title: Text(t('Failed to load identities')),
                       )
                     else
                       form(context, identities),

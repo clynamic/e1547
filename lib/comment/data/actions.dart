@@ -37,7 +37,7 @@ Future<bool> writeComment({
   await Navigator.of(context).push(
     MaterialPageRoute(
       builder: (context) => DTextEditor(
-        title: Text('#$postId comment'),
+        title: Text(tf('#{id} comment', params: {'id': postId})),
         content: text ?? (comment?.body),
         onSubmitted: (text) async {
           final messenger = ScaffoldMessenger.of(context);
@@ -52,13 +52,13 @@ Future<bool> writeComment({
                     .mutate(text);
               }
             } on ClientException {
-              return 'Failed to send comment!';
+              return t('Failed to send comment!');
             }
             sent = true;
             messenger.showSnackBar(
-              const SnackBar(
-                duration: Duration(seconds: 1),
-                content: Text('Comment sent!'),
+              SnackBar(
+                duration: const Duration(seconds: 1),
+                content: Text(t('Comment sent!')),
               ),
             );
           }

@@ -92,7 +92,7 @@ class _LoginLoadingDialogState extends State<LoginLoadingDialog> {
             return;
           }
         }
-        reason = 'You already have an identity under this host and username.';
+        reason = t('You already have an identity under this host and username.');
       }
       await navigator.maybePop();
       widget.onError?.call(reason);
@@ -121,7 +121,13 @@ class _LoginLoadingDialogState extends State<LoginLoadingDialog> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
-                'Connecting to ${linkToDisplay(widget.host)} as ${widget.username ?? 'anonymous'}...',
+                tf(
+                  'Connecting to {host} as {user}...',
+                  params: {
+                    'host': linkToDisplay(widget.host),
+                    'user': widget.username ?? 'anonymous',
+                  },
+                ),
               ),
             ),
           ],

@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:e1547/shared/data/trans.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -284,7 +285,7 @@ class _RangeDialogState extends State<RangeDialog> {
       widget.onSubmit(range);
       Navigator.of(context).maybePop();
     } on FormatException {
-      setState(() => errorMessage = 'Invalid format');
+      setState(() => errorMessage = t('Invalid format'));
     }
   }
 
@@ -495,10 +496,10 @@ class _RangeDialogState extends State<RangeDialog> {
       actions: [
         TextButton(
           onPressed: Navigator.of(context).maybePop,
-          child: const Text('CANCEL'),
+          child: Text(t('CANCEL')),
         ),
         TextButton(
-          child: const Text('OK'),
+          child: Text(t('OK')),
           onPressed: () => submit(controller.text),
         ),
       ],

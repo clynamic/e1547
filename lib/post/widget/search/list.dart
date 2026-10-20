@@ -67,8 +67,8 @@ class PostGridSliver extends StatelessWidget {
       ItemWidgetBuilder<Post> itemBuilder,
     ) => defaultPagedChildBuilderDelegate<Post>(
       onRetry: fetchNextPage,
-      onEmpty: const Text('No posts'),
-      onError: const Text('Failed to load posts'),
+      onEmpty: Text(t('No posts')),
+      onError: Text(t('Failed to load posts')),
       itemBuilder: itemBuilder,
     );
 
@@ -125,8 +125,8 @@ class PostComicSliver extends StatelessWidget {
       fetchNextPage: fetchNextPage,
       builderDelegate: defaultPagedChildBuilderDelegate<Post>(
         onRetry: fetchNextPage,
-        onEmpty: const Text('No posts'),
-        onError: const Text('Failed to load posts'),
+        onEmpty: Text(t('No posts')),
+        onError: Text(t('Failed to load posts')),
         itemBuilder: (context, item, index) => Padding(
           padding:
               LimitedWidthLayout.maybeOf(context)?.padding ?? EdgeInsets.zero,
@@ -157,8 +157,8 @@ class PostTimelineSliver extends StatelessWidget {
       fetchNextPage: fetchNextPage,
       builderDelegate: defaultPagedChildBuilderDelegate<Post>(
         onRetry: fetchNextPage,
-        onEmpty: const Text('No posts'),
-        onError: const Text('Failed to load posts'),
+        onEmpty: Text(t('No posts')),
+        onError: Text(t('Failed to load posts')),
         itemBuilder: (context, item, index) => Padding(
           padding:
               LimitedWidthLayout.maybeOf(context)?.padding ?? EdgeInsets.zero,

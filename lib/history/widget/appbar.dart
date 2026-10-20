@@ -16,7 +16,7 @@ class HistoryAppBar extends StatelessWidget implements PreferredSizeWidget {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('History'),
+            Text(t('History')),
             CrossFade.builder(
               showChild: date != null,
               builder: (context) => Text(
@@ -49,7 +49,7 @@ class HistorySelectionAppBar extends StatelessWidget with AppBarBuilderWidget {
       child: child,
       titleBuilder: (context, data) => data.selections.length == 1
           ? Text(data.selections.first.getName(context))
-          : Text('${data.selections.length} entries'),
+          : Text(tf('{n} entries', params: {'n': data.selections.length})),
       actionBuilder: (context, data) => [
         IconButton(
           icon: const Icon(Icons.delete_outline),

@@ -153,9 +153,9 @@ class _MultiTextEditorState extends State<MultiTextEditor> {
                       TextField(
                         controller: textControllers[content],
                         keyboardType: TextInputType.multiline,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           border: InputBorder.none,
-                          hintText: 'type here...',
+                          hintText: t('type here...'),
                         ),
                         maxLines: null,
                         enabled: !actionController.isLoading,
@@ -191,9 +191,9 @@ class _MultiTextEditorState extends State<MultiTextEditor> {
         }
 
         Map<Widget, Widget>? tabs = {
-          const Tab(text: 'Write'): editor(),
+          Tab(text: t('Write')): editor(),
           if (widget.preview case final preview?)
-            const Tab(text: 'Preview'): scrollView(
+            Tab(text: t('Preview')): scrollView(
               preview(context, textControllerMap),
             ),
         };

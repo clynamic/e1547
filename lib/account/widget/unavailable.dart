@@ -23,18 +23,23 @@ class HostUnavailablePage extends StatelessWidget {
               const Icon(Icons.cloud_off, size: 60),
               const SizedBox(height: 8),
               Text(
-                'Host unavailable',
+                t('Host unavailable'),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 20),
               Text(
-                'It appears that ${linkToDisplay(context.watch<Client>().host)} is not available!',
+                tf(
+                  'It appears that {host} is not available!',
+                  params: {'host': linkToDisplay(context.watch<Client>().host)},
+                ),
               ),
               const SizedBox(height: 16),
               if (offerResolve && (Platform.isAndroid || Platform.isIOS)) ...[
-                const Text(
-                  'Please resolve the issue in the following browser window. '
-                  '\n\nCloudflare captcha cookies will be saved. ',
+                Text(
+                  t(
+                    'Please resolve the issue in the following browser window. '
+                    '\n\nCloudflare captcha cookies will be saved. ',
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextButton(
@@ -43,12 +48,17 @@ class HostUnavailablePage extends StatelessWidget {
                       builder: (context) => const CookieCapturePage(),
                     ),
                   ),
-                  child: const Text('Resolve'),
+                  child: Text(t('Resolve')),
                 ),
               ] else
                 Dimmed(
                   child: Text(
-                    '\nPlease wait for ${linkToDisplay(context.watch<Client>().host)} to resolve the situation on their end.',
+                    tf(
+                      '\nPlease wait for {host} to resolve the situation on their end.',
+                      params: {
+                        'host': linkToDisplay(context.watch<Client>().host),
+                      },
+                    ),
                   ),
                 ),
             ],

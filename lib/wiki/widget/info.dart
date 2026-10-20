@@ -26,9 +26,9 @@ class WikiInfo extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('id'),
+              Text(t('id')),
               InkWell(
-                child: Text('#${wiki.id}'),
+                child: Text(tf('#{id}', params: {'id': wiki.id})),
                 onLongPress: () async {
                   ScaffoldMessengerState messenger = ScaffoldMessenger.of(
                     context,
@@ -38,7 +38,9 @@ class WikiInfo extends StatelessWidget {
                   messenger.showSnackBar(
                     SnackBar(
                       duration: const Duration(seconds: 1),
-                      content: Text('Copied wiki id #${wiki.id}'),
+                      content: Text(
+                        tf('Copied wiki id #{id}', params: {'id': wiki.id}),
+                      ),
                     ),
                   );
                 },
@@ -46,19 +48,19 @@ class WikiInfo extends StatelessWidget {
             ],
           ),
           if (wiki.otherNames case final otherNames?)
-            textInfoRow('alias', otherNames.join(', ')),
+            textInfoRow(t('alias'), otherNames.join(', ')),
           textInfoRow(
-            'created',
+            t('created'),
             DateFormatting.dateTime(wiki.createdAt.toLocal()),
           ),
           textInfoRow(
-            'updated',
+            t('updated'),
             DateFormatting.dateTime(
               (wiki.updatedAt ?? wiki.createdAt).toLocal(),
             ),
           ),
           if (wiki.isLocked case final isLocked?)
-            textInfoRow('locked', isLocked ? 'yes' : 'no'),
+            textInfoRow(t('locked'), isLocked ? t('yes') : t('no')),
         ],
       ),
     );

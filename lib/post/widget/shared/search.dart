@@ -60,7 +60,7 @@ class EditTagPrompt extends StatelessWidget {
           submitIcon: isDesktop ? const Icon(Icons.add) : null,
           filters: [
             PrimaryFilterConfig(
-              filter: TagSearchFilterTag(tag: 'tags', name: title ?? 'Tags'),
+              filter: TagSearchFilterTag(tag: 'tags', name: title ?? t('Tags')),
             ),
           ],
           controller: actionController,

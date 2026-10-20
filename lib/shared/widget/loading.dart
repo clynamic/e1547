@@ -1,3 +1,4 @@
+import 'package:e1547/shared/data/trans.dart';
 import 'package:flutter/material.dart';
 
 class SizedCircularProgressIndicator extends StatelessWidget {
@@ -129,12 +130,12 @@ class LoadingPage extends StatelessWidget {
         case LoadingPageState.error:
           return IconMessage(
             icon: const Icon(Icons.warning_amber_outlined),
-            title: onError ?? const Text('Failed to load'),
+            title: onError ?? Text(t('Failed to load')),
           );
         case LoadingPageState.empty:
           return IconMessage(
             icon: const Icon(Icons.clear),
-            title: onEmpty ?? const Text('Nothing to see here'),
+            title: onEmpty ?? Text(t('Nothing to see here')),
           );
         case LoadingPageState.done:
           return child(context);

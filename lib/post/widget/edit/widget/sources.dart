@@ -23,8 +23,8 @@ class SourcesEditDisplay extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Expanded(
-              child: Text('Sources', style: TextStyle(fontSize: 16)),
+            Expanded(
+              child: Text(t('Sources'), style: const TextStyle(fontSize: 16)),
             ),
             IconButton(
               onPressed: (enabled ?? true)
@@ -32,7 +32,9 @@ class SourcesEditDisplay extends StatelessWidget {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => TextEditor(
-                            title: Text('#$postId sources'),
+                            title: Text(
+                              tf('{id} sources', params: {'id': postId}),
+                            ),
                             content: controller.text,
                             onSubmitted: (text) {
                               controller.text = text;
@@ -77,7 +79,7 @@ class SourcesEditDisplay extends StatelessWidget {
                           .toList(),
                     )
                   : Text(
-                      'No sources',
+                      t('No sources'),
                       style: TextStyle(
                         color: dimTextColor(context),
                         fontStyle: FontStyle.italic,

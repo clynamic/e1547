@@ -36,11 +36,11 @@ class UserPage extends StatelessWidget {
             Widget body;
             PreferredSizeWidget? appbar;
             final tabs = <Widget, WidgetBuilder>{
-              const Tab(text: 'Favorites'): (context) => _UserPostsTab(
+              Tab(text: t('Favorites')): (context) => _UserPostsTab(
                 filter: filter,
                 params: PostParams(tags: 'fav:${user.name}'),
               ),
-              const Tab(text: 'Uploads'): (context) => _UserPostsTab(
+              Tab(text: t('Uploads')): (context) => _UserPostsTab(
                 filter: filter,
                 params: PostParams(tags: 'user:${user.name}'),
               ),
@@ -84,7 +84,7 @@ class UserPage extends StatelessWidget {
                   ),
                 ),
               );
-              tabs[const Tab(text: 'About')] = (context) => SliverPadding(
+              tabs[Tab(text: t('About'))] = (context) => SliverPadding(
                 padding: defaultListPadding.add(
                   LimitedWidthLayout.of(context).padding,
                 ),
@@ -176,7 +176,7 @@ class UserPage extends StatelessWidget {
                 appBar: appbar,
                 drawer: const RouterDrawer(),
                 endDrawer: ContextDrawer(
-                  title: const Text('Posts'),
+                  title: Text(t('Posts')),
                   children: [
                     DrawerDenySwitch(filter: filter),
                     DrawerMultiTagCounter(filter: filter),
@@ -298,12 +298,12 @@ class _UserProfileActions extends StatelessWidget {
       onSelected: (value) => value(),
       itemBuilder: (context) => [
         PopupMenuTile(
-          title: 'Browse',
+          title: t('Browse'),
           icon: Icons.open_in_browser,
           value: () async => launch(context.read<Client>().withHost(user.link)),
         ),
         PopupMenuTile(
-          title: 'Report',
+          title: t('Report'),
           icon: Icons.report,
           value: () => guardWithLogin(
             context: context,
@@ -314,11 +314,11 @@ class _UserProfileActions extends StatelessWidget {
                 ),
               );
             },
-            error: 'You must be logged in to report users!',
+            error: t('You must be logged in to report users!'),
           ),
         ),
         PopupMenuTile(
-          title: blocked ? 'Unblock' : 'Block',
+          title: t(blocked ? 'Unblock' : 'Block'),
           icon: blocked ? Icons.check : Icons.block,
           value: () {
             if (blocked) {
@@ -371,9 +371,9 @@ class UserInfo extends StatelessWidget {
               Card(
                 child: ExpandablePanel(
                   controller: Expandables.of(context, 'about'),
-                  header: const ListTile(
-                    leading: Icon(Icons.person),
-                    title: Text('About'),
+                  header: ListTile(
+                    leading: const Icon(Icons.person),
+                    title: Text(t('About')),
                   ),
                   collapsed: const SizedBox.shrink(),
                   expanded: Padding(
@@ -390,9 +390,9 @@ class UserInfo extends StatelessWidget {
               Card(
                 child: ExpandablePanel(
                   controller: Expandables.of(context, 'comission'),
-                  header: const ListTile(
-                    leading: Icon(Icons.attach_money),
-                    title: Text('Comission'),
+                  header: ListTile(
+                    leading: const Icon(Icons.attach_money),
+                    title: Text(t('Comission')),
                   ),
                   collapsed: const SizedBox.shrink(),
                   expanded: Padding(
@@ -407,9 +407,9 @@ class UserInfo extends StatelessWidget {
             Card(
               child: ExpandablePanel(
                 controller: Expandables.of(context, 'info'),
-                header: const ListTile(
-                  leading: Icon(Icons.info_outline),
-                  title: Text('Info'),
+                header: ListTile(
+                  leading: const Icon(Icons.info_outline),
+                  title: Text(t('Info')),
                 ),
                 collapsed: const SizedBox.shrink(),
                 expanded: Padding(
@@ -418,7 +418,7 @@ class UserInfo extends StatelessWidget {
                     children: [
                       info(
                         Icons.tag,
-                        'id',
+                        t('id'),
                         user.id.toString(),
                         onLongPress: () {
                           Clipboard.setData(
@@ -427,7 +427,12 @@ class UserInfo extends StatelessWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               duration: const Duration(seconds: 1),
-                              content: Text('Copied user id #${user.id}'),
+                              content: Text(
+                                tf(
+                                  'Copied user id #{id}',
+                                  params: {'id': user.id},
+                                ),
+                              ),
                             ),
                           );
                         },
@@ -435,21 +440,25 @@ class UserInfo extends StatelessWidget {
                       if (user.stats case final stats?) ...[
                         info(
                           Icons.calendar_today,
-                          'joined',
+                          t('joined'),
                           stats.createdAt != null
                               ? DateFormatting.named(stats.createdAt!)
                               : null,
                         ),
                         info(
                           Icons.shield,
-                          'rank',
+                          t('rank'),
                           stats.levelString?.toLowerCase(),
                         ),
-                        info(Icons.upload, 'posts', stats.postUploadCount),
-                        info(Icons.edit, 'edits', stats.postUpdateCount),
-                        info(Icons.favorite, 'favorites', stats.favoriteCount),
-                        info(Icons.comment, 'comments', stats.commentCount),
-                        info(Icons.forum, 'forum', stats.forumPostCount),
+                        info(Icons.upload, t('posts'), stats.postUploadCount),
+                        info(Icons.edit, t('edits'), stats.postUpdateCount),
+                        info(
+                          Icons.favorite,
+                          t('favorites'),
+                          stats.favoriteCount,
+                        ),
+                        info(Icons.comment, t('comments'), stats.commentCount),
+                        info(Icons.forum, t('forum'), stats.forumPostCount),
                       ],
                     ],
                   ),

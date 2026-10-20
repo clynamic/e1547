@@ -15,10 +15,10 @@ class LogSelectionAppBar extends StatelessWidget with AppBarBuilderWidget {
       child: child,
       titleBuilder: (context, data) => data.selections.length == 1
           ? Text(data.selections.first.message, maxLines: 1)
-          : Text('${data.selections.length} logs'),
+          : Text(tf('{n} logs', params: {'n': data.selections.length})),
       actionBuilder: (context, data) => [
         IconButton(
-          tooltip: 'Copy',
+          tooltip: t('Copy'),
           icon: const Icon(Icons.copy),
           onPressed: () {
             Clipboard.setData(
@@ -27,9 +27,9 @@ class LogSelectionAppBar extends StatelessWidget with AppBarBuilderWidget {
               ),
             );
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                duration: Duration(seconds: 1),
-                content: Text('Copied to clipboard'),
+              SnackBar(
+                duration: const Duration(seconds: 1),
+                content: Text(t('Copied to clipboard')),
               ),
             );
             data.onChanged({});
@@ -52,12 +52,14 @@ class LogFileSelectionAppBar extends StatelessWidget with AppBarBuilderWidget {
     return SelectionAppBar<LogFileInfo>(
       child: child,
       titleBuilder: (context, data) => data.selections.length == 1
-          ? Text('Logs - ${data.selections.first.date}')
-          : Text('${data.selections.length} log files'),
+          ? Text(
+              tf('Logs - {date}', params: {'date': data.selections.first.date}),
+            )
+          : Text(tf('{n} log files', params: {'n': data.selections.length})),
       actionBuilder: (context, data) => [
         if (onDelete != null)
           IconButton(
-            tooltip: 'Delete',
+            tooltip: t('Delete'),
             icon: const Icon(Icons.delete),
             onPressed: () => showDialog(
               context: context,
@@ -88,19 +90,19 @@ class LogFileDeleteConfirmation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Delete ${files.length} log files?'),
-      content: const Text('This action cannot be undone.'),
+      title: Text(tf('Delete {n} log files?', params: {'n': files.length})),
+      content: Text(t('This action cannot be undone.')),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(t('Cancel')),
         ),
         TextButton(
           onPressed: () {
             onConfirm?.call();
             Navigator.of(context).pop();
           },
-          child: const Text('Delete'),
+          child: Text(t('Delete')),
         ),
       ],
     );

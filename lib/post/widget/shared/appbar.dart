@@ -15,18 +15,18 @@ List<PopupMenuItem<VoidCallback>> postMenuPostActions(
     PopupMenuTile(
       value: () async =>
           Share.text(context, context.read<Client>().withHost(post.link)),
-      title: 'Share',
+      title: t('Share'),
       icon: Icons.share,
     ),
     if (post.file != null)
       PopupMenuTile(
         value: () => postDownloadingNotification(context, {post}),
-        title: 'Download',
+        title: t('Download'),
         icon: Icons.file_download,
       ),
     PopupMenuTile(
       value: () async => launch(context.read<Client>().withHost(post.link)),
-      title: 'Browse',
+      title: t('Browse'),
       icon: Icons.open_in_browser,
     ),
   ];
@@ -39,7 +39,7 @@ List<PopupMenuItem<VoidCallback>> postMenuUserActions(
   final cacheSize = context.read<ImageCacheSize?>()?.size;
   return [
     PopupMenuTile(
-      title: 'Edit',
+      title: t('Edit'),
       icon: Icons.edit,
       value: () => guardWithLogin(
         context: context,
@@ -51,38 +51,38 @@ List<PopupMenuItem<VoidCallback>> postMenuUserActions(
             ),
           ),
         ),
-        error: 'You must be logged in to edit posts!',
+        error: t('You must be logged in to edit posts!'),
       ),
     ),
     PopupMenuTile(
-      title: 'Comment',
+      title: t('Comment'),
       icon: Icons.comment,
       value: () => guardWithLogin(
         context: context,
         callback: () => writeComment(context: context, postId: post.id),
-        error: 'You must be logged in to comment!',
+        error: t('You must be logged in to comment!'),
       ),
     ),
     PopupMenuTile(
-      title: 'Report',
+      title: t('Report'),
       icon: Icons.report,
       value: () => guardWithLogin(
         context: context,
         callback: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => PostReportScreen(post: post)),
         ),
-        error: 'You must be logged in to report posts!',
+        error: t('You must be logged in to report posts!'),
       ),
     ),
     PopupMenuTile(
-      title: 'Flag',
+      title: t('Flag'),
       icon: Icons.flag,
       value: () => guardWithLogin(
         context: context,
         callback: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => PostFlagScreen(post: post)),
         ),
-        error: 'You must be logged in to flag posts!',
+        error: t('You must be logged in to flag posts!'),
       ),
     ),
   ];
