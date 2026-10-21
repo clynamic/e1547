@@ -6,6 +6,7 @@
     <td width="80%">
       <h1>e1547</h1>
       <h4>A sophisticated e621 browser</h4>
+      <a href="README.zh-CN.md"><img src="https://img.shields.io/badge/README-简体中文-orange" alt="简体中文"></a>
       <a href="https://github.com/clynamic/e1547/commits/master"><img src="https://img.shields.io/github/commit-activity/m/clynamic/e1547"></a>
       <a href="https://github.com/clynamic/e1547/commits/master"><img src="https://img.shields.io/github/last-commit/clynamic/e1547"></a>
       <a href="blob/master/LICENSE"><img src="https://img.shields.io/github/license/clynamic/e1547"></a>
@@ -97,7 +98,7 @@ The app is not available in the AppStore.
 
 or
 
-- Jailbreak your device and install the [IPA](https://github.com/clragon/clynamic/releases/latest) directly
+- Jailbreak your device and install the [IPA](https://github.com/clynamic/e1547/releases/latest) directly
 
 ## Compilation
 
