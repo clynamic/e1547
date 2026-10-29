@@ -39,7 +39,7 @@ class SliverHexagonRefresh extends StatefulWidget {
 
   final Future<void> Function() onRefresh;
   final Widget? header;
-  final double headerExtent;
+  final double? headerExtent;
 
   @override
   State<SliverHexagonRefresh> createState() => _SliverHexagonRefreshState();
@@ -53,6 +53,13 @@ class _SliverHexagonRefreshState extends State<SliverHexagonRefresh>
   );
   bool refreshing = false;
   bool armed = false;
+  double? measured;
+
+  void _onHeaderSize(Size size) {
+    if (!mounted || size.height == measured) return;
+    setState(() => measured = size.height);
+  }
+
   int pointers = 0;
   RefreshNoteBuilder? note;
   Timer? noteTimer;
@@ -141,9 +148,15 @@ class _SliverHexagonRefreshState extends State<SliverHexagonRefresh>
     animation: hold,
     builder: (context, child) => SliverPersistentHeader(
       delegate: _HexagonHeaderDelegate(
-        extent: widget.headerExtent,
+        extent: widget.headerExtent ?? measured ?? 0,
         held: Curves.easeOutCubic.transform(hold.value) * hexagonRefreshExtent,
-        header: widget.header,
+        header: switch (widget.header) {
+          final Widget header when widget.headerExtent == null => SizeReporter(
+            onSize: _onHeaderSize,
+            child: header,
+          ),
+          final header => header,
+        },
         refreshing: refreshing,
         note: switch (note) {
           final RefreshNoteBuilder note => note(context, _refresh),
@@ -223,7 +236,11 @@ class _HexagonHeaderDelegate extends SliverPersistentHeaderDelegate {
             left: 0,
             right: 0,
             height: extent,
-            child: header ?? const SizedBox.shrink(),
+            child: OverflowBox(
+              alignment: Alignment.topCenter,
+              maxHeight: double.infinity,
+              child: header ?? const SizedBox.shrink(),
+            ),
           ),
         ],
       );
@@ -439,5 +456,37 @@ class _RefreshShortcutsState extends State<RefreshShortcuts> {
         child: widget.child,
       ),
     );
+  }
+}
+
+class SizeReporter extends SingleChildRenderObjectWidget {
+  const SizeReporter({super.key, required this.onSize, super.child});
+
+  final ValueChanged<Size> onSize;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      RenderSizeReporter(onSize);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    covariant RenderSizeReporter renderObject,
+  ) => renderObject.onSize = onSize;
+}
+
+class RenderSizeReporter extends RenderProxyBox {
+  RenderSizeReporter(this.onSize);
+
+  ValueChanged<Size> onSize;
+  Size? _reported;
+
+  @override
+  void performLayout() {
+    super.performLayout();
+    if (size == _reported) return;
+    _reported = size;
+    final Size reported = size;
+    WidgetsBinding.instance.addPostFrameCallback((_) => onSize(reported));
   }
 }

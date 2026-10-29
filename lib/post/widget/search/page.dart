@@ -1,73 +1,109 @@
 import 'package:e1547/client/client.dart';
-import 'package:e1547/follow/follow.dart';
-import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
-import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
-import 'package:e1547/tag/tag.dart';
-import 'package:e1547/traits/traits.dart';
 import 'package:flutter/material.dart';
 
-class PostsPage extends StatelessWidget {
-  const PostsPage({super.key, this.params, this.drawerActions = const []});
+class PostsPage extends StatefulWidget {
+  const PostsPage({super.key, this.params});
 
   final PostParams? params;
-  final List<Widget> drawerActions;
+
+  @override
+  State<PostsPage> createState() => _PostsPageState();
+}
+
+class _PostsPageState extends State<PostsPage> {
+  int? tapped;
+
+  void _open(String tags) => Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (context) => PostsPage(params: PostParams(tags: tags)),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
-    final client = context.watch<Client>();
+    final Client client = context.watch<Client>();
     return FilterControllerProvider(
-      create: (_) => PostFilter(client),
+      create: (_) =>
+          isOwnFavorites(widget.params?.tags, client.identity.username)
+          ? FavoritePostFilter(client)
+          : PostFilter(client),
       keys: (_) => [client],
-      child: ChangeNotifierProvider(
-        create: (_) => PostParamsController(initial: params),
-        child: ChangeNotifierProvider(
-          create: (_) => PostDisplayController(),
-          child: PostPageHistoryConnector(
-            child: FollowSeenConnector(
-              child: PostPageQueryBuilder(
-                builder: (context, state, query) => SelectionLayout<Post>(
-                  items: state.data?.pages.expand((p) => p).toList(),
-                  child: AdaptiveScaffold(
-                    appBar: const PostPageAppBar(),
-                    endDrawer: ContextDrawer(
-                      title: const Text('Posts'),
-                      children: [
-                        ...drawerActions,
-                        if (drawerActions.isNotEmpty) const Divider(),
-                        if (context
-                                .watch<PostParamsController>()
-                                .value
-                                .poolId !=
-                            null) ...[
-                          const PoolReaderSwitch(),
-                          const PoolOrderSwitch(),
-                        ],
-                        const DrawerDenySwitch(),
-                        DrawerTagCounter(
-                          posts: state.data?.pages.expand((p) => p).toList(),
-                          error: state.error,
-                        ),
-                      ],
-                    ),
-                    body: PostSearchDock(
-                      child: LimitedWidthLayout(
-                        child: ListenableBuilder(
-                          listenable: context.watch<Settings>().tileSize,
-                          builder: (context, child) => TileLayout(
-                            tileSize: context.watch<Settings>().tileSize.value,
-                            child: const PostList(),
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(
+            create: (_) => PostParamsController(initial: widget.params),
+          ),
+          ChangeNotifierProvider(create: (_) => PostDisplayController()),
+        ],
+        child: Builder(
+          builder: (context) {
+            final List<String> terms = postSearchTerms(
+              context.watch<PostParamsController>().value.tags,
+            );
+            final int? tapped =
+                this.tapped != null && this.tapped! < terms.length
+                ? this.tapped
+                : null;
+            void close() => setState(() => this.tapped = null);
+            void change(List<String> next) {
+              close();
+              _open(next.join(' '));
+            }
+
+            return PopScope(
+              canPop: tapped == null,
+              onPopInvokedWithResult: (didPop, result) {
+                if (!didPop) close();
+              },
+              child: Scaffold(
+                body: GestureDetector(
+                  onTap: tapped != null ? close : null,
+                  child: PostResults(
+                    dimmed: tapped != null,
+                    top: (onRefresh) => [
+                      SliverHexagonRefresh(
+                        onRefresh: onRefresh ?? () async {},
+                        headerExtent: null,
+                        header: PostSearchHeader(
+                          selected: tapped,
+                          onChip: (index) => setState(
+                            () => this.tapped = index == tapped ? null : index,
                           ),
                         ),
                       ),
-                    ),
+                      SliverToBoxAdapter(
+                        child: AnimatedSize(
+                          duration: defaultAnimationDuration,
+                          curve: Curves.easeOutCubic,
+                          alignment: Alignment.topCenter,
+                          child: tapped != null
+                              ? Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: PostTagPanel(
+                                    term: terms[tapped],
+                                    onChange: (term) => change([
+                                      ...terms.take(tapped),
+                                      term,
+                                      ...terms.skip(tapped + 1),
+                                    ]),
+                                    onRemove: () => change([
+                                      ...terms.take(tapped),
+                                      ...terms.skip(tapped + 1),
+                                    ]),
+                                  ),
+                                )
+                              : const SizedBox(width: double.infinity),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );

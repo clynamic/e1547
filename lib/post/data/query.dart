@@ -6,6 +6,11 @@ import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
 
+bool isOwnFavoritesName(String? name, String? username) =>
+    name != null &&
+    (name.toLowerCase() == 'me' ||
+        (username != null && name.toLowerCase() == username.toLowerCase()));
+
 extension PostQuerying on PostClient {
   static const queryDomain = 'posts';
 
@@ -36,7 +41,7 @@ extension PostQuerying on PostClient {
     if (tags.length == 2 &&
         order == 'fav' &&
         username != null &&
-        tags['fav'] == username) {
+        isOwnFavoritesName(tags['fav'], username)) {
       return useFavorites();
     }
 
@@ -45,6 +50,11 @@ extension PostQuerying on PostClient {
 
   QueryMap? _normalize(QueryMap? query) {
     final tags = TagMap(query?['tags']);
+    if (identity.username != null &&
+        isOwnFavoritesName(tags['fav'], identity.username)) {
+      tags['fav'] = identity.username!;
+      query = {...?query, 'tags': tags.toString()};
+    }
     if (tags.length != 1) return query;
     if (tags['order'] != null) return query;
 
@@ -53,7 +63,7 @@ extension PostQuerying on PostClient {
       return {...?query, 'tags': tags.toString()};
     }
     final username = identity.username;
-    if (username != null && tags['fav'] == username) {
+    if (username != null && isOwnFavoritesName(tags['fav'], username)) {
       tags['order'] = 'fav';
       return {...?query, 'tags': tags.toString()};
     }

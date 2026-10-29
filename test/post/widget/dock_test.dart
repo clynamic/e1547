@@ -548,7 +548,7 @@ void main() {
       await settle(tester);
 
       expect(
-        tester.widget<PostSearchPage>(find.byType(PostSearchPage)).tags,
+        tester.widget<PostsPage>(find.byType(PostsPage).last).params?.tags,
         'riolu solo',
       );
       expect(params.value.tags, 'riolu');
@@ -560,7 +560,7 @@ void main() {
       await tester.tap(find.byIcon(Icons.search).last);
       await settle(tester);
 
-      expect(find.byType(PostSearchPage), findsNothing);
+      expect(find.byType(PostsPage), findsNothing);
       expect(find.text('open'), findsOneWidget);
     });
 

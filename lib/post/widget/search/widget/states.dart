@@ -294,8 +294,10 @@ class PostResultsEmpty extends StatelessWidget {
               icon: Icons.close,
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => PostSearchPage(
-                    tags: terms.sublist(0, terms.length - 1).join(' '),
+                  builder: (context) => PostsPage(
+                    params: PostParams(
+                      tags: terms.sublist(0, terms.length - 1).join(' '),
+                    ),
                   ),
                 ),
               ),

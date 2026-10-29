@@ -202,7 +202,7 @@ void main() {
     await settle(tester);
 
     expect(
-      tester.widget<PostSearchPage>(find.byType(PostSearchPage)).tags,
+      tester.widget<PostsPage>(find.byType(PostsPage).last).params?.tags,
       'riolu solo',
     );
     expect(params.value.tags, 'riolu solo rating:s');
@@ -387,7 +387,7 @@ void main() {
   }
 
   displayTest('a refresh that brings nothing new says so', (tester) async {
-    await show(tester, const PostSearchPage(tags: ''));
+    await show(tester, const PostsPage());
     expect(find.byType(PostTile), findsWidgets);
 
     await pull(tester);
@@ -401,7 +401,7 @@ void main() {
   displayTest('a refresh that fails keeps the page and offers a retry', (
     tester,
   ) async {
-    await show(tester, const PostSearchPage(tags: ''));
+    await show(tester, const PostsPage());
     final int shown = find.byType(PostTile).evaluate().length;
     final String host = Uri.parse(fake.url).host;
     await tester.runAsync(fake.stop);
@@ -426,13 +426,7 @@ void main() {
   ) async {
     final NavBarDocks docks = NavBarDocks();
     addTearDown(docks.dispose);
-    await show(
-      tester,
-      NavBarDockScope(
-        docks: docks,
-        child: const PostSearchPage(tags: ''),
-      ),
-    );
+    await show(tester, NavBarDockScope(docks: docks, child: const PostsPage()));
     expect(docks.full, isFalse);
     expect(docks.current, isNotNull);
 

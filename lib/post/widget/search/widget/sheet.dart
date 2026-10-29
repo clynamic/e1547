@@ -49,7 +49,9 @@ Future<void> showPostSearchSheet(
           final String tags = TagMap(value).toString();
           if (tags == TagMap(params.value.tags).toString()) return;
           page.push(
-            MaterialPageRoute(builder: (context) => PostSearchPage(tags: tags)),
+            MaterialPageRoute(
+              builder: (context) => PostsPage(params: PostParams(tags: tags)),
+            ),
           );
         },
       ),

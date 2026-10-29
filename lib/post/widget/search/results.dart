@@ -1,4 +1,3 @@
-import 'package:e1547/client/client.dart';
 import 'package:e1547/follow/follow.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
@@ -86,39 +85,4 @@ class _PostResultsState extends State<PostResults> {
       ),
     ),
   );
-}
-
-class PostSearchPage extends StatelessWidget {
-  const PostSearchPage({super.key, required this.tags});
-
-  final String tags;
-
-  @override
-  Widget build(BuildContext context) {
-    final Client client = context.watch<Client>();
-    return FilterControllerProvider(
-      create: (_) => PostFilter(client),
-      keys: (_) => [client],
-      child: MultiProvider(
-        providers: [
-          ChangeNotifierProvider(
-            create: (_) =>
-                PostParamsController(initial: PostParams(tags: tags)),
-          ),
-          ChangeNotifierProvider(create: (_) => PostDisplayController()),
-        ],
-        child: Scaffold(
-          body: PostResults(
-            top: (onRefresh) => [
-              if (onRefresh != null)
-                SliverHexagonRefresh(
-                  onRefresh: onRefresh,
-                  headerExtent: MediaQuery.paddingOf(context).top,
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
