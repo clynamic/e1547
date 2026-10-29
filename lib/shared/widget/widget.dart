@@ -7,6 +7,7 @@ export 'button.dart';
 export 'card.dart';
 export 'checkbox.dart';
 export 'date.dart';
+export 'debounced.dart';
 export 'dimmed.dart';
 export 'dismiss.dart';
 export 'divider_tile.dart';

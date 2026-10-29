@@ -1,6 +1,7 @@
 enum SearchKind {
   posts('Posts', 'By tags, with filters and your blacklist'),
-  pools('Pools', 'Comics and collections, by name');
+  pools('Pools', 'Comics and collections, by name'),
+  sets('Sets', 'Yours first, then public ones');
 
   const SearchKind(this.label, this.description);
 

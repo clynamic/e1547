@@ -3,7 +3,9 @@ import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
 import 'package:e1547/identity/identity.dart';
 import 'package:e1547/pool/pool.dart';
+import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
+import 'package:e1547/set/set.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/traits/traits.dart';
@@ -51,6 +53,39 @@ Map<String, Object?> poolJson(
   'post_count': posts.length,
 };
 
+Map<String, Object?> setJson(
+  int id,
+  String name, {
+  required int creator,
+  bool public = true,
+  int count = 2,
+}) => {
+  'id': id,
+  'name': name,
+  'shortname': name,
+  'description': '',
+  'is_public': public,
+  'creator_id': creator,
+  'post_ids': List.generate(count, (i) => i + 1),
+  'post_count': count,
+  'created_at': '2026-09-01T12:00:00.000-04:00',
+  'updated_at': '2026-10-23T12:00:00.000-04:00',
+};
+
+PostSet sampleSet({bool public = true, int creator = 7, int count = 2310}) =>
+    PostSet(
+      id: 1,
+      name: 'reference',
+      shortname: 'reference',
+      description: '',
+      public: public,
+      creatorId: creator,
+      postIds: const [],
+      postCount: count,
+      createdAt: DateTime(2026, 9, 2),
+      updatedAt: DateTime(2026, 10, 23),
+    );
+
 void main() {
   group('pool words', () {
     test('a series counts pages and a collection counts posts', () {
@@ -91,6 +126,23 @@ void main() {
     });
   });
 
+  group('set words', () {
+    test('a set reads its size and who can see it', () {
+      expect(postSetSubtitle(sampleSet()), '2,310 posts · public');
+      expect(
+        postSetSubtitle(sampleSet(public: false, count: 4)),
+        '4 posts · private',
+      );
+    });
+
+    test('the public list leaves out private sets and your own', () {
+      final PublicPostSetFilter filter = PublicPostSetFilter(userId: 3);
+      expect(filter.filter(sampleSet()), isTrue);
+      expect(filter.filter(sampleSet(public: false)), isFalse);
+      expect(filter.filter(sampleSet(creator: 3)), isFalse);
+    });
+  });
+
   group('Search', () {
     late FakeE621 fake;
     late Client client;
@@ -110,6 +162,12 @@ void main() {
           poolJson(2, 'river_sketches', category: 'collection', posts: [4, 5]),
           poolJson(3, 'lake_notes', posts: [6]),
         ]);
+      fake.state.sets.addAll([
+        setJson(1, 'reference', creator: 3044, public: false, count: 4),
+        setJson(2, 'ref_sheets', creator: 7),
+        setJson(3, 'den_archive', creator: 7),
+        setJson(4, 'hidden_drafts', creator: 7, public: false),
+      ]);
       traits = ValueNotifier(
         const Traits(
           id: 1,
@@ -144,6 +202,27 @@ void main() {
       await fake.stop();
       await sqlite.close();
     });
+
+    Future<void> signIn() async {
+      traits.value = traits.value.copyWith(userId: 3044);
+      client = Client(
+        identity: await IdentityRepository(
+          sqlite,
+        ).add(IdentityRequest(host: fake.url, username: 'user_34')),
+        traits: traits,
+        storage: AppStorage(
+          preferences: await SharedPreferences.getInstance(),
+          temporaryFiles: '.',
+          queryCache: CachedQuery.asNewInstance()
+            ..config(
+              config: const GlobalQueryConfig(
+                cacheDuration: Duration(milliseconds: 1),
+              ),
+            ),
+          sqlite: sqlite,
+        ),
+      );
+    }
 
     Future<void> settle(WidgetTester tester) async {
       await tester.runAsync(() async {
@@ -209,6 +288,7 @@ void main() {
       expect(tester.widgetList<PickerCard>(cards).map((e) => e.title), [
         'Posts',
         'Pools',
+        'Sets',
       ]);
       expect(
         find.descendant(
@@ -322,6 +402,89 @@ void main() {
       expect(result.submitted, [
         const PoolParams(name: 'river', category: PoolCategory.collection),
       ]);
+    });
+
+    displayTest('Sets lists yours, then the public sets of others', (
+      tester,
+    ) async {
+      await tester.runAsync(signIn);
+      await showPage(tester, kind: SearchKind.sets);
+
+      expect(find.text('YOURS'), findsOneWidget);
+      expect(find.text('reference'), findsOneWidget);
+      expect(find.text('4 posts · private'), findsOneWidget);
+      expect(find.text('PUBLIC · RECENTLY UPDATED'), findsOneWidget);
+      expect(find.text('ref sheets'), findsOneWidget);
+      expect(find.text('den archive'), findsOneWidget);
+      expect(find.text('hidden drafts'), findsNothing);
+      expect(
+        tester.getTopLeft(find.text('reference')).dy,
+        lessThan(tester.getTopLeft(find.text('ref sheets')).dy),
+      );
+    });
+
+    displayTest('each public set shows its first post as a cover', (
+      tester,
+    ) async {
+      fake.state.sets
+        ..clear()
+        ..add({
+          ...setJson(2, 'ref_sheets', creator: 7),
+          'post_ids': [1021, 1000],
+        });
+      await showPage(tester, kind: SearchKind.sets);
+
+      final Finder cover = find.descendant(
+        of: find.byType(PostSetCard),
+        matching: find.byType(PostImageWidget),
+      );
+      expect(cover, findsOneWidget);
+      expect(tester.widget<PostImageWidget>(cover).post.id, 1021);
+    });
+
+    displayTest('a signed out reader sees only public sets', (tester) async {
+      await showPage(tester, kind: SearchKind.sets);
+
+      expect(find.text('YOURS'), findsNothing);
+      expect(find.text('reference'), findsNothing);
+      expect(find.text('ref sheets'), findsOneWidget);
+    });
+
+    displayTest('typing a set name suggests your sets first', (tester) async {
+      await tester.runAsync(signIn);
+      final List<PostSet> opened = [];
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<Client>.value(value: client),
+            Provider<BaseCacheManager>.value(
+              value: const NoImageCacheManager(),
+            ),
+            Provider<Settings>.value(
+              value: Settings(await SharedPreferences.getInstance()),
+            ),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: PostSetSearchSheet(
+                params: const PostSetParams(),
+                onSubmit: (_) {},
+                onOpen: opened.add,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.enterText(find.byType(TextField), 'ref');
+      await settle(tester);
+
+      expect(find.text('den archive'), findsNothing);
+      expect(
+        tester.getTopLeft(find.text('reference')).dy,
+        lessThan(tester.getTopLeft(find.text('ref sheets')).dy),
+      );
+      await tester.tap(find.text('ref sheets'));
+      expect(opened.map((e) => e.id), [2]);
     });
   });
 }

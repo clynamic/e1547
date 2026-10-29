@@ -4,6 +4,7 @@ import 'package:e1547/follow/follow.dart';
 import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
+import 'package:e1547/set/set.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +33,7 @@ class _SearchPageState extends State<SearchPage> {
           ChangeNotifierProvider(create: (_) => PostParamsController()),
           ChangeNotifierProvider(create: (_) => PostDisplayController()),
           ChangeNotifierProvider(create: (_) => PoolParamsController()),
+          ChangeNotifierProvider(create: (_) => PostSetParamsController()),
         ],
         child: ListenableBuilder(
           listenable: settings.searchKind,
@@ -69,6 +71,7 @@ class _SearchPageState extends State<SearchPage> {
                 child: switch (kind) {
                   SearchKind.posts => SearchPosts(top: top, dimmed: picking),
                   SearchKind.pools => SearchPools(top: top, dimmed: picking),
+                  SearchKind.sets => SearchSets(top: top, dimmed: picking),
                 },
               ),
             );
@@ -172,6 +175,160 @@ class SearchPools extends StatelessWidget {
   );
 }
 
+class SearchSets extends StatelessWidget {
+  const SearchSets({super.key, required this.top, required this.dimmed});
+
+  final SliverTop top;
+  final bool dimmed;
+
+  @override
+  Widget build(BuildContext context) {
+    final Client client = context.watch<Client>();
+    final PostSetParamsController params = context
+        .watch<PostSetParamsController>();
+    final String? me = client.identity.username;
+    final InfiniteQuery<List<int>, int> everyone = client.sets.usePage(
+      query: params.value.toQuery(),
+    );
+    final Query<List<PostSet>>? own = me == null
+        ? null
+        : client.sets.useSearch(
+            query: params.value.copyWith(creator: me).toQuery(),
+          );
+    Future<void> refresh() async {
+      await Future.wait([everyone.invalidate(), ?own?.invalidate()]);
+    }
+
+    return FilterControllerProvider<PublicPostSetFilter, PostSet>(
+      create: (_) => PublicPostSetFilter(userId: client.traits.value.userId),
+      keys: (_) => [client],
+      child: PagedQueryBuilder(
+        query: everyone,
+        getItem: (id) => client.sets.useGet(id: id, vendored: true),
+        builder: (context, state) => QueryFilter<PostSet, int>(
+          state: state,
+          builder: (context, state) {
+            prefetchCovers(
+              client,
+              (state.data?.pages.expand((e) => e) ?? const <PostSet>[]).map(
+                (e) => e.postIds.firstOrNull,
+              ),
+            );
+            return NavBarDock(
+              builder: (_) => PostSetDock(
+                params: params,
+                onOpen: (transition) =>
+                    showPostSetSearchSheet(context, transition: transition),
+              ),
+              child: LimitedWidthLayout(
+                child: TileLayout(
+                  child: RefreshShortcuts(
+                    onRefresh: refresh,
+                    child: CustomScrollView(
+                      primary: true,
+                      physics: refreshPhysics,
+                      slivers: [
+                        ...top(refresh),
+                        SliverDim(
+                          dimmed: dimmed,
+                          sliver: SliverMainAxisGroup(
+                            slivers: [
+                              if (own != null)
+                                SliverToBoxAdapter(
+                                  child: OwnPostSets(query: own),
+                                ),
+                              SliverToBoxAdapter(
+                                child: SearchSection(
+                                  'Public · '
+                                  '${postSetParamsWords(params.value)}',
+                                ),
+                              ),
+                              SliverPadding(
+                                padding: EdgeInsets.fromLTRB(
+                                  8,
+                                  0,
+                                  8,
+                                  MediaQuery.paddingOf(context).bottom +
+                                      defaultListPadding.bottom,
+                                ),
+                                sliver: SliverPostSetGrid(
+                                  state: state,
+                                  query: everyone,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class OwnPostSets extends StatelessWidget {
+  const OwnPostSets({super.key, required this.query});
+
+  final Query<List<PostSet>> query;
+
+  @override
+  Widget build(BuildContext context) => QueryBuilder(
+    query: query,
+    builder: (context, state) {
+      final List<PostSet> sets = state.data ?? const [];
+      if (sets.isEmpty) return const SizedBox(height: 8);
+      prefetchCovers(
+        context.read<Client>(),
+        sets.map((e) => e.postIds.firstOrNull),
+      );
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SearchSection('Yours', first: true),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              children: [
+                for (final PostSet set in sets)
+                  PostSetRow(set: set, onTap: () => openPostSet(context, set)),
+              ],
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+class SearchSection extends StatelessWidget {
+  const SearchSection(this.label, {super.key, this.first = false});
+
+  final String label;
+  final bool first;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: first
+        ? const EdgeInsets.fromLTRB(16, 8, 16, 6)
+        : const EdgeInsets.fromLTRB(16, 16, 16, 8),
+    child: Text(
+      label.toUpperCase(),
+      style: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.4,
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+      ),
+    ),
+  );
+}
+
 class SearchKindPicker extends StatelessWidget {
   const SearchKindPicker({
     super.key,
@@ -231,6 +388,18 @@ class SearchKindTiles extends StatelessWidget {
           query: context.watch<PoolParamsController>().value.toQuery(),
         ),
         getItem: (id) => client.pools.useGet(id: id, vendored: true),
+        builder: (context, state) => coverTiles(
+          state.data?.pages
+              .expand((e) => e)
+              .take(4)
+              .map((e) => e.postIds.firstOrNull),
+        ),
+      ),
+      SearchKind.sets => PagedQueryBuilder(
+        query: client.sets.usePage(
+          query: context.watch<PostSetParamsController>().value.toQuery(),
+        ),
+        getItem: (id) => client.sets.useGet(id: id, vendored: true),
         builder: (context, state) => coverTiles(
           state.data?.pages
               .expand((e) => e)

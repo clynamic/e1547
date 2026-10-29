@@ -62,6 +62,11 @@ class FakeE621 {
       '/pools/<id|[0-9]+>.json',
       (Request request, String id) => _json(_find(state.pools, id)),
     )
+    ..get('/post_sets.json', _listSets)
+    ..get(
+      '/post_sets/<id|[0-9]+>.json',
+      (Request request, String id) => _json(_find(state.sets, id)),
+    )
     ..get('/tags.json', (Request request) => _list(state.tags, request))
     ..get('/tags/autocomplete.json', _autocompleteTags)
     ..post('/tags/preview.json', _previewTags)
@@ -109,6 +114,26 @@ class FakeE621 {
         state.pools
             .where((e) => (e['name']! as String).toLowerCase().contains(name))
             .where((e) => category == null || e['category'] == category)
+            .toList(),
+        query,
+      ),
+    );
+  }
+
+  Response _listSets(Request request) {
+    final Map<String, String> query = request.url.queryParameters;
+    final String name = (query['search[name]'] ?? '').toLowerCase();
+    final String? creator = query['search[creator_name]'];
+    final Object? creatorId = creator == null
+        ? null
+        : creator == state.user['name']
+        ? state.user['id']
+        : -1;
+    return _json(
+      _paginate(
+        state.sets
+            .where((e) => (e['name']! as String).toLowerCase().contains(name))
+            .where((e) => creatorId == null || e['creator_id'] == creatorId)
             .toList(),
         query,
       ),
@@ -527,6 +552,7 @@ class FakeE621State {
     required this.replies,
     required this.comments,
     required this.pools,
+    required this.sets,
     required this.tags,
     required this.tagAliases,
     required this.users,
@@ -553,6 +579,7 @@ class FakeE621State {
       replies: _repeat(loadFixtureList('replies.json'), replies),
       comments: _repeat(loadFixtureList('comments.json'), comments),
       pools: loadFixtureList('pools.json'),
+      sets: [],
       tags: loadFixtureList('tags.json'),
       tagAliases: loadFixtureList('tag_aliases.json'),
       users: loadFixtureList('users.json'),
@@ -589,6 +616,7 @@ class FakeE621State {
   final List<Map<String, Object?>> replies;
   final List<Map<String, Object?>> comments;
   final List<Map<String, Object?>> pools;
+  final List<Map<String, Object?>> sets;
   final List<Map<String, Object?>> tags;
   final List<Map<String, Object?>> tagAliases;
   final List<Map<String, Object?>> users;

@@ -61,3 +61,75 @@ class PostCover extends StatelessWidget {
     );
   }
 }
+
+class CoverRow extends StatelessWidget {
+  const CoverRow({
+    super.key,
+    required this.cover,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.trailing,
+  });
+
+  final int? cover;
+  final String title;
+  final Widget subtitle;
+  final VoidCallback onTap;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 52),
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.06),
+            ),
+          ),
+        ),
+        child: Row(
+          spacing: 12,
+          children: [
+            SizedBox(
+              width: 36,
+              height: 44,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: PostCover(id: cover),
+              ),
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                  DefaultTextStyle.merge(
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
+                    child: subtitle,
+                  ),
+                ],
+              ),
+            ),
+            ?trailing,
+          ],
+        ),
+      ),
+    );
+  }
+}

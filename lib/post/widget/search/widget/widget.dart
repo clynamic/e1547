@@ -2,6 +2,7 @@ export 'actions.dart';
 export 'cover.dart';
 export 'dock.dart';
 export 'hidden.dart';
+export 'name.dart';
 export 'selection.dart';
 export 'sheet.dart';
 export 'snackbar.dart';

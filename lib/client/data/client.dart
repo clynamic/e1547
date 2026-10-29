@@ -11,6 +11,7 @@ import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/reply/reply.dart';
+import 'package:e1547/set/set.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
 import 'package:e1547/ticket/ticket.dart';
@@ -52,7 +53,7 @@ class Client with Disposable {
   late final CommentClient comments = CommentClient(dio: dio);
 
   late final PoolClient pools = PoolClient(dio: dio);
-  // TODO: add Sets
+  late final PostSetClient sets = PostSetClient(dio: dio);
 
   late final TopicClient topics = TopicClient(dio: dio);
   late final ReplyClient replies = ReplyClient(dio: dio);
