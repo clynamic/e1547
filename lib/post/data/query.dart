@@ -142,19 +142,19 @@ extension PostQuerying on PostClient {
     },
   );
 
-  Mutation<void, int> useAddFavorite() => Mutation(
-    mutationFn: (postId) => postCache.optimistic(
-      postId,
-      (post) => post.copyWith(isFavorited: true, favCount: post.favCount + 1),
-      () => addFavorite(postId),
-    ),
-  );
+  Future<void> setFavorite(int postId, {required bool favorite}) =>
+      postCache.optimistic(
+        postId,
+        (post) => post.copyWith(
+          isFavorited: favorite,
+          favCount: post.favCount + (favorite ? 1 : -1),
+        ),
+        () => favorite ? addFavorite(postId) : removeFavorite(postId),
+      );
 
-  Mutation<void, int> useRemoveFavorite() => Mutation(
-    mutationFn: (postId) => postCache.optimistic(
-      postId,
-      (post) => post.copyWith(isFavorited: false, favCount: post.favCount - 1),
-      () => removeFavorite(postId),
-    ),
-  );
+  Mutation<void, int> useAddFavorite() =>
+      Mutation(mutationFn: (postId) => setFavorite(postId, favorite: true));
+
+  Mutation<void, int> useRemoveFavorite() =>
+      Mutation(mutationFn: (postId) => setFavorite(postId, favorite: false));
 }

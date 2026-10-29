@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:e1547/client/client.dart';
 import 'package:e1547/logs/logs.dart';
+import 'package:e1547/post/post.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/task/task.dart';
@@ -253,7 +254,7 @@ class TasksController extends ChangeNotifier {
       case TaskAction.download:
         await _runDownload(task);
       case TaskAction.favorite:
-        await client.posts.addFavorite(task.postId);
+        await client.posts.setFavorite(task.postId, favorite: true);
         if (settings.upvoteFavs.value) {
           try {
             await client.posts.vote(
@@ -272,7 +273,7 @@ class TasksController extends ChangeNotifier {
           }
         }
       case TaskAction.unfavorite:
-        await client.posts.removeFavorite(task.postId);
+        await client.posts.setFavorite(task.postId, favorite: false);
     }
   }
 
