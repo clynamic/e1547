@@ -98,6 +98,17 @@ class PostFilter extends FilterController<Post>
     return counts;
   }
 
+  Map<String, int> get matchCountsByEntry {
+    final counts = <String, int>{};
+    for (final post in tracked) {
+      if (allowedPosts.contains(post.id)) continue;
+      for (final entry in entriesFor(post)) {
+        counts[entry] = (counts[entry] ?? 0) + 1;
+      }
+    }
+    return counts;
+  }
+
   List<String> entriesFor(Post post) {
     _evictStaleEntries();
 

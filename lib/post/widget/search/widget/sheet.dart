@@ -22,9 +22,11 @@ Future<void> showPostSearchSheet(BuildContext context) {
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
     ),
-    builder: (context) => PostSearchSheet(
+    builder: (sheetContext) => PostSearchSheet(
       query: params.value.tags ?? '',
       posts: filter.tracked.where(filter.filter).toList(),
+      filter: filter,
+      onShowHidden: () => showHiddenPostsSheet(context, filter),
       onSubmit: (value) =>
           params.update((p) => p.copyWith(tags: TagMap(value).toString())),
     ),
@@ -50,11 +52,15 @@ class PostSearchSheet extends StatefulWidget {
     required this.query,
     required this.onSubmit,
     this.posts = const [],
+    this.filter,
+    this.onShowHidden,
   });
 
   final String query;
   final ValueSetter<String> onSubmit;
   final List<Post> posts;
+  final PostFilter? filter;
+  final VoidCallback? onShowHidden;
 
   @override
   State<PostSearchSheet> createState() => _PostSearchSheetState();
@@ -167,7 +173,40 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
                       textDirection: left
                           ? TextDirection.rtl
                           : TextDirection.ltr,
+                      spacing: 8,
                       children: [
+                        if (widget.filter case final filter?
+                            when widget.onShowHidden != null)
+                          ListenableBuilder(
+                            listenable: filter,
+                            builder: (context, child) {
+                              if (filter.matchCountsByEntry.isEmpty) {
+                                return const SizedBox.shrink();
+                              }
+                              return Material(
+                                color: theme.cardColor,
+                                borderRadius: BorderRadius.circular(4),
+                                child: InkWell(
+                                  onTap: widget.onShowHidden,
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: SizedBox(
+                                    height: 40,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                      ),
+                                      child: Center(
+                                        widthFactor: 1,
+                                        child: HiddenCount(
+                                          count: filter.blockedCount,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                         const Spacer(),
                         SizedBox.square(
                           dimension: dockHeight,

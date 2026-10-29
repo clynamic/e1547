@@ -25,7 +25,14 @@ class PostSearchDock extends StatelessWidget {
               if (!filter.denying || filter.blockedCount == 0) {
                 return const SizedBox.shrink();
               }
-              return HiddenCount(count: filter.blockedCount);
+              return InkWell(
+                onTap: () => showHiddenPostsSheet(context, filter),
+                borderRadius: BorderRadius.circular(4),
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: HiddenCount(count: filter.blockedCount),
+                ),
+              );
             },
           ),
         ],
