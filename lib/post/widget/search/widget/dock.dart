@@ -44,29 +44,62 @@ class PostDock extends StatelessWidget {
   final VoidCallback onHidden;
 
   @override
+  Widget build(BuildContext context) => SearchDock(
+    onOpen: onOpen,
+    child: ListenableBuilder(
+      listenable: Listenable.merge([params, filter]),
+      builder: (context, child) => Row(
+        spacing: 4,
+        children: [
+          Flexible(child: QueryChipRow(query: params.value.tags ?? '')),
+          if (filter.denying && filter.blockedCount > 0)
+            HiddenChip(count: filter.blockedCount, onTap: onHidden),
+        ],
+      ),
+    ),
+  );
+}
+
+class HiddenChip extends StatelessWidget {
+  const HiddenChip({super.key, required this.count, required this.onTap});
+
+  final int count;
+  final VoidCallback onTap;
+
+  @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return SearchDock(
-      onOpen: onOpen,
-      child: ListenableBuilder(
-        listenable: Listenable.merge([params, filter]),
-        builder: (context, child) => Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 5,
-          children: [
-            QueryChipRow(query: params.value.tags ?? ''),
-            if (filter.denying && filter.blockedCount > 0)
-              GestureDetector(
-                onTap: onHidden,
-                child: Text(
-                  '${filter.blockedCount} hidden',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
-                ),
+    final Color dim = Theme.of(
+      context,
+    ).colorScheme.onSurface.withValues(alpha: 0.5);
+    return Tooltip(
+      message: '$count hidden',
+      child: Material(
+        type: MaterialType.transparency,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(4),
+          side: BorderSide(
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.22),
+          ),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(4),
+          child: SizedBox(
+            height: 26,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                spacing: 5,
+                children: [
+                  Icon(Icons.block, size: 14, color: dim),
+                  Text('$count', style: TextStyle(fontSize: 13, color: dim)),
+                ],
               ),
-          ],
+            ),
+          ),
         ),
       ),
     );
@@ -87,48 +120,51 @@ class SearchDock extends StatelessWidget {
       open: onOpen,
       child: InkWell(
         onTap: () => onOpen(null),
-        child: Column(
+        child: Stack(
           children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Container(
-                width: 32,
-                height: 3,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: left
-                    ? const EdgeInsets.fromLTRB(8, 4, 12, 8)
-                    : const EdgeInsets.fromLTRB(12, 4, 8, 8),
-                child: Row(
-                  textDirection: left ? TextDirection.rtl : TextDirection.ltr,
-                  spacing: 10,
-                  children: [
-                    Expanded(
-                      child: Directionality(
-                        textDirection: TextDirection.ltr,
+            Row(
+              textDirection: left ? TextDirection.rtl : TextDirection.ltr,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: left
+                        ? const EdgeInsets.fromLTRB(10, 8, 12, 8)
+                        : const EdgeInsets.fromLTRB(12, 8, 10, 8),
+                    child: Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: Align(
+                        alignment: Alignment.centerLeft,
                         child: child,
                       ),
                     ),
-                    SizedBox.square(
-                      dimension: 40,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primary,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Icon(
-                          Icons.search,
-                          color: theme.colorScheme.onPrimary,
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
+                ),
+                Container(
+                  width: 44,
+                  margin: left
+                      ? const EdgeInsets.fromLTRB(6, 6, 0, 6)
+                      : const EdgeInsets.fromLTRB(0, 6, 6, 6),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Icon(Icons.search, color: theme.colorScheme.onPrimary),
+                ),
+              ],
+            ),
+            Positioned(
+              top: 4,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  width: 32,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
             ),

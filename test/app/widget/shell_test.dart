@@ -141,6 +141,33 @@ void main() {
     },
   );
 
+  testWidgets('the open tab has a larger icon over a short line', (
+    tester,
+  ) async {
+    await pumpShell(tester);
+
+    final Finder open = find.descendant(
+      of: find.byType(NavBar),
+      matching: find.byWidgetPredicate(
+        (widget) => widget is NavBarTab && widget.chosen,
+      ),
+    );
+    expect(
+      tester.getSize(find.descendant(of: open, matching: find.byType(Icon))),
+      const Size.square(26),
+    );
+    final Finder line = find.descendant(
+      of: open,
+      matching: find.byType(Container),
+    );
+    expect(tester.getSize(line), const Size(20, 3));
+    expect(
+      tester.getRect(find.byType(NavBarTab).first).bottom -
+          tester.getRect(line).bottom,
+      4,
+    );
+  });
+
   testWidgets('each tab keeps its own stack', (tester) async {
     await pumpShell(tester);
 

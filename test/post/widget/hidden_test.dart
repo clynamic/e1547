@@ -4,6 +4,7 @@ import 'package:e1547/client/client.dart';
 import 'package:e1547/identity/identity.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
+import 'package:e1547/shared/shared.dart';
 import 'package:e1547/traits/traits.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -191,5 +192,68 @@ void main() {
       find.descendant(of: line('gore'), matching: find.text('1')),
       findsOneWidget,
     );
+  });
+
+  group('PostDock', () {
+    int hidden = 0;
+
+    Future<void> showDock(WidgetTester tester) async {
+      hidden = 0;
+      final PostParamsController params = PostParamsController();
+      addTearDown(params.dispose);
+      await tester.pumpWidget(
+        Provider<Client>.value(
+          value: client,
+          child: MaterialApp(
+            home: Scaffold(
+              body: Align(
+                alignment: Alignment.bottomCenter,
+                child: SizedBox(
+                  height: navBarDockHeight,
+                  child: PostDock(
+                    params: params,
+                    filter: filter,
+                    onOpen: (_) async {},
+                    onHidden: () => hidden++,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the hidden count is the last chip and opens the sheet', (
+      tester,
+    ) async {
+      await showDock(tester);
+
+      final Finder chip = find.widgetWithText(HiddenChip, '2');
+      expect(chip, findsOneWidget);
+      expect(
+        tester.getTopLeft(chip).dx,
+        greaterThan(tester.getTopRight(find.text('Search')).dx),
+      );
+      await tester.tap(chip);
+      expect(hidden, 1);
+    });
+
+    testWidgets('the search button fills the height of the dock row', (
+      tester,
+    ) async {
+      await showDock(tester);
+
+      final Rect button = tester.getRect(
+        find
+            .ancestor(
+              of: find.byIcon(Icons.search),
+              matching: find.byType(DecoratedBox),
+            )
+            .first,
+      );
+      expect(button.size, const Size(44, navBarDockHeight - 12));
+    });
   });
 }

@@ -6,10 +6,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-const double navBarHeight = 60;
+const double navBarHeight = 52;
 const double navBarMargin = 12;
 const double navBarBottomMargin = 16;
-const double navBarDockHeight = 72;
+const double navBarDockHeight = 56;
 const double navBarFadeHeight = 64;
 
 double navBarSpace({required bool docked}) =>
@@ -478,16 +478,13 @@ class NavBarTab extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Icon(tab.icon, color: tint, size: 24),
-            ),
+            Icon(tab.icon, color: tint, size: 26),
             if (chosen)
               Positioned(
-                bottom: 6,
+                bottom: 4,
                 child: Container(
-                  width: 24,
-                  height: 4,
+                  width: 20,
+                  height: 3,
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary,
                     borderRadius: BorderRadius.circular(2),
