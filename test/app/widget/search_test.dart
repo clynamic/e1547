@@ -299,6 +299,22 @@ void main() {
       );
     });
 
+    displayTest('each kind card shows the icon of its kind', (tester) async {
+      await showPage(tester);
+      await tester.tap(find.text('Posts'));
+      await settle(tester);
+
+      for (final SearchKind kind in SearchKind.values) {
+        expect(
+          find.descendant(
+            of: find.widgetWithText(PickerCard, kind.label),
+            matching: find.byIcon(kind.icon),
+          ),
+          findsOneWidget,
+        );
+      }
+    });
+
     displayTest('a picked kind is remembered and docks its own search', (
       tester,
     ) async {

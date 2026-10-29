@@ -9,10 +9,12 @@ class PickerHeader extends StatelessWidget {
     required this.label,
     required this.picking,
     required this.onToggle,
+    this.subtitle,
     this.leading,
   });
 
   final String label;
+  final String? subtitle;
   final bool picking;
   final VoidCallback onToggle;
   final Widget? leading;
@@ -25,50 +27,65 @@ class PickerHeader extends StatelessWidget {
       child: SizedBox(
         height: pickerHeaderHeight,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-          child: Row(
-            children: [
-              ?leading,
-              Material(
-                color: picking ? theme.cardColor : Colors.transparent,
-                borderRadius: BorderRadius.circular(4),
-                child: InkWell(
-                  onTap: onToggle,
-                  borderRadius: BorderRadius.circular(4),
-                  child: SizedBox(
-                    height: 48,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        spacing: 4,
-                        children: [
+          padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
+          child: Material(
+            type: MaterialType.transparency,
+            borderRadius: BorderRadius.circular(8),
+            child: InkWell(
+              onTap: onToggle,
+              borderRadius: BorderRadius.circular(8),
+              child: Row(
+                children: [
+                  ?leading,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          spacing: 4,
+                          children: [
+                            Text(
+                              label,
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w500,
+                                height: subtitle == null ? null : 1.1,
+                              ),
+                            ),
+                            AnimatedRotation(
+                              turns: picking ? 0.5 : 0,
+                              duration: defaultAnimationDuration,
+                              child: Icon(
+                                Icons.expand_more,
+                                color: picking
+                                    ? theme.colorScheme.primary
+                                    : theme.colorScheme.onSurface.withValues(
+                                        alpha: 0.7,
+                                      ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (subtitle case final subtitle?)
                           Text(
-                            label,
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w500,
+                            subtitle,
+                            style: TextStyle(
+                              fontSize: 13,
+                              height: 1.1,
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.6,
+                              ),
                             ),
                           ),
-                          AnimatedRotation(
-                            turns: picking ? 0.5 : 0,
-                            duration: defaultAnimationDuration,
-                            child: Icon(
-                              Icons.expand_more,
-                              color: picking
-                                  ? theme.colorScheme.primary
-                                  : theme.colorScheme.onSurface.withValues(
-                                      alpha: 0.7,
-                                    ),
-                            ),
-                          ),
-                        ],
-                      ),
+                      ],
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -103,6 +120,7 @@ class PickerCard extends StatelessWidget {
     required this.subtitle,
     required this.selected,
     required this.onTap,
+    required this.icon,
     this.child,
   });
 
@@ -110,6 +128,7 @@ class PickerCard extends StatelessWidget {
   final Widget subtitle;
   final bool selected;
   final VoidCallback onTap;
+  final IconData icon;
   final Widget? child;
 
   @override
@@ -131,13 +150,36 @@ class PickerCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding: const EdgeInsets.fromLTRB(10, 10, 14, 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             spacing: 10,
             children: [
               Row(
+                spacing: 14,
                 children: [
+                  SizedBox.square(
+                    dimension: 48,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? accent.withValues(alpha: 0.14)
+                            : theme.colorScheme.onSurface.withValues(
+                                alpha: 0.06,
+                              ),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Icon(
+                        icon,
+                        size: 26,
+                        color: selected
+                            ? accent
+                            : theme.colorScheme.onSurface.withValues(
+                                alpha: 0.75,
+                              ),
+                      ),
+                    ),
+                  ),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,36 +211,6 @@ class PickerCard extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class PickerTiles extends StatelessWidget {
-  const PickerTiles({super.key, required this.children});
-
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    final Color empty = Theme.of(
-      context,
-    ).colorScheme.onSurface.withValues(alpha: 0.06);
-    return Row(
-      spacing: 6,
-      children: [
-        for (int i = 0; i < 4; i++)
-          Expanded(
-            child: SizedBox(
-              height: 64,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: i < children.length
-                    ? children[i]
-                    : ColoredBox(color: empty),
-              ),
-            ),
-          ),
-      ],
     );
   }
 }

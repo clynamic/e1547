@@ -348,65 +348,11 @@ class SearchKindPicker extends StatelessWidget {
       for (final SearchKind value in SearchKind.values)
         PickerCard(
           title: value.label,
+          icon: value.icon,
           subtitle: Text(value.description),
           selected: value == kind,
           onTap: () => onPick(value),
-          child: SearchKindTiles(kind: value),
         ),
     ],
   );
-}
-
-class SearchKindTiles extends StatelessWidget {
-  const SearchKindTiles({super.key, required this.kind});
-
-  final SearchKind kind;
-
-  @override
-  Widget build(BuildContext context) {
-    final Client client = context.watch<Client>();
-    Widget coverTiles(Iterable<int?>? ids) {
-      final List<int?> covers = ids?.toList() ?? const [];
-      prefetchCovers(client, covers);
-      return PickerTiles(
-        children: [for (final int? id in covers) PostCover(id: id)],
-      );
-    }
-
-    return switch (kind) {
-      SearchKind.posts => PagedQueryBuilder(
-        query: client.posts.usePage(
-          query: context.watch<PostParamsController>().value.toQuery(),
-        ),
-        getItem: (id) => client.posts.useGet(id: id, vendored: true),
-        builder: (context, state) => coverTiles(
-          state.data?.pages.expand((e) => e).take(4).map((e) => e.id),
-        ),
-      ),
-      SearchKind.pools => PagedQueryBuilder(
-        query: client.pools.usePage(
-          query: context.watch<PoolParamsController>().value.toQuery(),
-        ),
-        getItem: (id) => client.pools.useGet(id: id, vendored: true),
-        builder: (context, state) => coverTiles(
-          state.data?.pages
-              .expand((e) => e)
-              .take(4)
-              .map((e) => e.postIds.firstOrNull),
-        ),
-      ),
-      SearchKind.sets => PagedQueryBuilder(
-        query: client.sets.usePage(
-          query: context.watch<PostSetParamsController>().value.toQuery(),
-        ),
-        getItem: (id) => client.sets.useGet(id: id, vendored: true),
-        builder: (context, state) => coverTiles(
-          state.data?.pages
-              .expand((e) => e)
-              .take(4)
-              .map((e) => e.postIds.firstOrNull),
-        ),
-      ),
-    };
-  }
 }

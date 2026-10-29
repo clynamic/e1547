@@ -1,22 +1,26 @@
-enum BrowseFeed {
-  hot('Hot'),
-  latest('Latest'),
-  popular('Popular'),
-  timeline('Timeline');
+import 'package:flutter/material.dart';
 
-  const BrowseFeed(this.label);
+enum BrowseFeed {
+  hot('Hot', Icons.whatshot),
+  latest('Latest', Icons.schedule),
+  popular('Popular', Icons.trending_up),
+  timeline('Timeline', Icons.dynamic_feed_outlined);
+
+  const BrowseFeed(this.label, this.icon);
 
   final String label;
+  final IconData icon;
 }
 
 enum PopularScale {
-  day('Day'),
-  week('Week'),
-  month('Month');
+  day('Day', 'Today'),
+  week('Week', 'This week'),
+  month('Month', 'This month');
 
-  const PopularScale(this.label);
+  const PopularScale(this.label, this.period);
 
   final String label;
+  final String period;
 }
 
 String browseFeedTags(BrowseFeed feed, PopularScale scale) => switch (feed) {

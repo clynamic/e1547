@@ -70,12 +70,15 @@ void main() {
       await sqlite.close();
     });
 
+    int toggles = 0;
+
     Future<List<(BrowseFeed, PopularScale)>> show(
       WidgetTester tester, {
       required bool picking,
       BrowseFeed feed = BrowseFeed.hot,
     }) async {
       final List<(BrowseFeed, PopularScale)> picked = [];
+      toggles = 0;
       await tester.pumpWidget(
         Provider<Client>.value(
           value: client,
@@ -84,7 +87,12 @@ void main() {
               body: SingleChildScrollView(
                 child: Column(
                   children: [
-                    BrowseHeader(feed: feed, picking: picking, onToggle: () {}),
+                    BrowseHeader(
+                      feed: feed,
+                      scale: PopularScale.week,
+                      picking: picking,
+                      onToggle: () => toggles++,
+                    ),
                     BrowseFeedPicker(
                       feed: feed,
                       scale: PopularScale.week,
@@ -110,6 +118,41 @@ void main() {
 
       expect(find.text('Hot'), findsOneWidget);
       expect(find.text('Latest'), findsNothing);
+    });
+
+    displayTest('Popular shows its period under the name', (tester) async {
+      await show(tester, picking: false, feed: BrowseFeed.popular);
+
+      expect(find.text('This week'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('This week')).dy,
+        greaterThan(tester.getBottomLeft(find.text('Popular')).dy - 1),
+      );
+    });
+
+    displayTest('the whole header row opens the feeds', (tester) async {
+      await show(tester, picking: false);
+
+      final Rect header = tester.getRect(find.byType(BrowseHeader));
+      final double width =
+          tester.view.physicalSize.width / tester.view.devicePixelRatio;
+      await tester.tapAt(Offset(width - 20, header.center.dy));
+
+      expect(toggles, 1);
+    });
+
+    displayTest('each feed card shows the icon of its feed', (tester) async {
+      await show(tester, picking: true);
+
+      for (final BrowseFeed feed in BrowseFeed.values) {
+        expect(
+          find.descendant(
+            of: find.widgetWithText(BrowseFeedCard, feed.label),
+            matching: find.byIcon(feed.icon),
+          ),
+          findsOneWidget,
+        );
+      }
     });
 
     displayTest('unfolded, the feeds keep their order and check the current', (

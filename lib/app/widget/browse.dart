@@ -36,6 +36,7 @@ class _BrowsePageState extends State<BrowsePage> {
                   pickerHeaderHeight + MediaQuery.paddingOf(context).top,
               header: BrowseHeader(
                 feed: feed,
+                scale: scale,
                 picking: picking,
                 onToggle: () => setState(() => picking = !picking),
               ),
@@ -44,6 +45,7 @@ class _BrowsePageState extends State<BrowsePage> {
             SliverToBoxAdapter(
               child: BrowseHeader(
                 feed: feed,
+                scale: scale,
                 picking: picking,
                 onToggle: () => setState(() => picking = !picking),
               ),
@@ -300,17 +302,20 @@ class BrowseHeader extends StatelessWidget {
   const BrowseHeader({
     super.key,
     required this.feed,
+    required this.scale,
     required this.picking,
     required this.onToggle,
   });
 
   final BrowseFeed feed;
+  final PopularScale scale;
   final bool picking;
   final VoidCallback onToggle;
 
   @override
   Widget build(BuildContext context) => PickerHeader(
     label: feed.label,
+    subtitle: feed == BrowseFeed.popular ? scale.period : null,
     picking: picking,
     onToggle: onToggle,
     leading: Padding(
@@ -369,6 +374,7 @@ class BrowseFeedCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => PickerCard(
     title: feed.label,
+    icon: feed.icon,
     subtitle: BrowseFeedSubtitle(feed: feed),
     selected: selected,
     onTap: () => onPick(feed, scale),
