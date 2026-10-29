@@ -28,31 +28,48 @@ class _BrowsePageState extends State<BrowsePage> {
       builder: (context, child) {
         final BrowseFeed feed = settings.browseFeed.value;
         final PopularScale scale = settings.popularScale.value;
-        final Widget header = SliverToBoxAdapter(
-          child: BrowseHeader(
-            feed: feed,
-            scale: scale,
-            picking: picking,
-            onToggle: () => setState(() => picking = !picking),
-            onPick: (value, scale) {
-              settings.browseFeed.value = value;
-              settings.popularScale.value = scale;
-              setState(() => picking = false);
-            },
+        List<Widget> top(Future<void> Function()? onRefresh) => [
+          if (onRefresh != null)
+            SliverHexagonRefresh(
+              onRefresh: onRefresh,
+              headerExtent:
+                  browseHeaderHeight + MediaQuery.paddingOf(context).top,
+              header: BrowseHeader(
+                feed: feed,
+                picking: picking,
+                onToggle: () => setState(() => picking = !picking),
+              ),
+            )
+          else
+            SliverToBoxAdapter(
+              child: BrowseHeader(
+                feed: feed,
+                picking: picking,
+                onToggle: () => setState(() => picking = !picking),
+              ),
+            ),
+          SliverToBoxAdapter(
+            child: BrowseFeedPicker(
+              feed: feed,
+              scale: scale,
+              picking: picking,
+              onPick: (value, scale) {
+                settings.browseFeed.value = value;
+                settings.popularScale.value = scale;
+                setState(() => picking = false);
+              },
+            ),
           ),
-        );
+        ];
         return Scaffold(
           body: GestureDetector(
             onTap: picking ? () => setState(() => picking = false) : null,
             child: switch (feed) {
-              BrowseFeed.timeline => BrowseTimeline(
-                header: header,
-                dimmed: picking,
-              ),
+              BrowseFeed.timeline => BrowseTimeline(top: top, dimmed: picking),
               _ => BrowsePosts(
                 key: ValueKey(browseFeedTags(feed, scale)),
                 tags: browseFeedTags(feed, scale),
-                header: header,
+                top: top,
                 dimmed: picking,
               ),
             },
@@ -67,12 +84,12 @@ class BrowsePosts extends StatelessWidget {
   const BrowsePosts({
     super.key,
     required this.tags,
-    required this.header,
+    required this.top,
     required this.dimmed,
   });
 
   final String tags;
-  final Widget header;
+  final List<Widget> Function(Future<void> Function()? onRefresh) top;
   final bool dimmed;
 
   @override
@@ -93,12 +110,13 @@ class BrowsePosts extends StatelessWidget {
                 listenable: context.watch<Settings>().tileSize,
                 builder: (context, child) => TileLayout(
                   tileSize: context.watch<Settings>().tileSize.value,
-                  child: PullToRefresh(
+                  child: RefreshShortcuts(
                     onRefresh: query.invalidate,
                     child: CustomScrollView(
                       primary: true,
+                      physics: refreshPhysics,
                       slivers: [
-                        header,
+                        ...top(query.invalidate),
                         SliverDim(
                           dimmed: dimmed,
                           sliver: SliverPadding(
@@ -124,9 +142,9 @@ class BrowsePosts extends StatelessWidget {
 }
 
 class BrowseTimeline extends StatelessWidget {
-  const BrowseTimeline({super.key, required this.header, required this.dimmed});
+  const BrowseTimeline({super.key, required this.top, required this.dimmed});
 
-  final Widget header;
+  final List<Widget> Function(Future<void> Function()? onRefresh) top;
   final bool dimmed;
 
   @override
@@ -142,7 +160,7 @@ class BrowseTimeline extends StatelessWidget {
           if (tags == null) {
             return CustomScrollView(
               slivers: [
-                header,
+                ...top(null),
                 const SliverFillRemaining(
                   child: Center(child: CircularProgressIndicator()),
                 ),
@@ -156,7 +174,7 @@ class BrowseTimeline extends StatelessWidget {
           if (followed.isEmpty) {
             return CustomScrollView(
               slivers: [
-                header,
+                ...top(null),
                 SliverDim(
                   dimmed: dimmed,
                   sliver: const SliverFillRemaining(
@@ -172,7 +190,7 @@ class BrowseTimeline extends StatelessWidget {
               listenable: context.watch<Settings>().tileSize,
               builder: (context, child) => TileLayout(
                 tileSize: context.watch<Settings>().tileSize.value,
-                child: FollowTimelinePostList(tags: followed, header: header),
+                child: FollowTimelinePostList(tags: followed, top: top),
               ),
             ),
           );
@@ -278,116 +296,126 @@ class SliverDim extends StatelessWidget {
   );
 }
 
+const double browseHeaderHeight = 72;
+
 class BrowseHeader extends StatelessWidget {
   const BrowseHeader({
     super.key,
     required this.feed,
-    required this.scale,
     required this.picking,
     required this.onToggle,
-    required this.onPick,
   });
 
   final BrowseFeed feed;
-  final PopularScale scale;
   final bool picking;
   final VoidCallback onToggle;
-  final void Function(BrowseFeed feed, PopularScale scale) onPick;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     return Padding(
       padding: EdgeInsets.only(top: MediaQuery.paddingOf(context).top),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            height: 72,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-              child: Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 0, 2, 0),
-                    child: Transform.translate(
-                      offset: const Offset(-2, 0),
-                      child: Image.asset(
-                        'assets/icon/app/inapp.png',
-                        width: 52,
-                        height: 52,
-                      ),
-                    ),
+      child: SizedBox(
+        height: browseHeaderHeight,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+          child: Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 2, 0),
+                child: Transform.translate(
+                  offset: const Offset(-2, 0),
+                  child: Image.asset(
+                    'assets/icon/app/inapp.png',
+                    width: 52,
+                    height: 52,
                   ),
-                  Material(
-                    color: picking ? theme.cardColor : Colors.transparent,
-                    borderRadius: BorderRadius.circular(4),
-                    child: InkWell(
-                      onTap: onToggle,
-                      borderRadius: BorderRadius.circular(4),
-                      child: SizedBox(
-                        height: 48,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            spacing: 4,
-                            children: [
-                              Text(
-                                feed.label,
-                                style: theme.textTheme.headlineSmall?.copyWith(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              AnimatedRotation(
-                                turns: picking ? 0.5 : 0,
-                                duration: defaultAnimationDuration,
-                                child: Icon(
-                                  Icons.expand_more,
-                                  color: picking
-                                      ? theme.colorScheme.primary
-                                      : theme.colorScheme.onSurface.withValues(
-                                          alpha: 0.7,
-                                        ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-          AnimatedSize(
-            duration: defaultAnimationDuration,
-            curve: Curves.easeOutCubic,
-            alignment: Alignment.topCenter,
-            child: picking
-                ? Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
-                    child: Column(
-                      spacing: 8,
-                      children: [
-                        for (final BrowseFeed value in BrowseFeed.values)
-                          BrowseFeedCard(
-                            feed: value,
-                            scale: scale,
-                            selected: value == feed,
-                            onPick: onPick,
+              Material(
+                color: picking ? theme.cardColor : Colors.transparent,
+                borderRadius: BorderRadius.circular(4),
+                child: InkWell(
+                  onTap: onToggle,
+                  borderRadius: BorderRadius.circular(4),
+                  child: SizedBox(
+                    height: 48,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        spacing: 4,
+                        children: [
+                          Text(
+                            feed.label,
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                      ],
+                          AnimatedRotation(
+                            turns: picking ? 0.5 : 0,
+                            duration: defaultAnimationDuration,
+                            child: Icon(
+                              Icons.expand_more,
+                              color: picking
+                                  ? theme.colorScheme.primary
+                                  : theme.colorScheme.onSurface.withValues(
+                                      alpha: 0.7,
+                                    ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  )
-                : const SizedBox(width: double.infinity),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
+}
+
+class BrowseFeedPicker extends StatelessWidget {
+  const BrowseFeedPicker({
+    super.key,
+    required this.feed,
+    required this.scale,
+    required this.picking,
+    required this.onPick,
+  });
+
+  final BrowseFeed feed;
+  final PopularScale scale;
+  final bool picking;
+  final void Function(BrowseFeed feed, PopularScale scale) onPick;
+
+  @override
+  Widget build(BuildContext context) => AnimatedSize(
+    duration: defaultAnimationDuration,
+    curve: Curves.easeOutCubic,
+    alignment: Alignment.topCenter,
+    child: picking
+        ? Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+            child: Column(
+              spacing: 8,
+              children: [
+                for (final BrowseFeed value in BrowseFeed.values)
+                  BrowseFeedCard(
+                    feed: value,
+                    scale: scale,
+                    selected: value == feed,
+                    onPick: onPick,
+                  ),
+              ],
+            ),
+          )
+        : const SizedBox(width: double.infinity),
+  );
 }
 
 class BrowseFeedCard extends StatelessWidget {

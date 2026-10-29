@@ -17,6 +17,7 @@ export 'gallery.dart';
 export 'grouped.dart';
 export 'header.dart';
 export 'hero.dart';
+export 'hexagon_refresh.dart';
 export 'image_load.dart';
 export 'indexed_stack.dart';
 export 'link.dart';

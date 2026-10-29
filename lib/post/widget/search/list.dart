@@ -10,11 +10,13 @@ class PostList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => PostPageQueryBuilder(
-    builder: (context, state, query) => PullToRefresh(
+    builder: (context, state, query) => RefreshShortcuts(
       onRefresh: query.invalidate,
       child: CustomScrollView(
         primary: true,
+        physics: refreshPhysics,
         slivers: [
+          SliverHexagonRefresh(onRefresh: query.invalidate),
           SliverBottomInsetPadding(
             padding: defaultListPadding.copyWith(
               bottom:

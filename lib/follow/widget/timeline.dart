@@ -5,10 +5,10 @@ import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
 class FollowTimelinePostList extends StatelessWidget {
-  const FollowTimelinePostList({super.key, required this.tags, this.header});
+  const FollowTimelinePostList({super.key, required this.tags, this.top});
 
   final List<String> tags;
-  final Widget? header;
+  final List<Widget> Function(Future<void> Function()? onRefresh)? top;
 
   @override
   Widget build(BuildContext context) {
@@ -19,12 +19,14 @@ class FollowTimelinePostList extends StatelessWidget {
       getItem: (id) => client.posts.useGet(id: id, vendored: true),
       builder: (context, state) => QueryFilter(
         state: state,
-        builder: (context, state) => PullToRefresh(
+        builder: (context, state) => RefreshShortcuts(
           onRefresh: query.invalidate,
           child: CustomScrollView(
             primary: true,
+            physics: refreshPhysics,
             slivers: [
-              ?header,
+              ...top?.call(query.invalidate) ??
+                  [SliverHexagonRefresh(onRefresh: query.invalidate)],
               SliverPadding(
                 padding: defaultActionListPadding,
                 sliver: PostTimelineSliver(

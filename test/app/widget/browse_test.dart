@@ -82,12 +82,16 @@ void main() {
           child: MaterialApp(
             home: Scaffold(
               body: SingleChildScrollView(
-                child: BrowseHeader(
-                  feed: feed,
-                  scale: PopularScale.week,
-                  picking: picking,
-                  onToggle: () {},
-                  onPick: (feed, scale) => picked.add((feed, scale)),
+                child: Column(
+                  children: [
+                    BrowseHeader(feed: feed, picking: picking, onToggle: () {}),
+                    BrowseFeedPicker(
+                      feed: feed,
+                      scale: PopularScale.week,
+                      picking: picking,
+                      onPick: (feed, scale) => picked.add((feed, scale)),
+                    ),
+                  ],
                 ),
               ),
             ),
