@@ -127,6 +127,19 @@ class AdaptiveScaffold extends StatefulWidget {
 }
 
 class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
+  NavBarCover? _cover;
+
+  void _coverBar(bool open) {
+    _cover ??= NavBarCoverScope.maybeOf(context);
+    _cover?.cover(this, open ? 1 : 0);
+  }
+
+  @override
+  void dispose() {
+    _cover?.cover(this, 0);
+    super.dispose();
+  }
+
   /// Default adaptive scaffold configuration.
   static const double _defaultDrawerWidth = 304;
 
@@ -271,10 +284,16 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
           persistentFooterButtons: widget.persistentFooterButtons,
           drawer: effectiveDrawer,
           drawerAction: drawerAction,
-          onDrawerChanged: widget.onDrawerChanged,
+          onDrawerChanged: (open) {
+            _coverBar(open);
+            widget.onDrawerChanged?.call(open);
+          },
           endDrawer: effectiveEndDrawer,
           endDrawerAction: endDrawerAction,
-          onEndDrawerChanged: widget.onEndDrawerChanged,
+          onEndDrawerChanged: (open) {
+            _coverBar(open);
+            widget.onEndDrawerChanged?.call(open);
+          },
           bottomNavigationBar: widget.bottomNavigationBar,
           bottomSheet: widget.bottomSheet,
           backgroundColor: widget.backgroundColor,

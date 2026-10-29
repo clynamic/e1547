@@ -4,18 +4,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 class NavBarCover extends ChangeNotifier {
-  final Map<Object, double> _shares = {};
+  final Map<Object, (Object, double)> _shares = {};
 
-  double get coverage => _shares.values.fold(0, math.max);
+  double get coverage {
+    final Map<Object, double> groups = {};
+    for (final (Object group, double share) in _shares.values) {
+      groups[group] = math.max(groups[group] ?? 0, share);
+    }
+    return groups.values
+        .fold<double>(0, (sum, share) => sum + share)
+        .clamp(0, 1);
+  }
 
   bool get covered => coverage > 0;
 
-  void cover(Object owner, double share) {
+  void cover(Object owner, double share, {Object? group}) {
     final double before = coverage;
     if (share <= 0) {
       _shares.remove(owner);
     } else {
-      _shares[owner] = share.clamp(0, 1);
+      _shares[owner] = (group ?? owner, share.clamp(0, 1));
     }
     if (coverage != before) _announce();
   }
@@ -130,7 +138,7 @@ mixin NavBarCovering<T extends StatefulWidget> on State<T> {
     if (route == null) return;
     final double shown = route.animation?.value ?? 1;
     final double covered = route.secondaryAnimation?.value ?? 0;
-    _cover?.cover(this, shown * (1 - covered));
+    _cover?.cover(this, shown * (1 - covered), group: route);
   }
 
   @override
@@ -171,15 +179,17 @@ class _NavBarCoveredState extends State<NavBarCovered> with NavBarCovering {
       NavBarCoveredPadding(child: widget.child);
 }
 
-class NavBarPopupObserver extends NavigatorObserver {
-  NavBarPopupObserver(this.cover);
+class NavBarOverlayObserver extends NavigatorObserver {
+  NavBarOverlayObserver(this.cover);
 
   final NavBarCover cover;
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    if (route is! PopupRoute) return;
-    if ((route.barrierColor?.a ?? 0) == 0) return;
+    final bool dimmed = route is PopupRoute && (route.barrierColor?.a ?? 0) > 0;
+    final bool overlay = route is PageRoute && !route.opaque;
+    if (!dimmed && !overlay) return;
+    route as ModalRoute;
     final Animation<double>? animation = route.animation;
     if (animation == null) return;
     void update() => cover.cover(route, animation.value);

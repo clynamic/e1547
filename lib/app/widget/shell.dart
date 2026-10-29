@@ -74,7 +74,10 @@ class _AppShellState extends State<AppShell> {
   final NavBarVisibility visibility = NavBarVisibility(
     height: navBarHeight + navBarBottomMargin,
   );
-  final NavBarCover cover = NavBarCover();
+  final Map<ShellTab, NavBarCover> covers = {};
+
+  NavBarCover coversOf(ShellTab tab) =>
+      covers.putIfAbsent(tab, NavBarCover.new);
   final Set<ShellTab> visited = {};
   final Map<ShellTab, ScrollController> scrolls = {};
   final Map<ShellTab, NavBarReselectController> reselects = {};
@@ -97,7 +100,9 @@ class _AppShellState extends State<AppShell> {
       value.dispose();
     }
     visibility.dispose();
-    cover.dispose();
+    for (final NavBarCover value in covers.values) {
+      value.dispose();
+    }
     super.dispose();
   }
 
@@ -143,6 +148,7 @@ class _AppShellState extends State<AppShell> {
     final ShellController shell = context.watch<ShellController>();
     visited.add(shell.tab);
     final NavBarDocks active = docksOf(shell.tab);
+    final NavBarCover cover = coversOf(shell.tab);
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -194,9 +200,8 @@ class _AppShellState extends State<AppShell> {
         child: NavBarScrollListener(
           controller: visibility,
           cover: cover,
-          child: NavBarCoverScope(
-            cover: cover,
-            child: NavBarVisibilityScope(
+          child: Builder(
+            builder: (context) => NavBarVisibilityScope(
               visibility: visibility,
               child: AnimatedIndexedStack(
                 index: shell.tab.index,
@@ -208,7 +213,7 @@ class _AppShellState extends State<AppShell> {
                         scroll: scrollOf(tab),
                         reselect: reselectOf(tab),
                         docks: docksOf(tab),
-                        cover: cover,
+                        cover: coversOf(tab),
                         active: tab == shell.tab,
                         builder: (context) => widget.root(context, tab),
                       )
@@ -251,7 +256,9 @@ class ShellNavigator extends StatefulWidget {
 class _ShellNavigatorState extends State<ShellNavigator> {
   final AnyRouteObserver observer = AnyRouteObserver();
   final RouteLoggerObserver logger = RouteLoggerObserver();
-  late final NavBarPopupObserver popups = NavBarPopupObserver(widget.cover);
+  late final NavBarOverlayObserver overlays = NavBarOverlayObserver(
+    widget.cover,
+  );
   final HeroController heroes = MaterialApp.createMaterialHeroController();
   late final ShellPopGate gate = ShellPopGate(active: widget.active);
 
@@ -271,21 +278,25 @@ class _ShellNavigatorState extends State<ShellNavigator> {
   @override
   Widget build(BuildContext context) => Provider<AnyRouteObserver>.value(
     value: observer,
-    child: NavBarDockScope(
-      docks: widget.docks,
-      child: HeroControllerScope(
-        controller: heroes,
-        child: Navigator(
-          key: widget.navigatorKey,
-          observers: [observer, logger, popups, gate],
-          onGenerateRoute: (settings) => MaterialPageRoute(
-            settings: settings,
-            builder: (context) => NavBarReselect(
-              controller: widget.reselect,
-              child: PrimaryScrollController(
-                controller: widget.scroll,
-                automaticallyInheritForPlatforms: TargetPlatform.values.toSet(),
-                child: widget.builder(context),
+    child: NavBarCoverScope(
+      cover: widget.cover,
+      child: NavBarDockScope(
+        docks: widget.docks,
+        child: HeroControllerScope(
+          controller: heroes,
+          child: Navigator(
+            key: widget.navigatorKey,
+            observers: [observer, logger, overlays, gate],
+            onGenerateRoute: (settings) => MaterialPageRoute(
+              settings: settings,
+              builder: (context) => NavBarReselect(
+                controller: widget.reselect,
+                child: PrimaryScrollController(
+                  controller: widget.scroll,
+                  automaticallyInheritForPlatforms: TargetPlatform.values
+                      .toSet(),
+                  child: widget.builder(context),
+                ),
               ),
             ),
           ),

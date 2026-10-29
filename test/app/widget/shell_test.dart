@@ -26,8 +26,19 @@ void main() {
           TextButton(
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => const NavBarCovered(
-                  child: Scaffold(body: Text('covering')),
+                builder: (context) => NavBarCovered(
+                  child: Scaffold(
+                    body: TextButton(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const NavBarCovered(
+                            child: Scaffold(body: Text('deeper')),
+                          ),
+                        ),
+                      ),
+                      child: const Text('covering'),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -41,10 +52,26 @@ void main() {
             ),
             child: Text('dialog ${tab.label}'),
           ),
+          TextButton(
+            onPressed: () => Navigator.of(context).push(
+              PageRouteBuilder<void>(
+                opaque: false,
+                pageBuilder: (context, animation, secondary) =>
+                    const Text('overlay'),
+              ),
+            ),
+            child: Text('overlay ${tab.label}'),
+          ),
           for (int i = 0; i < 40; i++) const SizedBox(height: 100),
         ],
       ),
     );
+    if (tab == ShellTab.library) {
+      return AdaptiveScaffold(
+        endDrawer: const Drawer(child: Text('drawer')),
+        body: page,
+      );
+    }
     if (tab != ShellTab.search) return page;
     return NavBarDock(
       builder: (context) => const Text('search dock'),
@@ -336,6 +363,63 @@ void main() {
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
 
+    expect(find.byType(NavBar), findsOneWidget);
+  });
+
+  testWidgets('moving between two covering pages keeps the bar hidden', (
+    tester,
+  ) async {
+    await pumpShell(tester);
+    await tester.tap(find.text('cover Browse'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('covering'));
+    for (int i = 0; i < 20; i++) {
+      await tester.pump(const Duration(milliseconds: 20));
+      expect(find.byType(NavBar), findsNothing);
+    }
+  });
+
+  testWidgets('a covering page in one tab leaves the bar on another', (
+    tester,
+  ) async {
+    final ShellController shell = await pumpShell(tester);
+    await tester.tap(find.text('cover Browse'));
+    await tester.pumpAndSettle();
+
+    shell.select(ShellTab.search);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NavBar), findsOneWidget);
+  });
+
+  testWidgets('a see-through route inside a tab hides the bar', (tester) async {
+    await pumpShell(tester);
+
+    await tester.tap(find.text('overlay Browse'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NavBar), findsNothing);
+  });
+
+  testWidgets('an open drawer hides the bar until it closes', (tester) async {
+    final ShellController shell = await pumpShell(tester);
+    shell.select(ShellTab.library);
+    await tester.pumpAndSettle();
+
+    tester
+        .firstState<ScaffoldState>(
+          find.descendant(
+            of: find.byType(AdaptiveScaffold),
+            matching: find.byWidgetPredicate((widget) => widget is Scaffold),
+          ),
+        )
+        .openEndDrawer();
+    await tester.pumpAndSettle();
+    expect(find.byType(NavBar), findsNothing);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
     expect(find.byType(NavBar), findsOneWidget);
   });
 
