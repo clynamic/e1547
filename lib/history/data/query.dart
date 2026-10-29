@@ -27,6 +27,21 @@ extension HistoryQuerying on HistoryClient {
             page(page: key, query: query).then(historyCache.savePage),
       );
 
+  Query<List<History>> useRecentSearches({
+    required HistoryType type,
+    int limit = 50,
+  }) => Query(
+    cache: queryCache,
+    key: [...queryKey, 'recent_searches', type.name, limit],
+    queryFn: () => page(
+      limit: limit,
+      query: HistoryParams(
+        categories: {HistoryCategory.searches},
+        types: {type},
+      ).toQuery(),
+    ),
+  );
+
   Query<int> useCount() => Query(
     cache: queryCache,
     key: [...queryKey, 'count'],
