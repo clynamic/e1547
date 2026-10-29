@@ -108,6 +108,39 @@ void main() {
   double screenHeight(WidgetTester tester) =>
       tester.view.physicalSize.height / tester.view.devicePixelRatio;
 
+  testWidgets(
+    'a short soft fade sits behind the card, with or without a dock',
+    (tester) async {
+      await pumpShell(tester);
+      final Finder fade = find.descendant(
+        of: find.byType(NavBar),
+        matching: find.byWidgetPredicate(
+          (widget) =>
+              widget is DecoratedBox &&
+              widget.decoration is BoxDecoration &&
+              (widget.decoration as BoxDecoration).gradient != null,
+        ),
+      );
+
+      void expectFade() {
+        final Rect rect = tester.getRect(fade);
+        expect(rect.height, navBarFadeHeight);
+        expect(rect.bottom, screenHeight(tester));
+        final LinearGradient gradient =
+            (tester.widget<DecoratedBox>(fade).decoration as BoxDecoration)
+                    .gradient!
+                as LinearGradient;
+        expect(gradient.colors.last.a, closeTo(0.55, 0.01));
+      }
+
+      expectFade();
+      await tester.tap(tab(ShellTab.search));
+      await tester.pumpAndSettle();
+      expect(find.text('search dock'), findsOneWidget);
+      expectFade();
+    },
+  );
+
   testWidgets('each tab keeps its own stack', (tester) async {
     await pumpShell(tester);
 

@@ -10,6 +10,7 @@ const double navBarHeight = 60;
 const double navBarMargin = 12;
 const double navBarBottomMargin = 16;
 const double navBarDockHeight = 72;
+const double navBarFadeHeight = 64;
 
 double navBarSpace({required bool docked}) =>
     navBarHeight + navBarBottomMargin + (docked ? navBarDockHeight + 1 : 0);
@@ -366,28 +367,26 @@ class NavBar extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        if (dock != null)
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            top: -80,
-            child: IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    stops: const [0, 0.75],
-                    colors: [
-                      theme.scaffoldBackgroundColor.withValues(alpha: 0),
-                      theme.scaffoldBackgroundColor,
-                    ],
-                  ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: navBarFadeHeight + MediaQuery.viewPaddingOf(context).bottom,
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    theme.scaffoldBackgroundColor.withValues(alpha: 0),
+                    theme.scaffoldBackgroundColor.withValues(alpha: 0.55),
+                  ],
                 ),
               ),
             ),
           ),
+        ),
         SafeArea(
           top: false,
           child: Padding(
