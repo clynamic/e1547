@@ -97,8 +97,8 @@ class _PostSearchSuggestionsState extends State<PostSearchSuggestions> {
                     stripe: tagCategoryOf(tag.category)?.color,
                     onTap: () => onPick('$prefix${tag.name}'),
                   ),
-                ...recent.take(3),
-                ...saved.take(3),
+                ...recent.take(2),
+                ...saved.take(2),
               ],
             );
           },
@@ -114,11 +114,10 @@ class SuggestionList extends StatelessWidget {
   final List<Widget> children;
 
   @override
-  Widget build(BuildContext context) => ListView(
-    reverse: true,
-    primary: false,
-    padding: const EdgeInsets.symmetric(vertical: 8),
-    children: children,
+  Widget build(BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: children.take(searchSheetEntries).toList().reversed.toList(),
   );
 }
 

@@ -20,7 +20,8 @@ class PostSearchDock extends StatelessWidget {
       builder: (_) => PostDock(
         params: params,
         filter: filter,
-        onOpen: () => showPostSearchSheet(context),
+        onOpen: (transition) =>
+            showPostSearchSheet(context, transition: transition),
         onHidden: () => showHiddenPostsSheet(context, filter),
       ),
       child: child,
@@ -39,20 +40,17 @@ class PostDock extends StatelessWidget {
 
   final PostParamsController params;
   final PostFilter filter;
-  final VoidCallback onOpen;
+  final Future<void> Function(AnimationController? transition) onOpen;
   final VoidCallback onHidden;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final bool left = Handedness.of(context) == Handedness.left;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onVerticalDragEnd: (details) {
-        if ((details.primaryVelocity ?? 0) < 0) onOpen();
-      },
+    return DragToOpen(
+      open: onOpen,
       child: InkWell(
-        onTap: onOpen,
+        onTap: () => onOpen(null),
         child: Column(
           children: [
             Padding(
@@ -85,7 +83,7 @@ class PostDock extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             spacing: 5,
                             children: [
-                              DockQuery(query: params.value.tags ?? ''),
+                              QueryChipRow(query: params.value.tags ?? ''),
                               if (filter.denying && filter.blockedCount > 0)
                                 GestureDetector(
                                   onTap: onHidden,
@@ -126,8 +124,8 @@ class PostDock extends StatelessWidget {
   }
 }
 
-class DockQuery extends StatelessWidget {
-  const DockQuery({super.key, required this.query});
+class QueryChipRow extends StatelessWidget {
+  const QueryChipRow({super.key, required this.query});
 
   final String query;
 

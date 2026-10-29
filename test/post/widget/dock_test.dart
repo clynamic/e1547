@@ -113,13 +113,13 @@ void main() {
     });
 
     Future<void> settle(WidgetTester tester) async {
-      for (int i = 0; i < 2; i++) {
-        await tester.runAsync(() async {
-          await tester.pump();
-          await Future<void>.delayed(const Duration(milliseconds: 100));
-        });
-        await tester.pumpAndSettle();
-      }
+      await tester.runAsync(() async {
+        for (int i = 0; i < 6; i++) {
+          await tester.pump(const Duration(milliseconds: 50));
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+        }
+      });
+      await tester.pumpAndSettle();
     }
 
     Future<List<String>> openSheet(
@@ -146,6 +146,7 @@ void main() {
                       query: 'riolu',
                       posts: posts,
                       onSubmit: submitted.add,
+                      onAllRecent: () {},
                     ),
                   ),
                   child: const Text('open'),
@@ -213,6 +214,31 @@ void main() {
       );
     });
 
+    displayTest('Recent shows the five newest and links to the rest', (
+      tester,
+    ) async {
+      await tester.runAsync(() async {
+        for (int i = 1; i <= 7; i++) {
+          await search('tag_$i', DateTime(2026, 10, i));
+        }
+      });
+      await openSheet(tester);
+
+      expect(find.text('All searches in History'), findsOneWidget);
+      expect(find.byType(SheetEntry), findsNWidgets(5));
+      expect(find.text('tag 7', findRichText: true), findsOneWidget);
+      expect(find.text('tag 2', findRichText: true), findsNothing);
+    });
+
+    displayTest('the query field spans the sheet', (tester) async {
+      await openSheet(tester);
+
+      expect(
+        tester.getSize(find.byType(QueryField)).width,
+        tester.getSize(find.byType(PostSearchSheet)).width - 24,
+      );
+    });
+
     displayTest('a tapped recent search is submitted', (tester) async {
       await tester.runAsync(() => search('lucario', DateTime(2026, 10)));
       final List<String> submitted = await openSheet(tester);
@@ -273,7 +299,6 @@ void main() {
       await settle(tester);
 
       expect(submitted, ['riolu solo -aura']);
-      await tester.pump(const Duration(seconds: 5));
     });
 
     displayTest('typing shows matching tags in place of the tabs', (

@@ -10,6 +10,7 @@ export 'date.dart';
 export 'dimmed.dart';
 export 'dismiss.dart';
 export 'divider_tile.dart';
+export 'drag_open.dart';
 export 'drawer.dart';
 export 'expandable.dart';
 export 'gallery.dart';

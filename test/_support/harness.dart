@@ -35,5 +35,5 @@ void displayTest(String description, WidgetTesterCallback body) =>
     testWidgets(description, (tester) async {
       await body(tester);
       await tester.pumpWidget(const SizedBox.shrink());
-      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 5));
     });

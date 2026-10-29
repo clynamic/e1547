@@ -49,6 +49,18 @@ void main() {
       expect(controller.selected, isNull);
     });
 
+    test('a term already in the query is not added again', () {
+      type('riolu ');
+
+      expect(controller.terms, ['riolu', '-human']);
+    });
+
+    test('a term with another prefix replaces the one in the query', () {
+      controller.commit('human');
+
+      expect(controller.terms, ['riolu', 'human']);
+    });
+
     test('a committed suggestion with spaces adds each term', () {
       controller.commit('lucario solo');
 

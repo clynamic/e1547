@@ -351,27 +351,28 @@ class NavBar extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          top: -80,
-          child: IgnorePointer(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  stops: const [0, 0.75],
-                  colors: [
-                    theme.scaffoldBackgroundColor.withValues(alpha: 0),
-                    theme.scaffoldBackgroundColor,
-                  ],
+        if (dock != null)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            top: -80,
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: const [0, 0.75],
+                    colors: [
+                      theme.scaffoldBackgroundColor.withValues(alpha: 0),
+                      theme.scaffoldBackgroundColor,
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
         SafeArea(
           top: false,
           child: Padding(

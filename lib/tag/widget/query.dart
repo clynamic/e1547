@@ -8,7 +8,7 @@ const String _anchor = '​';
 
 class QueryFieldController extends ChangeNotifier {
   QueryFieldController({String query = ''}) {
-    _terms.addAll(_split(query));
+    _add(_split(query));
     text.addListener(_onText);
   }
 
@@ -29,6 +29,20 @@ class QueryFieldController extends ChangeNotifier {
 
   static List<String> _split(String value) =>
       value.split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
+
+  void _add(Iterable<String> terms) {
+    for (final String term in terms) {
+      final String name = tagWithoutPrefix(term);
+      final int existing = _terms.indexWhere(
+        (e) => tagWithoutPrefix(e) == name,
+      );
+      if (existing == -1) {
+        _terms.add(term);
+      } else {
+        _terms[existing] = term;
+      }
+    }
+  }
 
   void _write(String value) {
     _writing = true;
@@ -51,7 +65,7 @@ class QueryFieldController extends ChangeNotifier {
     if (value.contains(RegExp(r'\s'))) {
       final List<String> parts = value.split(RegExp(r'\s+'));
       value = parts.removeLast();
-      _terms.addAll(parts.where((e) => e.isNotEmpty));
+      _add(parts.where((e) => e.isNotEmpty));
       _selected = null;
     }
     if (value.isNotEmpty) _selected = null;
@@ -60,7 +74,7 @@ class QueryFieldController extends ChangeNotifier {
   }
 
   void commit([String? term]) {
-    _terms.addAll(_split(term ?? typed));
+    _add(_split(term ?? typed));
     _selected = null;
     _write('');
     notifyListeners();
@@ -110,12 +124,14 @@ class QueryField extends StatelessWidget {
     this.previews = const {},
     this.focusNode,
     this.onSubmit,
+    this.color,
   });
 
   final QueryFieldController controller;
   final Map<String, TagPreview> previews;
   final FocusNode? focusNode;
   final VoidCallback? onSubmit;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -127,7 +143,7 @@ class QueryField extends StatelessWidget {
         return Container(
           constraints: const BoxConstraints(minHeight: 44, maxHeight: 112),
           decoration: BoxDecoration(
-            color: theme.cardColor,
+            color: color ?? theme.cardColor,
             borderRadius: BorderRadius.circular(4),
             border: Border.all(
               color: focused
@@ -138,27 +154,31 @@ class QueryField extends StatelessWidget {
           child: SingleChildScrollView(
             primary: false,
             padding: const EdgeInsets.all(6),
-            child: LayoutBuilder(
-              builder: (context, constraints) => Wrap(
-                spacing: 4,
-                runSpacing: 4,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  for (final (int index, String term)
-                      in controller.terms.indexed)
-                    QueryChip(
-                      term: term,
-                      preview: previews[tagWithoutPrefix(term)],
-                      selected: controller.selected == index,
-                      onTap: () => controller.select(index),
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: focusNode?.requestFocus,
+              child: LayoutBuilder(
+                builder: (context, constraints) => Wrap(
+                  spacing: 4,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    for (final (int index, String term)
+                        in controller.terms.indexed)
+                      QueryChip(
+                        term: term,
+                        preview: previews[tagWithoutPrefix(term)],
+                        selected: controller.selected == index,
+                        onTap: () => controller.select(index),
+                      ),
+                    QueryFieldInput(
+                      controller: controller,
+                      focusNode: focusNode,
+                      maxWidth: constraints.maxWidth,
+                      onSubmit: onSubmit,
                     ),
-                  QueryFieldInput(
-                    controller: controller,
-                    focusNode: focusNode,
-                    maxWidth: constraints.maxWidth,
-                    onSubmit: onSubmit,
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
