@@ -221,20 +221,29 @@ class QueryFieldInput extends StatelessWidget {
     return SizedBox(
       width: min(maxWidth, max(64, painter.width + 24)),
       height: 28,
-      child: TextField(
-        controller: controller.text,
-        focusNode: focusNode,
-        style: style,
-        textInputAction: TextInputAction.search,
-        autocorrect: false,
-        enableSuggestions: false,
-        onSubmitted: (_) => onSubmit?.call(),
-        decoration: InputDecoration.collapsed(
-          hintText: hint,
-          hintStyle: style.copyWith(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
+      child: Stack(
+        alignment: Alignment.centerLeft,
+        children: [
+          if (controller.typed.isEmpty && hint.isNotEmpty)
+            IgnorePointer(
+              child: Text(
+                hint,
+                style: style.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
+                ),
+              ),
+            ),
+          TextField(
+            controller: controller.text,
+            focusNode: focusNode,
+            style: style,
+            textInputAction: TextInputAction.search,
+            autocorrect: false,
+            enableSuggestions: false,
+            onSubmitted: (_) => onSubmit?.call(),
+            decoration: null,
           ),
-        ),
+        ],
       ),
     );
   }
