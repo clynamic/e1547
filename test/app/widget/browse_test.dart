@@ -6,12 +6,14 @@ import 'package:e1547/query/query.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/traits/traits.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:notified_preferences/notified_preferences.dart';
 import 'package:provider/provider.dart';
 
 import '../../_support/fake_e621.dart';
 import '../../_support/harness.dart';
+import '../../_support/images.dart';
 
 void main() {
   test('each feed searches its own query', () {
@@ -203,13 +205,19 @@ void main() {
           providers: [
             Provider<Client>.value(value: client),
             Provider<Settings>.value(value: settings),
+            Provider<BaseCacheManager>.value(
+              value: const NoImageCacheManager(),
+            ),
           ],
           child: const MaterialApp(home: BrowsePage()),
         ),
       );
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 100)),
-      );
+      await tester.runAsync(() async {
+        for (int i = 0; i < 6; i++) {
+          await tester.pump(const Duration(milliseconds: 50));
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+        }
+      });
       await tester.pumpAndSettle();
       return settings;
     }

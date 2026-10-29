@@ -72,10 +72,9 @@ class PostGridSliver extends StatelessWidget {
   Widget build(BuildContext context) {
     PagedChildBuilderDelegate<Post> buildBuilderDelegate(
       ItemWidgetBuilder<Post> itemBuilder,
-    ) => defaultPagedChildBuilderDelegate<Post>(
-      onRetry: fetchNextPage,
-      onEmpty: const Text('No posts'),
-      onError: const Text('Failed to load posts'),
+    ) => postPagedChildBuilderDelegate(
+      state: state,
+      fetchNextPage: fetchNextPage,
       itemBuilder: itemBuilder,
     );
 
@@ -130,10 +129,9 @@ class PostComicSliver extends StatelessWidget {
     return PagedSliverList(
       state: state,
       fetchNextPage: fetchNextPage,
-      builderDelegate: defaultPagedChildBuilderDelegate<Post>(
-        onRetry: fetchNextPage,
-        onEmpty: const Text('No posts'),
-        onError: const Text('Failed to load posts'),
+      builderDelegate: postPagedChildBuilderDelegate(
+        state: state,
+        fetchNextPage: fetchNextPage,
         itemBuilder: (context, item, index) => Padding(
           padding:
               LimitedWidthLayout.maybeOf(context)?.padding ?? EdgeInsets.zero,
@@ -162,10 +160,9 @@ class PostTimelineSliver extends StatelessWidget {
     return PagedSliverList(
       state: state,
       fetchNextPage: fetchNextPage,
-      builderDelegate: defaultPagedChildBuilderDelegate<Post>(
-        onRetry: fetchNextPage,
-        onEmpty: const Text('No posts'),
-        onError: const Text('Failed to load posts'),
+      builderDelegate: postPagedChildBuilderDelegate(
+        state: state,
+        fetchNextPage: fetchNextPage,
         itemBuilder: (context, item, index) => Padding(
           padding:
               LimitedWidthLayout.maybeOf(context)?.padding ?? EdgeInsets.zero,
