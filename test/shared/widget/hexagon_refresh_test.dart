@@ -9,25 +9,29 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   Future<void> pumpList(
     WidgetTester tester,
-    Future<void> Function() onRefresh,
-  ) => tester.pumpWidget(
+    Future<void> Function() onRefresh, {
+    RefreshNote? note,
+  }) => tester.pumpWidget(
     MaterialApp(
-      home: Scaffold(
-        body: CustomScrollView(
-          physics: refreshPhysics,
-          slivers: [
-            SliverHexagonRefresh(
-              onRefresh: onRefresh,
-              headerExtent: 72,
-              header: const Text('header'),
-            ),
-            SliverList.list(
-              children: [
-                const SizedBox(key: ValueKey('first'), height: 100),
-                for (int i = 0; i < 19; i++) const SizedBox(height: 100),
-              ],
-            ),
-          ],
+      home: ListenableProvider<RefreshNote?>.value(
+        value: note,
+        child: Scaffold(
+          body: CustomScrollView(
+            physics: refreshPhysics,
+            slivers: [
+              SliverHexagonRefresh(
+                onRefresh: onRefresh,
+                headerExtent: 72,
+                header: const Text('header'),
+              ),
+              SliverList.list(
+                children: [
+                  const SizedBox(key: ValueKey('first'), height: 100),
+                  for (int i = 0; i < 19; i++) const SizedBox(height: 100),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     ),
@@ -65,6 +69,56 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(HexagonRefreshIndicator), findsNothing);
+  });
+
+  testWidgets('a note left by the refresh shows where the pull opened', (
+    tester,
+  ) async {
+    final RefreshNote note = RefreshNote();
+    addTearDown(note.dispose);
+    await pumpList(tester, () async {
+      note.value = (context, refresh) => const Text('nothing new');
+    }, note: note);
+
+    await tester.drag(find.text('header'), const Offset(0, 500));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.text('nothing new'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('nothing new')).dy,
+      greaterThanOrEqualTo(tester.getBottomLeft(find.text('header')).dy),
+    );
+
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(find.text('nothing new'), findsOneWidget);
+
+    await tester.pump(refreshNoteDuration);
+    await tester.pumpAndSettle();
+
+    expect(find.text('nothing new'), findsNothing);
+    expect(find.byType(HexagonRefreshIndicator), findsNothing);
+  });
+
+  testWidgets('a touch closes the note left by the refresh', (tester) async {
+    final RefreshNote note = RefreshNote();
+    addTearDown(note.dispose);
+    await pumpList(tester, () async {
+      note.value = (context, refresh) => const Text('nothing new');
+    }, note: note);
+    await tester.drag(find.text('header'), const Offset(0, 500));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('nothing new'), findsOneWidget);
+
+    final TestGesture gesture = await tester.startGesture(
+      tester.getCenter(find.text('header')),
+    );
+    await tester.pump();
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    expect(find.text('nothing new'), findsNothing);
   });
 
   testWidgets('a pull past the line refreshes once it is let go', (

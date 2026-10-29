@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
 
@@ -14,6 +15,15 @@ const ScrollPhysics refreshPhysics = AlwaysScrollableScrollPhysics(
 );
 
 typedef SliverTop = List<Widget> Function(Future<void> Function()? onRefresh);
+
+typedef RefreshNoteBuilder =
+    Widget Function(BuildContext context, VoidCallback refresh);
+
+class RefreshNote extends ValueNotifier<RefreshNoteBuilder?> {
+  RefreshNote() : super(null);
+}
+
+const Duration refreshNoteDuration = Duration(milliseconds: 1500);
 
 const double hexagonRefreshTrigger = 64;
 const double hexagonRefreshExtent = 64;
@@ -44,6 +54,8 @@ class _SliverHexagonRefreshState extends State<SliverHexagonRefresh>
   bool refreshing = false;
   bool armed = false;
   int pointers = 0;
+  RefreshNoteBuilder? note;
+  Timer? noteTimer;
   ScrollPosition? position;
 
   @override
@@ -65,6 +77,7 @@ class _SliverHexagonRefreshState extends State<SliverHexagonRefresh>
   void dispose() {
     GestureBinding.instance.pointerRouter.removeGlobalRoute(_onPointer);
     position?.removeListener(_onScroll);
+    noteTimer?.cancel();
     hold.dispose();
     super.dispose();
   }
@@ -72,6 +85,7 @@ class _SliverHexagonRefreshState extends State<SliverHexagonRefresh>
   void _onPointer(PointerEvent event) {
     if (event is PointerDownEvent) {
       pointers++;
+      if (note != null) _closeNote();
     } else if (event is PointerUpEvent || event is PointerCancelEvent) {
       pointers = max(0, pointers - 1);
       if (pointers == 0 && armed) {
@@ -79,6 +93,13 @@ class _SliverHexagonRefreshState extends State<SliverHexagonRefresh>
         WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
       }
     }
+  }
+
+  void _closeNote() {
+    noteTimer?.cancel();
+    if (!mounted || note == null) return;
+    setState(() => note = null);
+    hold.reverse();
   }
 
   void _onScroll() {
@@ -89,14 +110,28 @@ class _SliverHexagonRefreshState extends State<SliverHexagonRefresh>
 
   Future<void> _refresh() async {
     if (refreshing || !mounted) return;
-    setState(() => refreshing = true);
+    final RefreshNote? notes = context.read<RefreshNote?>();
+    notes?.value = null;
+    noteTimer?.cancel();
+    setState(() {
+      refreshing = true;
+      note = null;
+    });
     hold.forward();
     try {
       await widget.onRefresh();
     } finally {
       if (mounted) {
-        setState(() => refreshing = false);
-        hold.reverse();
+        final RefreshNoteBuilder? next = notes?.value;
+        setState(() {
+          refreshing = false;
+          note = next;
+        });
+        if (next == null) {
+          hold.reverse();
+        } else {
+          noteTimer = Timer(refreshNoteDuration, _closeNote);
+        }
       }
     }
   }
@@ -110,6 +145,10 @@ class _SliverHexagonRefreshState extends State<SliverHexagonRefresh>
         held: Curves.easeOutCubic.transform(hold.value) * hexagonRefreshExtent,
         header: widget.header,
         refreshing: refreshing,
+        note: switch (note) {
+          final RefreshNoteBuilder note => note(context, _refresh),
+          null => null,
+        },
       ),
     ),
   );
@@ -121,12 +160,14 @@ class _HexagonHeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.held,
     required this.header,
     required this.refreshing,
+    required this.note,
   });
 
   final double extent;
   final double held;
   final Widget? header;
   final bool refreshing;
+  final Widget? note;
 
   @override
   double get minExtent => extent + held;
@@ -153,7 +194,15 @@ class _HexagonHeaderDelegate extends SliverPersistentHeaderDelegate {
       return Stack(
         clipBehavior: Clip.none,
         children: [
-          if (space > 0)
+          if (note != null && space > 0)
+            Positioned(
+              left: 0,
+              right: 0,
+              top: extent,
+              height: space,
+              child: ClipRect(child: Center(child: note)),
+            )
+          else if (space > 0)
             Positioned(
               left: 0,
               right: 0,

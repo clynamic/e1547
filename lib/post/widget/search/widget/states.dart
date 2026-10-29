@@ -237,13 +237,8 @@ String hostWords(BuildContext context) =>
 
 bool isConnectionError(Object? error) =>
     error is DioException &&
-    switch (error.type) {
-      DioExceptionType.connectionError ||
-      DioExceptionType.connectionTimeout ||
-      DioExceptionType.sendTimeout ||
-      DioExceptionType.receiveTimeout => true,
-      _ => false,
-    };
+    error.response == null &&
+    error.type != DioExceptionType.cancel;
 
 class PostResultsFailure extends StatelessWidget {
   const PostResultsFailure({super.key, required this.error, this.onRetry});
@@ -395,6 +390,51 @@ class HiddenSoFar extends StatelessWidget {
           '${filter.blockedCount} hidden so far',
           style: TextStyle(fontSize: 13, color: dim),
         ),
+      ],
+    );
+  }
+}
+
+class RefreshUnchangedNote extends StatelessWidget {
+  const RefreshUnchangedNote({super.key});
+
+  @override
+  Widget build(BuildContext context) => Text(
+    'Up to date',
+    style: TextStyle(
+      fontSize: 14,
+      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+    ),
+  );
+}
+
+class RefreshFailedNote extends StatelessWidget {
+  const RefreshFailedNote({super.key, required this.error, this.onRetry});
+
+  final Object? error;
+  final VoidCallback? onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final String host = hostWords(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      spacing: 12,
+      children: [
+        Flexible(
+          child: Text(
+            isConnectionError(error)
+                ? '$host did not answer.'
+                : '$host answered with an error.',
+            style: TextStyle(
+              fontSize: 14,
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
+          ),
+        ),
+        if (onRetry case final onRetry?) RetryButton(onPressed: onRetry),
       ],
     );
   }

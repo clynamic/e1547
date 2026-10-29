@@ -105,39 +105,7 @@ class BrowsePosts extends StatelessWidget {
           initial: PostParams(tags: tags),
           canSearch: false,
         ),
-        child: PostPageHistoryConnector(
-          child: PostPageQueryBuilder(
-            builder: (context, state, query) => LimitedWidthLayout(
-              child: ListenableBuilder(
-                listenable: context.watch<Settings>().tileSize,
-                builder: (context, child) => TileLayout(
-                  tileSize: context.watch<Settings>().tileSize.value,
-                  child: RefreshShortcuts(
-                    onRefresh: query.invalidate,
-                    child: CustomScrollView(
-                      primary: true,
-                      physics: refreshPhysics,
-                      slivers: [
-                        ...top(query.invalidate),
-                        SliverDim(
-                          dimmed: dimmed,
-                          sliver: SliverPadding(
-                            padding: defaultListPadding.copyWith(
-                              bottom:
-                                  MediaQuery.paddingOf(context).bottom +
-                                  defaultListPadding.bottom,
-                            ),
-                            sliver: const SliverPostList(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
+        child: PostResults(top: top, dimmed: dimmed),
       ),
     );
   }

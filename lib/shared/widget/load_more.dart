@@ -53,25 +53,7 @@ class LoadMoreFooter extends StatelessWidget {
                 if (label case final label?)
                   Text(label, style: TextStyle(fontSize: 14, color: dim)),
                 if (onRetry case final onRetry?)
-                  OutlinedButton(
-                    onPressed: onRetry,
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(0, 36),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      foregroundColor: theme.colorScheme.onSurface.withValues(
-                        alpha: 0.9,
-                      ),
-                      side: BorderSide(
-                        color: theme.colorScheme.onSurface.withValues(
-                          alpha: 0.3,
-                        ),
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    child: const Text('Retry'),
-                  ),
+                  RetryButton(onPressed: onRetry),
               ],
             ),
           ?note,
@@ -121,4 +103,28 @@ class LoadMorePainter extends CustomPainter {
       oldDelegate.state != state ||
       oldDelegate.ink != ink ||
       oldDelegate.error != error;
+}
+
+class RetryButton extends StatelessWidget {
+  const RetryButton({super.key, required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return OutlinedButton(
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size(0, 36),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        foregroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.9),
+        side: BorderSide(
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+      ),
+      child: const Text('Retry'),
+    );
+  }
 }

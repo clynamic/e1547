@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:notified_preferences/notified_preferences.dart';
+import 'package:relative_time/relative_time.dart';
 
 import '../../_support/fake_e621.dart';
 import '../../_support/harness.dart';
@@ -100,6 +101,11 @@ void main() {
           ),
         ],
         child: MaterialApp(
+          localizationsDelegates: const [
+            DefaultMaterialLocalizations.delegate,
+            DefaultWidgetsLocalizations.delegate,
+            RelativeTimeLocalizations.delegate,
+          ],
           home: FilterControllerProvider<PostFilter, Post>.value(
             value: postFilter,
             child: ChangeNotifierProvider.value(
@@ -274,6 +280,7 @@ void main() {
         error: DioException(
           requestOptions: RequestOptions(),
           type: DioExceptionType.badResponse,
+          response: Response(requestOptions: RequestOptions(), statusCode: 503),
         ),
       ),
     );
@@ -362,5 +369,55 @@ void main() {
     final LoadMoreFooter footer = tester.widget(find.byType(LoadMoreFooter));
     expect(footer.state, LoadMoreState.end);
     expect(find.text('No more posts'), findsOneWidget);
+  });
+
+  Future<void> pull(WidgetTester tester) async {
+    await tester.drag(
+      find.byType(CustomScrollView).first,
+      const Offset(0, 500),
+    );
+    await tester.pump();
+    await tester.runAsync(() async {
+      for (int i = 0; i < 6; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+      }
+    });
+    await tester.pump(const Duration(milliseconds: 300));
+  }
+
+  displayTest('a refresh that brings nothing new says so', (tester) async {
+    await show(tester, const PostSearchPage(tags: ''));
+    expect(find.byType(PostTile), findsWidgets);
+
+    await pull(tester);
+
+    expect(find.text('Up to date'), findsOneWidget);
+    await tester.pump(refreshNoteDuration);
+    await tester.pumpAndSettle();
+    expect(find.text('Up to date'), findsNothing);
+  });
+
+  displayTest('a refresh that fails keeps the page and offers a retry', (
+    tester,
+  ) async {
+    await show(tester, const PostSearchPage(tags: ''));
+    final int shown = find.byType(PostTile).evaluate().length;
+    final String host = Uri.parse(fake.url).host;
+    await tester.runAsync(fake.stop);
+
+    await pull(tester);
+
+    expect(find.text('$host did not answer.'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(RefreshFailedNote),
+        matching: find.text('Retry'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.byType(PostTile).evaluate().length, shown);
+    await tester.pump(refreshNoteDuration);
+    await tester.pumpAndSettle();
   });
 }
