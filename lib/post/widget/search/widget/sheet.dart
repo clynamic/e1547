@@ -67,29 +67,26 @@ class PostSearchSheet extends StatefulWidget {
 }
 
 class _PostSearchSheetState extends State<PostSearchSheet> {
-  late final TextEditingController controller = TextEditingController(
-    text: widget.query.isEmpty ? '' : '${widget.query} ',
+  late final QueryFieldController controller = QueryFieldController(
+    query: widget.query,
   );
+  final FocusNode focus = FocusNode();
+  final Map<String, TagPreview> previews = {};
   PostSearchSheetTab tab = PostSearchSheetTab.recent;
 
   @override
   void dispose() {
     controller.dispose();
+    focus.dispose();
     super.dispose();
   }
 
   void submit([String? query]) {
-    widget.onSubmit(query ?? controller.text);
+    widget.onSubmit(query ?? controller.query);
     Navigator.of(context).pop();
   }
 
-  void append(String tag) {
-    final String text = '${controller.text.trimRight()} $tag '.trimLeft();
-    controller.value = TextEditingValue(
-      text: text,
-      selection: TextSelection.collapsed(offset: text.length),
-    );
-  }
+  void append(String tag) => controller.commit(tag);
 
   @override
   Widget build(BuildContext context) {
@@ -101,12 +98,6 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
         media.size.height -
         media.viewInsets.bottom -
         (typing ? searchSheetTypingTop : searchSheetRestingTop);
-    final OutlineInputBorder border = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(4),
-      borderSide: BorderSide(
-        color: theme.colorScheme.onSurface.withValues(alpha: 0.12),
-      ),
-    );
     return Padding(
       padding: EdgeInsets.only(bottom: media.viewInsets.bottom),
       child: SizedBox(
@@ -127,41 +118,57 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
                 ),
               ),
               Expanded(
-                child: switch (tab) {
-                  PostSearchSheetTab.recent => RecentPostSearches(
-                    onPick: submit,
-                  ),
-                  PostSearchSheetTab.saved => SavedPostSearches(onPick: submit),
-                  PostSearchSheetTab.results => ResultTags(
-                    posts: widget.posts,
-                    onAdd: append,
-                    onExclude: (tag) => append('-$tag'),
-                  ),
-                },
+                child: ListenableBuilder(
+                  listenable: controller,
+                  builder: (context, child) => controller.typed.isNotEmpty
+                      ? PostSearchSuggestions(
+                          typed: controller.typed,
+                          onPick: append,
+                        )
+                      : switch (tab) {
+                          PostSearchSheetTab.recent => RecentPostSearches(
+                            onPick: submit,
+                          ),
+                          PostSearchSheetTab.saved => SavedPostSearches(
+                            onPick: submit,
+                          ),
+                          PostSearchSheetTab.results => ResultTags(
+                            posts: widget.posts,
+                            onAdd: append,
+                            onExclude: (tag) => append('-$tag'),
+                          ),
+                        },
+                ),
               ),
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  border: Border(
-                    top: BorderSide(
-                      color: theme.colorScheme.onSurface.withValues(
-                        alpha: 0.12,
+              ListenableBuilder(
+                listenable: controller,
+                builder: (context, child) => controller.typed.isNotEmpty
+                    ? const SizedBox.shrink()
+                    : child!,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      top: BorderSide(
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.12,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                child: Row(
-                  children: [
-                    for (final PostSearchSheetTab value
-                        in PostSearchSheetTab.values)
-                      Expanded(
-                        child: SearchSheetTab(
-                          label: value.label,
-                          selected: value == tab,
-                          onTap: () => setState(() => tab = value),
+                  child: Row(
+                    children: [
+                      for (final PostSearchSheetTab value
+                          in PostSearchSheetTab.values)
+                        Expanded(
+                          child: SearchSheetTab(
+                            label: value.label,
+                            selected: value == tab,
+                            onTap: () => setState(() => tab = value),
+                          ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               Padding(
@@ -226,25 +233,31 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
                         ),
                       ],
                     ),
-                    TagInput(
-                      controller: controller,
-                      autofocus: false,
-                      direction: VerticalDirection.up,
-                      textInputAction: TextInputAction.search,
-                      submit: (_) => submit(),
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: theme.cardColor,
-                        border: border,
-                        enabledBorder: border,
-                        focusedBorder: border.copyWith(
-                          borderSide: BorderSide(
-                            color: theme.colorScheme.primary.withValues(
-                              alpha: 0.6,
-                            ),
+                    ListenableBuilder(
+                      listenable: controller,
+                      builder: (context, child) {
+                        final List<String> names = controller.terms
+                            .map(tagWithoutPrefix)
+                            .where((e) => !e.contains(':'))
+                            .toList();
+                        return QueryBuilder(
+                          query: context.watch<Client>().tags.usePreview(
+                            names: names,
                           ),
-                        ),
-                      ),
+                          builder: (context, state) {
+                            for (final TagPreview preview
+                                in state.data ?? const <TagPreview>[]) {
+                              previews[preview.name] = preview;
+                            }
+                            return QueryField(
+                              controller: controller,
+                              focusNode: focus,
+                              onSubmit: submit,
+                              previews: previews,
+                            );
+                          },
+                        );
+                      },
                     ),
                   ],
                 ),

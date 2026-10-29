@@ -7,5 +7,6 @@ export 'map.dart';
 export 'node.dart';
 export 'parser.dart';
 export 'preview.dart';
+export 'query.dart';
 export 'regex.dart';
 export 'tag.dart';

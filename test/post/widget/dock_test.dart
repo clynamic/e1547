@@ -6,6 +6,7 @@ import 'package:e1547/history/history.dart';
 import 'package:e1547/identity/identity.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
+import 'package:e1547/tag/tag.dart';
 import 'package:e1547/traits/traits.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -153,9 +154,6 @@ void main() {
       ),
     );
 
-    String field(WidgetTester tester) =>
-        tester.widget<TextField>(find.byType(TextField)).controller!.text;
-
     displayTest('the search mark submits the query and closes the sheet', (
       tester,
     ) async {
@@ -164,7 +162,7 @@ void main() {
       await tester.tap(find.byIcon(Icons.search));
       await settle(tester);
 
-      expect(submitted, ['riolu ']);
+      expect(submitted, ['riolu']);
       expect(find.byType(PostSearchSheet), findsNothing);
     });
 
@@ -173,7 +171,7 @@ void main() {
     ) async {
       final List<String> submitted = await openSheet(tester);
 
-      await tester.enterText(find.byType(TextField), 'riolu solo');
+      await tester.enterText(find.byType(TextField), 'solo');
       await tester.testTextInput.receiveAction(TextInputAction.search);
       await settle(tester);
 
@@ -233,7 +231,7 @@ void main() {
     displayTest('In results adds a tapped tag and excludes a held one', (
       tester,
     ) async {
-      await openSheet(
+      final List<String> submitted = await openSheet(
         tester,
         posts: [
           samplePost(
@@ -253,10 +251,66 @@ void main() {
       await tester.tap(find.text('In results'));
       await settle(tester);
       await tester.tap(find.text('solo'));
+      await settle(tester);
       await tester.longPress(find.text('aura'));
-      await tester.pump();
+      await settle(tester);
+      await tester.tap(find.byIcon(Icons.search));
+      await settle(tester);
 
-      expect(field(tester), 'riolu solo -aura ');
+      expect(submitted, ['riolu solo -aura']);
+    });
+
+    displayTest('typing shows matching tags in place of the tabs', (
+      tester,
+    ) async {
+      await openSheet(tester);
+
+      await tester.enterText(find.byType(TextField), 'tag_3');
+      await settle(tester);
+
+      expect(find.text('tag 37', findRichText: true), findsOneWidget);
+      expect(find.text('Recent'), findsNothing);
+    });
+
+    displayTest('a suggestion keeps the exclusion being typed', (tester) async {
+      final List<String> submitted = await openSheet(tester);
+
+      await tester.enterText(find.byType(TextField), '-tag_3');
+      await settle(tester);
+      await tester.tap(find.text('-tag 37', findRichText: true));
+      await settle(tester);
+      await tester.tap(find.byIcon(Icons.search));
+      await settle(tester);
+
+      expect(submitted, ['riolu -tag_37']);
+    });
+
+    displayTest('rating offers its values in words', (tester) async {
+      await openSheet(tester);
+
+      await tester.enterText(find.byType(TextField), 'rating:');
+      await settle(tester);
+
+      expect(find.text('Safe'), findsOneWidget);
+      expect(find.text('Questionable'), findsOneWidget);
+      expect(find.text('Explicit'), findsOneWidget);
+    });
+
+    displayTest('a chip takes the colour of its tag category', (tester) async {
+      await openSheet(tester);
+      await tester.tap(find.text('In results'));
+      await settle(tester);
+
+      await tester.enterText(find.byType(TextField), 'tag_37 ');
+      await settle(tester);
+
+      final Container stripe = tester.widget<Container>(
+        find.descendant(
+          of: find.widgetWithText(QueryChip, 'tag 37'),
+          matching: find.byType(Container),
+        ),
+      );
+      expect(stripe.color, TagCategory.species.color);
     });
   });
 }

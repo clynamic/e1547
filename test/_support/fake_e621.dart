@@ -63,6 +63,8 @@ class FakeE621 {
       (Request request, String id) => _json(_find(state.pools, id)),
     )
     ..get('/tags.json', (Request request) => _list(state.tags, request))
+    ..get('/tags/autocomplete.json', _autocompleteTags)
+    ..post('/tags/preview.json', _previewTags)
     ..get(
       '/tag_aliases.json',
       (Request request) => _list(state.tagAliases, request),
@@ -74,6 +76,29 @@ class FakeE621 {
     ..get('/post_flags.json', _listFlags)
     ..post('/post_flags.json', _createFlag)
     ..post('/tickets', _createTicket);
+
+  Response _autocompleteTags(Request request) {
+    final search = request.url.queryParameters['search[name_matches]'] ?? '';
+    return _json(
+      state.tags
+          .where((e) => (e['name']! as String).startsWith(search))
+          .take(10)
+          .toList(),
+    );
+  }
+
+  Response _previewTags(Request request) {
+    final names = (_params(request)['tags'] ?? '')
+        .split(' ')
+        .where((e) => e.isNotEmpty);
+    return _json([
+      for (final name in names)
+        state.tags.firstWhere(
+          (e) => e['name'] == name,
+          orElse: () => {'name': name, 'post_count': 0},
+        ),
+    ]);
+  }
 
   Response _list(List<Map<String, Object?>> items, Request request) =>
       _json(_paginate(items, request.url.queryParameters));
