@@ -102,7 +102,7 @@ void main() {
         matching: find.byType(Container),
       ),
     );
-    expect(stripe.color, TagCategory.species.color);
+    expect(stripe.color, TagCategory.species.colorFor(Brightness.light));
   });
 
   testWidgets('typed text sits level with the chips', (tester) async {

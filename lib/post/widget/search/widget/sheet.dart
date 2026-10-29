@@ -802,7 +802,9 @@ class ResultTag extends StatelessWidget {
             children: [
               Container(
                 width: 3,
-                color: TagCategory.byName(tag.category)?.color,
+                color: TagCategory.byName(
+                  tag.category,
+                )?.colorFor(Theme.of(context).brightness),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(7, 0, 6, 0),

@@ -101,7 +101,7 @@ class TagInput extends StatelessWidget {
               Container(
                 color: TagCategory.values
                     .firstWhereOrNull((e) => e.id == value.category)
-                    ?.color,
+                    ?.colorFor(Theme.of(context).brightness),
                 height: 54,
                 width: 5,
               ),

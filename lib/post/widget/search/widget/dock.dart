@@ -263,7 +263,9 @@ class QueryToken extends StatelessWidget {
           decoration: BoxDecoration(
             color: name.contains(':')
                 ? Colors.grey
-                : tagCategoryOf(preview?.category)?.color ??
+                : tagCategoryOf(
+                        preview?.category,
+                      )?.colorFor(theme.brightness) ??
                       theme.colorScheme.onSurface.withValues(alpha: 0.38),
             borderRadius: BorderRadius.circular(1),
           ),

@@ -463,7 +463,7 @@ void main() {
           matching: find.byType(Container),
         ),
       );
-      expect(stripe.color, TagCategory.species.color);
+      expect(stripe.color, TagCategory.species.colorFor(Brightness.light));
     });
 
     displayTest('recent searches read their tags as text with a mark', (
@@ -487,7 +487,7 @@ void main() {
         return (box.decoration! as BoxDecoration).color;
       }
 
-      expect(mark('riolu'), TagCategory.species.color);
+      expect(mark('riolu'), TagCategory.species.colorFor(Brightness.light));
       expect(mark('rating:s'), Colors.grey);
     });
 
