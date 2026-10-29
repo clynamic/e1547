@@ -170,3 +170,38 @@ class _NavBarCoveredState extends State<NavBarCovered> with NavBarCovering {
   Widget build(BuildContext context) =>
       NavBarCoveredPadding(child: widget.child);
 }
+
+class NavBarPopupObserver extends NavigatorObserver {
+  NavBarPopupObserver(this.cover);
+
+  final NavBarCover cover;
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    if (route is! PopupRoute) return;
+    if ((route.barrierColor?.a ?? 0) == 0) return;
+    final Animation<double>? animation = route.animation;
+    if (animation == null) return;
+    void update() => cover.cover(route, animation.value);
+    void settle(AnimationStatus status) {
+      if (!status.isDismissed) return;
+      animation.removeListener(update);
+      animation.removeStatusListener(settle);
+      cover.cover(route, 0);
+    }
+
+    animation
+      ..addListener(update)
+      ..addStatusListener(settle);
+    update();
+  }
+
+  @override
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) =>
+      cover.cover(route, 0);
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    if (oldRoute != null) cover.cover(oldRoute, 0);
+  }
+}

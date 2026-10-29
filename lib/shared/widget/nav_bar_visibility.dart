@@ -98,7 +98,7 @@ class NavBarSlide extends StatelessWidget {
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: controller,
     builder: (context, child) => AnimatedSlide(
-      offset: Offset(0, controller.hidden),
+      offset: Offset(0, controller.hidden * 1.4),
       duration: controller.settling ? navBarSettleDuration : Duration.zero,
       curve: Curves.easeOutCubic,
       child: IgnorePointer(ignoring: controller.hidden >= 1, child: child),

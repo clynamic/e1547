@@ -208,6 +208,7 @@ class _AppShellState extends State<AppShell> {
                         scroll: scrollOf(tab),
                         reselect: reselectOf(tab),
                         docks: docksOf(tab),
+                        cover: cover,
                         active: tab == shell.tab,
                         builder: (context) => widget.root(context, tab),
                       )
@@ -230,6 +231,7 @@ class ShellNavigator extends StatefulWidget {
     required this.scroll,
     required this.reselect,
     required this.docks,
+    required this.cover,
     required this.active,
     required this.builder,
   });
@@ -238,6 +240,7 @@ class ShellNavigator extends StatefulWidget {
   final ScrollController scroll;
   final NavBarReselectController reselect;
   final NavBarDocks docks;
+  final NavBarCover cover;
   final bool active;
   final WidgetBuilder builder;
 
@@ -248,6 +251,7 @@ class ShellNavigator extends StatefulWidget {
 class _ShellNavigatorState extends State<ShellNavigator> {
   final AnyRouteObserver observer = AnyRouteObserver();
   final RouteLoggerObserver logger = RouteLoggerObserver();
+  late final NavBarPopupObserver popups = NavBarPopupObserver(widget.cover);
   final HeroController heroes = MaterialApp.createMaterialHeroController();
   late final ShellPopGate gate = ShellPopGate(active: widget.active);
 
@@ -273,7 +277,7 @@ class _ShellNavigatorState extends State<ShellNavigator> {
         controller: heroes,
         child: Navigator(
           key: widget.navigatorKey,
-          observers: [observer, logger, gate],
+          observers: [observer, logger, popups, gate],
           onGenerateRoute: (settings) => MaterialPageRoute(
             settings: settings,
             builder: (context) => NavBarReselect(

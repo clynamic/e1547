@@ -33,6 +33,14 @@ void main() {
             ),
             child: Text('cover ${tab.label}'),
           ),
+          TextButton(
+            onPressed: () => showDialog<void>(
+              context: context,
+              useRootNavigator: false,
+              builder: (context) => const AlertDialog(content: Text('dialog')),
+            ),
+            child: Text('dialog ${tab.label}'),
+          ),
           for (int i = 0; i < 40; i++) const SizedBox(height: 100),
         ],
       ),
@@ -313,6 +321,31 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(docked - paddings[ShellTab.browse]!.bottom, navBarDockHeight + 1);
+  });
+
+  testWidgets('a dialog inside a tab hides the bar until it closes', (
+    tester,
+  ) async {
+    await pumpShell(tester);
+
+    await tester.tap(find.text('dialog Browse'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NavBar), findsNothing);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NavBar), findsOneWidget);
+  });
+
+  testWidgets('a hidden bar takes its shadow below the screen', (tester) async {
+    await pumpShell(tester);
+
+    await tester.drag(find.byType(ListView), const Offset(0, -400));
+    await tester.pumpAndSettle();
+
+    expect(barTop(tester), greaterThanOrEqualTo(screenHeight(tester) + 24));
   });
 
   testWidgets('a covering page hides the bar until it closes', (tester) async {
