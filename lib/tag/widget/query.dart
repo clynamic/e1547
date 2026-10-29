@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:e1547/tag/tag.dart';
+import 'package:e1547/wiki/wiki.dart';
 import 'package:flutter/material.dart';
 
 const String _anchor = '​';
@@ -241,7 +242,8 @@ class QueryChip extends StatelessWidget {
         : '';
     final String name = term.substring(prefix.length);
     final bool meta = name.contains(':');
-    final Color stripe = meta
+    final bool unknown = !meta && preview?.postCount == 0;
+    final Color stripe = meta || unknown
         ? Colors.grey
         : tagCategoryOf(preview?.category)?.color ??
               theme.colorScheme.onSurface.withValues(alpha: 0.38);
@@ -278,13 +280,129 @@ class QueryChip extends StatelessWidget {
                                 : Colors.red.shade300,
                           ),
                         ),
-                      TextSpan(text: name.replaceAll('_', ' ')),
+                      TextSpan(
+                        text: name.replaceAll('_', ' '),
+                        style: unknown
+                            ? TextStyle(
+                                decoration: TextDecoration.underline,
+                                decorationStyle: TextDecorationStyle.wavy,
+                                decorationColor: theme.colorScheme.error,
+                              )
+                            : null,
+                      ),
                     ],
                   ),
                   maxLines: 1,
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class QueryChipActions extends StatelessWidget {
+  const QueryChipActions({
+    super.key,
+    required this.term,
+    required this.onChange,
+    required this.onRemove,
+  });
+
+  final String term;
+  final ValueChanged<String> onChange;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final String name = tagWithoutPrefix(term);
+    final bool excluded = term.startsWith('-');
+    final bool any = term.startsWith('~');
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          spacing: 6,
+          children: [
+            QueryChipAction(
+              label: excluded ? 'Include' : 'Exclude',
+              icon: excluded
+                  ? Icons.add_circle_outline
+                  : Icons.remove_circle_outline,
+              color: excluded ? Colors.green.shade300 : Colors.red.shade300,
+              onTap: () => onChange(excluded ? name : '-$name'),
+            ),
+            QueryChipAction(
+              label: 'Any of',
+              icon: any ? Icons.check : Icons.alt_route,
+              color: Colors.orange.shade300,
+              active: any,
+              onTap: () => onChange(any ? name : '~$name'),
+            ),
+            if (!name.contains(':'))
+              QueryChipAction(
+                label: 'Wiki',
+                icon: Icons.menu_book,
+                color: theme.colorScheme.onSurface,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => WikiLoadingPage.title(name),
+                  ),
+                ),
+              ),
+            QueryChipAction(
+              label: 'Remove',
+              icon: Icons.close,
+              color: theme.colorScheme.error,
+              onTap: onRemove,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class QueryChipAction extends StatelessWidget {
+  const QueryChipAction({
+    super.key,
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+    this.active = false,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return Expanded(
+      child: Material(
+        color: active ? color.withValues(alpha: 0.16) : theme.cardColor,
+        borderRadius: BorderRadius.circular(4),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(4),
+          child: SizedBox(
+            height: 56,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              spacing: 2,
+              children: [
+                Icon(icon, color: color, size: 20),
+                Text(label, style: TextStyle(fontSize: 13, color: color)),
+              ],
+            ),
           ),
         ),
       ),

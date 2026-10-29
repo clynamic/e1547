@@ -63,6 +63,19 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       sqlite = AppDatabase(NativeDatabase.memory());
       fake = await FakeE621.start();
+      fake.state.tags.addAll([
+        for (final (int index, String name) in [
+          'riolu',
+          'solo',
+          'aura',
+        ].indexed)
+          {
+            'id': index + 1,
+            'name': name,
+            'category': TagCategory.species.id,
+            'post_count': 9800,
+          },
+      ]);
       traits = ValueNotifier(
         const Traits(
           id: 1,
@@ -100,11 +113,13 @@ void main() {
     });
 
     Future<void> settle(WidgetTester tester) async {
-      await tester.runAsync(() async {
-        await tester.pump();
-        await Future<void>.delayed(const Duration(milliseconds: 100));
-      });
-      await tester.pumpAndSettle();
+      for (int i = 0; i < 2; i++) {
+        await tester.runAsync(() async {
+          await tester.pump();
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+        });
+        await tester.pumpAndSettle();
+      }
     }
 
     Future<List<String>> openSheet(
@@ -258,6 +273,7 @@ void main() {
       await settle(tester);
 
       expect(submitted, ['riolu solo -aura']);
+      await tester.pump(const Duration(seconds: 5));
     });
 
     displayTest('typing shows matching tags in place of the tabs', (
@@ -294,6 +310,58 @@ void main() {
       expect(find.text('Safe'), findsOneWidget);
       expect(find.text('Questionable'), findsOneWidget);
       expect(find.text('Explicit'), findsOneWidget);
+    });
+
+    displayTest('a tapped chip offers Exclude and turns into Include', (
+      tester,
+    ) async {
+      final List<String> submitted = await openSheet(tester);
+
+      await tester.tap(find.widgetWithText(QueryChip, 'riolu'));
+      await settle(tester);
+      await tester.tap(find.text('Exclude'));
+      await settle(tester);
+
+      expect(find.text('Include'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.search));
+      await settle(tester);
+
+      expect(submitted, ['-riolu']);
+    });
+
+    displayTest('Remove takes the chip out of the query', (tester) async {
+      final List<String> submitted = await openSheet(tester);
+
+      await tester.tap(find.widgetWithText(QueryChip, 'riolu'));
+      await settle(tester);
+      await tester.tap(find.text('Remove'));
+      await settle(tester);
+      await tester.tap(find.byIcon(Icons.search));
+      await settle(tester);
+
+      expect(submitted, ['']);
+    });
+
+    displayTest('a tag without posts offers close matches to replace it', (
+      tester,
+    ) async {
+      final List<String> submitted = await openSheet(tester);
+
+      await tester.enterText(find.byType(TextField), 'tag_3 ');
+      await settle(tester);
+
+      expect(
+        find.text('tag 3 has no posts. Did you mean one of these?'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('tag 37', findRichText: true));
+      await settle(tester);
+      await tester.tap(find.byIcon(Icons.search));
+      await settle(tester);
+
+      expect(submitted, ['riolu tag_37']);
     });
 
     displayTest('a chip takes the colour of its tag category', (tester) async {

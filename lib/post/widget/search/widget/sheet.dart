@@ -88,6 +88,51 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
 
   void append(String tag) => controller.commit(tag);
 
+  int? unknownIn(List<String> terms) {
+    for (int i = terms.length - 1; i >= 0; i--) {
+      final String name = tagWithoutPrefix(terms[i]);
+      if (name.contains(':')) continue;
+      if (previews[name]?.postCount == 0) return i;
+    }
+    return null;
+  }
+
+  Widget body(int? unknown) {
+    if (controller.selected case final int index) {
+      return QueryChipActions(
+        term: controller.terms[index],
+        onChange: (term) => controller.replace(index, term),
+        onRemove: () => controller.remove(index),
+      );
+    }
+    if (controller.typed.isNotEmpty) {
+      return PostSearchSuggestions(typed: controller.typed, onPick: append);
+    }
+    if (unknown != null) {
+      final String term = controller.terms[unknown];
+      final String prefix = term.substring(
+        0,
+        term.length - tagWithoutPrefix(term).length,
+      );
+      return PostSearchSuggestions(
+        typed: term,
+        onPick: (value) => controller.replace(
+          unknown,
+          value.startsWith(prefix) ? value : '$prefix$value',
+        ),
+      );
+    }
+    return switch (tab) {
+      PostSearchSheetTab.recent => RecentPostSearches(onPick: submit),
+      PostSearchSheetTab.saved => SavedPostSearches(onPick: submit),
+      PostSearchSheetTab.results => ResultTags(
+        posts: widget.posts,
+        onAdd: append,
+        onExclude: (tag) => append('-$tag'),
+      ),
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
@@ -104,165 +149,151 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
         height: max(0, height),
         child: SafeArea(
           top: false,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Container(
-                  width: 32,
-                  height: 3,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
+          child: ListenableBuilder(
+            listenable: controller,
+            builder: (context, child) => QueryBuilder(
+              query: context.watch<Client>().tags.usePreview(
+                names: controller.terms
+                    .map(tagWithoutPrefix)
+                    .where((e) => !e.contains(':'))
+                    .toList(),
               ),
-              Expanded(
-                child: ListenableBuilder(
-                  listenable: controller,
-                  builder: (context, child) => controller.typed.isNotEmpty
-                      ? PostSearchSuggestions(
-                          typed: controller.typed,
-                          onPick: append,
-                        )
-                      : switch (tab) {
-                          PostSearchSheetTab.recent => RecentPostSearches(
-                            onPick: submit,
+              builder: (context, state) {
+                for (final TagPreview preview
+                    in state.data ?? const <TagPreview>[]) {
+                  previews[preview.name] = preview;
+                }
+                final int? unknown = unknownIn(controller.terms);
+                final bool tabs =
+                    controller.selected == null &&
+                    controller.typed.isEmpty &&
+                    unknown == null;
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Container(
+                        width: 32,
+                        height: 3,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.6,
                           ),
-                          PostSearchSheetTab.saved => SavedPostSearches(
-                            onPick: submit,
-                          ),
-                          PostSearchSheetTab.results => ResultTags(
-                            posts: widget.posts,
-                            onAdd: append,
-                            onExclude: (tag) => append('-$tag'),
-                          ),
-                        },
-                ),
-              ),
-              ListenableBuilder(
-                listenable: controller,
-                builder: (context, child) => controller.typed.isNotEmpty
-                    ? const SizedBox.shrink()
-                    : child!,
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(
-                        color: theme.colorScheme.onSurface.withValues(
-                          alpha: 0.12,
+                          borderRadius: BorderRadius.circular(2),
                         ),
                       ),
                     ),
-                  ),
-                  child: Row(
-                    children: [
-                      for (final PostSearchSheetTab value
-                          in PostSearchSheetTab.values)
-                        Expanded(
-                          child: SearchSheetTab(
-                            label: value.label,
-                            selected: value == tab,
-                            onTap: () => setState(() => tab = value),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                child: Column(
-                  spacing: 10,
-                  children: [
-                    Row(
-                      textDirection: left
-                          ? TextDirection.rtl
-                          : TextDirection.ltr,
-                      spacing: 8,
-                      children: [
-                        if (widget.filter case final filter?
-                            when widget.onShowHidden != null)
-                          ListenableBuilder(
-                            listenable: filter,
-                            builder: (context, child) {
-                              if (filter.matchCountsByEntry.isEmpty) {
-                                return const SizedBox.shrink();
-                              }
-                              return Material(
-                                color: theme.cardColor,
-                                borderRadius: BorderRadius.circular(4),
-                                child: InkWell(
-                                  onTap: widget.onShowHidden,
-                                  borderRadius: BorderRadius.circular(4),
-                                  child: SizedBox(
-                                    height: 40,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                      ),
-                                      child: Center(
-                                        widthFactor: 1,
-                                        child: HiddenCount(
-                                          count: filter.blockedCount,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        const Spacer(),
-                        SizedBox.square(
-                          dimension: dockHeight,
-                          child: Material(
-                            color: theme.colorScheme.secondary,
-                            elevation: 3,
-                            borderRadius: BorderRadius.circular(8),
-                            child: InkWell(
-                              onTap: submit,
-                              borderRadius: BorderRadius.circular(8),
-                              child: Icon(
-                                Icons.search,
-                                color: theme.colorScheme.onSecondary,
+                    Expanded(child: body(unknown)),
+                    if (tabs)
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            top: BorderSide(
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.12,
                               ),
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                    ListenableBuilder(
-                      listenable: controller,
-                      builder: (context, child) {
-                        final List<String> names = controller.terms
-                            .map(tagWithoutPrefix)
-                            .where((e) => !e.contains(':'))
-                            .toList();
-                        return QueryBuilder(
-                          query: context.watch<Client>().tags.usePreview(
-                            names: names,
+                        child: Row(
+                          children: [
+                            for (final PostSearchSheetTab value
+                                in PostSearchSheetTab.values)
+                              Expanded(
+                                child: SearchSheetTab(
+                                  label: value.label,
+                                  selected: value == tab,
+                                  onTap: () => setState(() => tab = value),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(16, 8, 16, typing ? 10 : 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: typing ? 6 : 10,
+                        children: [
+                          Row(
+                            textDirection: left
+                                ? TextDirection.rtl
+                                : TextDirection.ltr,
+                            spacing: 8,
+                            children: [
+                              if (widget.filter case final filter?
+                                  when widget.onShowHidden != null)
+                                ListenableBuilder(
+                                  listenable: filter,
+                                  builder: (context, child) {
+                                    if (filter.matchCountsByEntry.isEmpty) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    return Material(
+                                      color: theme.cardColor,
+                                      borderRadius: BorderRadius.circular(4),
+                                      child: InkWell(
+                                        onTap: widget.onShowHidden,
+                                        borderRadius: BorderRadius.circular(4),
+                                        child: SizedBox(
+                                          height: typing ? 32 : 40,
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                            ),
+                                            child: Center(
+                                              widthFactor: 1,
+                                              child: HiddenCount(
+                                                count: filter.blockedCount,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              const Spacer(),
+                              SizedBox.square(
+                                dimension: typing ? 44 : dockHeight,
+                                child: Material(
+                                  color: theme.colorScheme.secondary,
+                                  elevation: 3,
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: InkWell(
+                                    onTap: submit,
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Icon(
+                                      Icons.search,
+                                      color: theme.colorScheme.onSecondary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          builder: (context, state) {
-                            for (final TagPreview preview
-                                in state.data ?? const <TagPreview>[]) {
-                              previews[preview.name] = preview;
-                            }
-                            return QueryField(
-                              controller: controller,
-                              focusNode: focus,
-                              onSubmit: submit,
-                              previews: previews,
-                            );
-                          },
-                        );
-                      },
+                          QueryField(
+                            controller: controller,
+                            focusNode: focus,
+                            onSubmit: submit,
+                            previews: previews,
+                          ),
+                          if (unknown != null)
+                            Text(
+                              '${tagToTitle(tagWithoutPrefix(controller.terms[unknown]))} '
+                              'has no posts. Did you mean one of these?',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.error,
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ],
-                ),
-              ),
-            ],
+                );
+              },
+            ),
           ),
         ),
       ),
