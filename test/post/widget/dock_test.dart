@@ -396,11 +396,23 @@ void main() {
       await openSheet(tester);
       expect(find.text('lucario', findRichText: true), findsOneWidget);
 
-      await tester.tap(find.byTooltip('Add a filter'));
+      await tester.tap(find.text('Filters'));
       await settle(tester);
 
       expect(find.byType(MetaCatalog), findsOneWidget);
       expect(find.text('lucario', findRichText: true), findsNothing);
+    });
+
+    displayTest('a narrow sheet shows the filter chip as an icon', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(300, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await openSheet(tester);
+
+      expect(find.text('Filters'), findsNothing);
+      expect(find.byTooltip('Filters'), findsOneWidget);
     });
 
     displayTest('a metatag chip opens its builder', (tester) async {
@@ -417,7 +429,7 @@ void main() {
 
     displayTest('focusing the field closes the filters', (tester) async {
       await openSheet(tester);
-      await tester.tap(find.byTooltip('Add a filter'));
+      await tester.tap(find.text('Filters'));
       await settle(tester);
 
       await tester.tap(find.byType(TextField));

@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:relative_time/relative_time.dart';
 
 const int searchSheetEntries = 5;
+const double searchSheetLabelWidth = 320;
 
 Future<void> showPostSearchSheet(
   BuildContext context, {
@@ -294,72 +295,61 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
                 ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
-                child: Row(
-                  textDirection: left ? TextDirection.rtl : TextDirection.ltr,
-                  spacing: 6,
-                  children: [
-                    if (widget.filter case final filter?
-                        when widget.onShowHidden != null)
-                      ListenableBuilder(
-                        listenable: filter,
-                        builder: (context, child) {
-                          if (filter.matchCountsByEntry.isEmpty) {
-                            return const SizedBox.shrink();
-                          }
-                          return SheetButton(
-                            color: well,
-                            onTap: widget.onShowHidden!,
-                            icon: Icons.block,
-                            label: 'Blacklist',
-                            count: filter.blockedCount,
-                          );
-                        },
-                      ),
-                    SizedBox.square(
-                      dimension: 32,
-                      child: Material(
-                        color: panel
-                            ? theme.colorScheme.primary.withValues(alpha: 0.16)
-                            : well,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4),
-                          side: BorderSide(
-                            color: panel
-                                ? theme.colorScheme.primary
-                                : Colors.transparent,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final bool compact =
+                        constraints.maxWidth < searchSheetLabelWidth;
+                    return Row(
+                      textDirection: left
+                          ? TextDirection.rtl
+                          : TextDirection.ltr,
+                      spacing: 6,
+                      children: [
+                        if (widget.filter case final filter?
+                            when widget.onShowHidden != null)
+                          ListenableBuilder(
+                            listenable: filter,
+                            builder: (context, child) {
+                              if (filter.matchCountsByEntry.isEmpty) {
+                                return const SizedBox.shrink();
+                              }
+                              return SheetButton(
+                                color: well,
+                                onTap: widget.onShowHidden!,
+                                icon: Icons.block,
+                                label: compact ? null : 'Blacklist',
+                                tooltip: 'Blacklist',
+                                count: filter.blockedCount,
+                              );
+                            },
                           ),
-                        ),
-                        child: InkWell(
+                        SheetButton(
+                          color: well,
+                          selected: panel,
                           onTap: panel ? _closePanel : () => _openPanel(null),
-                          borderRadius: BorderRadius.circular(4),
-                          child: Tooltip(
-                            message: 'Add a filter',
-                            child: Icon(
-                              Icons.add,
-                              size: 20,
-                              color: panel ? theme.colorScheme.primary : null,
+                          icon: Icons.tune,
+                          label: compact ? null : 'Filters',
+                          tooltip: 'Filters',
+                        ),
+                        const Spacer(),
+                        SizedBox.square(
+                          dimension: typing ? 44 : 48,
+                          child: Material(
+                            color: theme.colorScheme.secondary,
+                            borderRadius: BorderRadius.circular(8),
+                            child: InkWell(
+                              onTap: submit,
+                              borderRadius: BorderRadius.circular(8),
+                              child: Icon(
+                                Icons.search,
+                                color: theme.colorScheme.onSecondary,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                    const Spacer(),
-                    SizedBox.square(
-                      dimension: typing ? 44 : 48,
-                      child: Material(
-                        color: theme.colorScheme.secondary,
-                        borderRadius: BorderRadius.circular(8),
-                        child: InkWell(
-                          onTap: submit,
-                          borderRadius: BorderRadius.circular(8),
-                          child: Icon(
-                            Icons.search,
-                            color: theme.colorScheme.onSecondary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                      ],
+                    );
+                  },
                 ),
               ),
               Padding(
@@ -416,47 +406,68 @@ class SheetButton extends StatelessWidget {
     required this.color,
     required this.onTap,
     required this.icon,
-    required this.label,
+    required this.tooltip,
+    this.label,
     this.count,
+    this.selected = false,
   });
 
   final Color color;
   final VoidCallback onTap;
   final IconData icon;
-  final String label;
+  final String tooltip;
+  final String? label;
   final int? count;
+  final bool selected;
 
   @override
-  Widget build(BuildContext context) => Material(
-    color: color,
-    borderRadius: BorderRadius.circular(4),
-    child: InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(4),
-      child: SizedBox(
-        height: 32,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(8, 0, 10, 0),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 6,
-            children: [
-              Icon(icon, size: 16),
-              Text(label, style: const TextStyle(fontSize: 13)),
-              if (count != null)
-                Text(
-                  '$count',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
+  Widget build(BuildContext context) {
+    final Color accent = Theme.of(context).colorScheme.primary;
+    final Widget button = Material(
+      color: selected ? accent.withValues(alpha: 0.16) : color,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(4),
+        side: BorderSide(color: selected ? accent : Colors.transparent),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(4),
+        child: SizedBox(
+          height: 32,
+          child: Padding(
+            padding: label == null && count == null
+                ? const EdgeInsets.symmetric(horizontal: 8)
+                : const EdgeInsets.fromLTRB(8, 0, 10, 0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 6,
+              children: [
+                Icon(icon, size: 16, color: selected ? accent : null),
+                if (label != null)
+                  Text(
+                    label!,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: selected ? accent : null,
+                    ),
                   ),
-                ),
-            ],
+                if (count != null)
+                  Text(
+                    '$count',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
+    );
+    if (label != null) return button;
+    return Tooltip(message: tooltip, child: button);
+  }
 }
 
 class SearchSheetTab extends StatelessWidget {
