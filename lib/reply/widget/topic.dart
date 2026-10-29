@@ -41,7 +41,6 @@ class TopicRepliesPage extends StatelessWidget {
                 const ContextDrawerButton(),
               ],
             ),
-            drawer: const RouterDrawer(),
             endDrawer: const ReplyListDrawer(),
             floatingActionButton: client.hasLogin && !topic.locked
                 ? ReplyCreateFab(topicId: topic.id)

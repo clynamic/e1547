@@ -13,49 +13,46 @@ class FollowsTimelinePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final client = context.watch<Client>();
-    return RouterDrawerEntry<FollowsTimelinePage>(
-      child: FilterControllerProvider(
-        create: (_) => PostFilter(client),
-        keys: (_) => [client],
-        child: QueryBuilder(
-          query: client.follows.useTimelineTags(),
-          builder: (context, tagsState) {
-            final tags = tagsState.data;
-            if (tags == null) {
-              return const Scaffold(
-                appBar: DefaultAppBar(
-                  title: Text('Timeline'),
-                  actions: [ContextDrawerButton()],
-                ),
-                body: Center(child: CircularProgressIndicator()),
-              );
-            }
-            final followedTags = [
-              ...tags[FollowType.update] ?? const <String>[],
-              ...tags[FollowType.notify] ?? const <String>[],
-            ];
-            return AdaptiveScaffold(
-              appBar: const DefaultAppBar(
+    return FilterControllerProvider(
+      create: (_) => PostFilter(client),
+      keys: (_) => [client],
+      child: QueryBuilder(
+        query: client.follows.useTimelineTags(),
+        builder: (context, tagsState) {
+          final tags = tagsState.data;
+          if (tags == null) {
+            return const Scaffold(
+              appBar: DefaultAppBar(
                 title: Text('Timeline'),
                 actions: [ContextDrawerButton()],
               ),
-              drawer: const RouterDrawer(),
-              endDrawer: const ContextDrawer(
-                title: Text('Timeline'),
-                children: [FollowEditingTile(), Divider(), DrawerDenySwitch()],
-              ),
-              body: LimitedWidthLayout(
-                child: ListenableBuilder(
-                  listenable: context.watch<Settings>().tileSize,
-                  builder: (context, child) => TileLayout(
-                    tileSize: context.watch<Settings>().tileSize.value,
-                    child: FollowTimelinePostList(tags: followedTags),
-                  ),
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          final followedTags = [
+            ...tags[FollowType.update] ?? const <String>[],
+            ...tags[FollowType.notify] ?? const <String>[],
+          ];
+          return AdaptiveScaffold(
+            appBar: const DefaultAppBar(
+              title: Text('Timeline'),
+              actions: [ContextDrawerButton()],
+            ),
+            endDrawer: const ContextDrawer(
+              title: Text('Timeline'),
+              children: [FollowEditingTile(), Divider(), DrawerDenySwitch()],
+            ),
+            body: LimitedWidthLayout(
+              child: ListenableBuilder(
+                listenable: context.watch<Settings>().tileSize,
+                builder: (context, child) => TileLayout(
+                  tileSize: context.watch<Settings>().tileSize.value,
+                  child: FollowTimelinePostList(tags: followedTags),
                 ),
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

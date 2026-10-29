@@ -2,19 +2,15 @@ import 'dart:async';
 
 import 'package:app_links/app_links.dart';
 import 'package:e1547/app/app.dart';
+import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
 typedef LinkCallback = FutureOr<void> Function(Uri? url);
 
 class AppLinkHandler extends StatefulWidget {
-  const AppLinkHandler({
-    super.key,
-    required this.child,
-    required this.navigatorKey,
-  });
+  const AppLinkHandler({super.key, required this.child});
 
   final Widget child;
-  final GlobalKey<NavigatorState> navigatorKey;
 
   @override
   State<AppLinkHandler> createState() => _AppLinkHandlerState();
@@ -24,29 +20,19 @@ class _AppLinkHandlerState extends State<AppLinkHandler> {
   late AppLinks appLinks;
   StreamSubscription<Uri>? linkListener;
 
-  Future<void> onInitialLink(Uri? url) async {
-    if (url != null) {
-      VoidCallback? action = const E621LinkParser().parseOnTap(
-        widget.navigatorKey.currentContext!,
-        url.toString(),
-      );
-      if (action != null) {
-        widget.navigatorKey.currentState!.popUntil((route) => false);
-        action();
-      } else {
-        await launch(url.toString());
-      }
-    }
-  }
-
   Future<void> onLink(Uri? url) async {
-    if (url != null) {
-      if (!const E621LinkParser().open(
-        widget.navigatorKey.currentContext!,
-        url.toString(),
-      )) {
-        await launch(url.toString());
-      }
+    if (url == null) return;
+    final String link = url.toString();
+    if (const E621LinkParser().parse(link) == null) {
+      await launch(link);
+      return;
+    }
+    final NavigatorState? navigator = await context
+        .read<ShellController>()
+        .reset(ShellTab.browse);
+    if (navigator == null || !navigator.mounted) return;
+    if (!const E621LinkParser().open(navigator.context, link)) {
+      await launch(link);
     }
   }
 
@@ -55,7 +41,7 @@ class _AppLinkHandlerState extends State<AppLinkHandler> {
     super.initState();
     if (PlatformCapabilities.hasDeepLinks) {
       appLinks = AppLinks();
-      appLinks.getInitialLink().then(onInitialLink);
+      appLinks.getInitialLink().then(onLink);
       linkListener = appLinks.uriLinkStream.listen(onLink);
     }
   }

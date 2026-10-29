@@ -18,55 +18,50 @@ class PostsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final client = context.watch<Client>();
-    return RouterDrawerEntry<PostsPage>(
-      child: FilterControllerProvider(
-        create: (_) => PostFilter(client),
-        keys: (_) => [client],
+    return FilterControllerProvider(
+      create: (_) => PostFilter(client),
+      keys: (_) => [client],
+      child: ChangeNotifierProvider(
+        create: (_) => PostParamsController(initial: params),
         child: ChangeNotifierProvider(
-          create: (_) => PostParamsController(initial: params),
-          child: ChangeNotifierProvider(
-            create: (_) => PostDisplayController(),
-            child: PostPageHistoryConnector(
-              child: FollowSeenConnector(
-                child: PostPageQueryBuilder(
-                  builder: (context, state, query) => SelectionLayout<Post>(
-                    items: state.data?.pages.expand((p) => p).toList(),
-                    child: AdaptiveScaffold(
-                      appBar: const PostSelectionAppBar(
-                        child: PostPageAppBar(),
-                      ),
-                      floatingActionButton:
-                          context.watch<PostParamsController>().canSearch
-                          ? const PostsPageFab()
-                          : null,
-                      drawer: const RouterDrawer(),
-                      endDrawer: ContextDrawer(
-                        title: const Text('Posts'),
-                        children: [
-                          ...drawerActions,
-                          if (drawerActions.isNotEmpty) const Divider(),
-                          if (context
-                                  .watch<PostParamsController>()
-                                  .value
-                                  .poolId !=
-                              null) ...[
-                            const PoolReaderSwitch(),
-                            const PoolOrderSwitch(),
-                          ],
-                          const DrawerDenySwitch(),
-                          DrawerTagCounter(
-                            posts: state.data?.pages.expand((p) => p).toList(),
-                            error: state.error,
-                          ),
+          create: (_) => PostDisplayController(),
+          child: PostPageHistoryConnector(
+            child: FollowSeenConnector(
+              child: PostPageQueryBuilder(
+                builder: (context, state, query) => SelectionLayout<Post>(
+                  items: state.data?.pages.expand((p) => p).toList(),
+                  child: AdaptiveScaffold(
+                    appBar: const PostSelectionAppBar(child: PostPageAppBar()),
+                    floatingActionButton:
+                        context.watch<PostParamsController>().canSearch
+                        ? const PostsPageFab()
+                        : null,
+                    endDrawer: ContextDrawer(
+                      title: const Text('Posts'),
+                      children: [
+                        ...drawerActions,
+                        if (drawerActions.isNotEmpty) const Divider(),
+                        if (context
+                                .watch<PostParamsController>()
+                                .value
+                                .poolId !=
+                            null) ...[
+                          const PoolReaderSwitch(),
+                          const PoolOrderSwitch(),
                         ],
-                      ),
-                      body: LimitedWidthLayout(
-                        child: ListenableBuilder(
-                          listenable: context.watch<Settings>().tileSize,
-                          builder: (context, child) => TileLayout(
-                            tileSize: context.watch<Settings>().tileSize.value,
-                            child: const PostList(),
-                          ),
+                        const DrawerDenySwitch(),
+                        DrawerTagCounter(
+                          posts: state.data?.pages.expand((p) => p).toList(),
+                          error: state.error,
+                        ),
+                      ],
+                    ),
+                    body: LimitedWidthLayout(
+                      child: ListenableBuilder(
+                        listenable: context.watch<Settings>().tileSize,
+                        builder: (context, child) => TileLayout(
+                          tileSize: context.watch<Settings>().tileSize.value,
+                          child: const PostList(),
                         ),
                       ),
                     ),

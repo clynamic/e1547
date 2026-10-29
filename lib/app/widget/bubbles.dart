@@ -1,3 +1,4 @@
+import 'package:e1547/app/app.dart';
 import 'package:e1547/logs/logs.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
@@ -32,7 +33,7 @@ class _AppBubbleOverlayState extends State<AppBubbleOverlay> {
     }
   }
 
-  void _openLogs() => widget.navigatorKey.currentState?.push(
+  void _openLogs() => context.read<ShellController>().navigator?.push(
     MaterialPageRoute(builder: (context) => const LogsPage()),
   );
 

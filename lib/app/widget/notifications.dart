@@ -14,14 +14,9 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_sub/flutter_sub.dart';
 
 class NotificationHandler extends StatefulWidget {
-  const NotificationHandler({
-    super.key,
-    required this.child,
-    required this.navigatorKey,
-  });
+  const NotificationHandler({super.key, required this.child});
 
   final Widget child;
-  final GlobalKey<NavigatorState> navigatorKey;
 
   @override
   State<NotificationHandler> createState() => _NotificationHandlerState();
@@ -106,16 +101,21 @@ class _NotificationHandlerState extends State<NotificationHandler> {
 
     switch (notification.type) {
       case 'follow':
-        widget.navigatorKey.currentState!.pushNamedAndRemoveUntil(
-          '/subscriptions',
-          (_) => false,
+        final NavigatorState? navigator = await context
+            .read<ShellController>()
+            .reset(ShellTab.library);
+        if (navigator == null || !navigator.mounted) return;
+        navigator.push(
+          MaterialPageRoute(
+            builder: (context) => const FollowsSubscriptionsPage(),
+          ),
         );
         if (notification.query != null) {
           final String? tags = notification.query!['tags'];
           final poolId = tags != null
               ? poolRegex().firstMatch(tags)?.namedGroup('id')
               : null;
-          widget.navigatorKey.currentState!.push(
+          navigator.push(
             MaterialPageRoute(
               builder: (context) => poolId != null
                   ? PoolLoadingPage(int.parse(poolId), orderByOldest: false)
@@ -124,7 +124,7 @@ class _NotificationHandlerState extends State<NotificationHandler> {
           );
         }
         if (notification.id != null) {
-          widget.navigatorKey.currentState!.push(
+          navigator.push(
             MaterialPageRoute(
               builder: (context) => PostLoadingPage(notification!.id!),
             ),

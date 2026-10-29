@@ -23,11 +23,15 @@ class PostLoadingPage extends StatelessWidget {
         child: (context) => PostDetail(post: state.data!),
       ),
     );
-    if (context.watch<PostFilter?>() != null) return page;
-    return FilterControllerProvider(
-      create: (_) => PostFilter(client),
-      keys: (_) => [client],
-      child: page,
+    if (context.watch<PostFilter?>() != null) {
+      return NavBarCovered(child: page);
+    }
+    return NavBarCovered(
+      child: FilterControllerProvider(
+        create: (_) => PostFilter(client),
+        keys: (_) => [client],
+        child: page,
+      ),
     );
   }
 }

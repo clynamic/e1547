@@ -29,7 +29,6 @@ class WikiPage extends StatelessWidget {
         ),
         children: [DText(wiki.body)],
       ),
-      drawer: const RouterDrawer(),
     );
   }
 }

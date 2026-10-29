@@ -1,3 +1,4 @@
+import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_sub/flutter_sub.dart';
@@ -15,37 +16,51 @@ class PullToRefresh extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final NavBarReselectController? reselect = NavBarReselect.maybeOf(context);
     return SubValue(
       create: () => RefreshController(),
       builder: (context, refreshController) => SubEffect(
         effect: () {
-          bool handler(KeyEvent event) {
-            if (event is KeyDownEvent &&
-                event.logicalKey == LogicalKeyboardKey.f5) {
-              refreshController.requestRefresh(
-                duration: const Duration(milliseconds: 100),
-              );
-              return true;
-            }
-            return false;
-          }
-
-          HardwareKeyboard.instance.addHandler(handler);
-          return () => HardwareKeyboard.instance.removeHandler(handler);
+          if (reselect == null) return null;
+          Future<void> handler() async => refreshController.requestRefresh(
+            duration: const Duration(milliseconds: 100),
+          );
+          reselect.handler = handler;
+          return () {
+            if (reselect.handler == handler) reselect.handler = null;
+          };
         },
-        keys: const [],
-        child: SmartRefresher(
-          controller: refreshController,
-          onRefresh: () async {
-            try {
-              await onRefresh();
-              refreshController.refreshCompleted();
-            } on Object {
-              refreshController.refreshFailed();
+        keys: [reselect, refreshController],
+        child: SubEffect(
+          effect: () {
+            bool handler(KeyEvent event) {
+              if (event is KeyDownEvent &&
+                  event.logicalKey == LogicalKeyboardKey.f5) {
+                refreshController.requestRefresh(
+                  duration: const Duration(milliseconds: 100),
+                );
+                return true;
+              }
+              return false;
             }
+
+            HardwareKeyboard.instance.addHandler(handler);
+            return () => HardwareKeyboard.instance.removeHandler(handler);
           },
-          header: const ClassicHeader(),
-          child: child,
+          keys: const [],
+          child: SmartRefresher(
+            controller: refreshController,
+            onRefresh: () async {
+              try {
+                await onRefresh();
+                refreshController.refreshCompleted();
+              } on Object {
+                refreshController.refreshFailed();
+              }
+            },
+            header: const ClassicHeader(),
+            child: child,
+          ),
         ),
       ),
     );

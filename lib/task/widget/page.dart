@@ -47,7 +47,6 @@ class TasksPage extends StatelessWidget {
                     ],
                   ),
                 ),
-                drawer: const RouterDrawer(),
                 body: const CustomScrollView(
                   primary: true,
                   slivers: [SliverTasksList()],

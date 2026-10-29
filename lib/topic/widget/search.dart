@@ -9,22 +9,19 @@ class TopicsPage extends StatelessWidget {
   final QueryMap? query;
 
   @override
-  Widget build(BuildContext context) => RouterDrawerEntry<TopicsPage>(
-    child: FilterControllerProvider(
-      create: (_) => TopicFilter(),
-      child: ChangeNotifierProvider(
-        create: (_) => TopicParamsController(TopicParams.fromQuery(query)),
-        child: const TopicsHistoryConnector(
-          child: AdaptiveScaffold(
-            appBar: DefaultAppBar(
-              title: Text('Topics'),
-              actions: [ContextDrawerButton()],
-            ),
-            floatingActionButton: TopicSearchFab(),
-            drawer: RouterDrawer(),
-            endDrawer: TopicListDrawer(),
-            body: TopicList(),
+  Widget build(BuildContext context) => FilterControllerProvider(
+    create: (_) => TopicFilter(),
+    child: ChangeNotifierProvider(
+      create: (_) => TopicParamsController(TopicParams.fromQuery(query)),
+      child: const TopicsHistoryConnector(
+        child: AdaptiveScaffold(
+          appBar: DefaultAppBar(
+            title: Text('Topics'),
+            actions: [ContextDrawerButton()],
           ),
+          floatingActionButton: TopicSearchFab(),
+          endDrawer: TopicListDrawer(),
+          body: TopicList(),
         ),
       ),
     ),

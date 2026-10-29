@@ -7,7 +7,6 @@ import 'package:e1547/onboarding/onboarding.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/task/task.dart';
-import 'package:e1547/user/user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -29,10 +28,7 @@ class App extends StatelessWidget {
           VideoServiceProvider(),
           AdaptiveScaffoldScope(),
           DefaultRouteObserver(),
-          NavigationProvider(
-            destinations: rootDestintations,
-            drawerHeader: (context) => const UserDrawerHeader(),
-          ),
+          ShellProvider(),
         ],
         builder: (context, child) => LogLevelScope(
           child: ValueListenableBuilder<AppTheme>(
@@ -59,7 +55,15 @@ class App extends StatelessWidget {
                       context.watch<AnyRouteObserver>(),
                       RouteLoggerObserver(),
                     ],
-                    routes: context.watch<RouterDrawerController>().routes,
+                    onGenerateRoute: (settings) =>
+                        settings.name == Navigator.defaultRouteName
+                        ? shellRoute(settings)
+                        : null,
+                    onGenerateInitialRoutes: (name) => [
+                      shellRoute(
+                        const RouteSettings(name: Navigator.defaultRouteName),
+                      ),
+                    ],
                     builder: (context, child) => WindowFrame(
                       child: WindowShortcuts(
                         navigatorKey: navigatorKey,
@@ -80,9 +84,7 @@ class App extends StatelessWidget {
                                       navigatorKey: navigatorKey,
                                       child: FollowConnector(
                                         child: AppLinkHandler(
-                                          navigatorKey: navigatorKey,
                                           child: NotificationHandler(
-                                            navigatorKey: navigatorKey,
                                             child: AppBubbleOverlay(
                                               navigatorKey: navigatorKey,
                                               child: child!,

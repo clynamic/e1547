@@ -125,8 +125,6 @@ class ScaffoldFrameSystemUI extends StatefulWidget {
 
 class _ScaffoldFrameSystemUIState extends State<ScaffoldFrameSystemUI>
     with DefaultRouteAware<ScaffoldFrameSystemUI> {
-  late RouterDrawerController navigation;
-
   Future<void> toggleFrame(bool shown) async {
     if (shown) {
       await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);

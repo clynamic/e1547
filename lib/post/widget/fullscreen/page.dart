@@ -9,43 +9,45 @@ class PostFullscreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PostHistoryConnector(
-      post: post,
-      child: PostVideoRoute(
+    return NavBarCovered(
+      child: PostHistoryConnector(
         post: post,
-        stopOnDispose: false,
-        child: PostFullscreenFrame(
+        child: PostVideoRoute(
           post: post,
-          child: PostImageOverlay(
+          stopOnDispose: false,
+          child: PostFullscreenFrame(
             post: post,
-            builder: (context) {
-              switch (post.type) {
-                case PostType.image:
-                  return _PostFullscreenImage(post: post);
-                case PostType.video:
-                  VideoPlayer? player = post.getVideo(context);
-                  return Center(
-                    child: ContentHero(
-                      tag: post.link,
-                      content: FittedContent(
-                        fit: BoxFit.contain,
-                        aspectRatio: post.width / post.height,
+            child: PostImageOverlay(
+              post: post,
+              builder: (context) {
+                switch (post.type) {
+                  case PostType.image:
+                    return _PostFullscreenImage(post: post);
+                  case PostType.video:
+                    VideoPlayer? player = post.getVideo(context);
+                    return Center(
+                      child: ContentHero(
+                        tag: post.link,
+                        content: FittedContent(
+                          fit: BoxFit.contain,
+                          aspectRatio: post.width / post.height,
+                        ),
+                        child: player != null
+                            ? VideoGestures(
+                                player: player,
+                                child: PostVideoWidget(post: post),
+                              )
+                            : PostVideoWidget(post: post),
                       ),
-                      child: player != null
-                          ? VideoGestures(
-                              player: player,
-                              child: PostVideoWidget(post: post),
-                            )
-                          : PostVideoWidget(post: post),
-                    ),
-                  );
-                case PostType.unsupported:
-                  // this never occurs, ImageOverlay will display instead.
-                  throw StateError(
-                    'PostFullscreen received an unsupported image!',
-                  );
-              }
-            },
+                    );
+                  case PostType.unsupported:
+                    // this never occurs, ImageOverlay will display instead.
+                    throw StateError(
+                      'PostFullscreen received an unsupported image!',
+                    );
+                }
+              },
+            ),
           ),
         ),
       ),

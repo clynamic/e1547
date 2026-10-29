@@ -58,67 +58,69 @@ class _PostDetailGalleryState extends State<PostDetailGallery>
   @override
   Widget build(BuildContext context) {
     closeWhenSearchChanged(context);
-    return PostPageQueryBuilder(
-      builder: (context, state, query) {
-        final items = state.paging.items;
-        final index = postId == null
-            ? 0
-            : items?.indexWhere((post) => post.id == postId) ?? -1;
+    return NavBarCovered(
+      child: PostPageQueryBuilder(
+        builder: (context, state, query) {
+          final items = state.paging.items;
+          final index = postId == null
+              ? 0
+              : items?.indexWhere((post) => post.id == postId) ?? -1;
 
-        if (index < 0) {
-          if (items != null) close();
-          return const Scaffold(
-            appBar: TransparentAppBar(child: DefaultAppBar()),
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
+          if (index < 0) {
+            if (items != null) close();
+            return const Scaffold(
+              appBar: TransparentAppBar(child: DefaultAppBar()),
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
 
-        return SubDefault<PageController>(
-          value: widget.pageController,
-          create: () => PageController(initialPage: index),
-          builder: (context, pageController) => GalleryButtons(
-            controller: pageController,
-            child: PagedPageView(
-              pageController: pageController,
-              state: state.paging,
-              fetchNextPage: query.getNextPage,
-              builderDelegate: defaultPagedChildBuilderDelegate<Post>(
-                onRetry: query.getNextPage,
-                pageBuilder: (context, child) => Scaffold(
-                  appBar: const TransparentAppBar(child: DefaultAppBar()),
-                  body: child,
-                ),
-                onEmpty: const Text('No posts'),
-                onError: const Text('Failed to load posts'),
-                itemBuilder: (context, item, index) => SubScrollController(
-                  builder: (context, scrollController) =>
-                      PrimaryScrollController(
-                        controller: scrollController,
-                        child: PostDetail(
-                          post: item,
-                          onTapImage: () =>
-                              _pushFullscreen(context, item, pageController),
+          return SubDefault<PageController>(
+            value: widget.pageController,
+            create: () => PageController(initialPage: index),
+            builder: (context, pageController) => GalleryButtons(
+              controller: pageController,
+              child: PagedPageView(
+                pageController: pageController,
+                state: state.paging,
+                fetchNextPage: query.getNextPage,
+                builderDelegate: defaultPagedChildBuilderDelegate<Post>(
+                  onRetry: query.getNextPage,
+                  pageBuilder: (context, child) => Scaffold(
+                    appBar: const TransparentAppBar(child: DefaultAppBar()),
+                    body: child,
+                  ),
+                  onEmpty: const Text('No posts'),
+                  onError: const Text('Failed to load posts'),
+                  itemBuilder: (context, item, index) => SubScrollController(
+                    builder: (context, scrollController) =>
+                        PrimaryScrollController(
+                          controller: scrollController,
+                          child: PostDetail(
+                            post: item,
+                            onTapImage: () =>
+                                _pushFullscreen(context, item, pageController),
+                          ),
                         ),
-                      ),
+                  ),
                 ),
+                onPageChanged: (index) {
+                  final items = state.paging.items;
+                  if (items != null && index < items.length) {
+                    postId = items[index].id;
+                  }
+                  widget.onPageChanged?.call(index);
+                  preloadPostImages(
+                    context: context,
+                    index: index,
+                    posts: items ?? [],
+                    size: PostImageSize.sample,
+                  );
+                },
               ),
-              onPageChanged: (index) {
-                final items = state.paging.items;
-                if (items != null && index < items.length) {
-                  postId = items[index].id;
-                }
-                widget.onPageChanged?.call(index);
-                preloadPostImages(
-                  context: context,
-                  index: index,
-                  posts: items ?? [],
-                  size: PostImageSize.sample,
-                );
-              },
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 

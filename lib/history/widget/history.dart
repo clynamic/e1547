@@ -8,29 +8,26 @@ class HistoriesPage extends StatelessWidget {
   final QueryMap? query;
 
   @override
-  Widget build(BuildContext context) => RouterDrawerEntry<HistoriesPage>(
-    child: ChangeNotifierProvider(
-      create: (_) => HistoryParamsController(HistoryParams.fromQuery(query)),
-      child: HistoryPageQueryBuilder(
-        builder: (context, state, query) => SelectionLayout<History>(
-          items: state.data?.pages.expand((p) => p).toList(),
-          child: const AdaptiveScaffold(
-            appBar: HistoryAppBar(),
-            floatingActionButton: HistorySearchFab(),
-            drawer: RouterDrawer(),
-            endDrawer: ContextDrawer(
-              title: Text('History'),
-              children: [
-                HistoryEnableTile(),
-                HistoryLimitTile(),
-                HistoryClearTile(),
-                Divider(),
-                HistoryCategoryFilterTile(),
-                HistoryTypeFilterTile(),
-              ],
-            ),
-            body: HistoryList(),
+  Widget build(BuildContext context) => ChangeNotifierProvider(
+    create: (_) => HistoryParamsController(HistoryParams.fromQuery(query)),
+    child: HistoryPageQueryBuilder(
+      builder: (context, state, query) => SelectionLayout<History>(
+        items: state.data?.pages.expand((p) => p).toList(),
+        child: const AdaptiveScaffold(
+          appBar: HistoryAppBar(),
+          floatingActionButton: HistorySearchFab(),
+          endDrawer: ContextDrawer(
+            title: Text('History'),
+            children: [
+              HistoryEnableTile(),
+              HistoryLimitTile(),
+              HistoryClearTile(),
+              Divider(),
+              HistoryCategoryFilterTile(),
+              HistoryTypeFilterTile(),
+            ],
           ),
+          body: HistoryList(),
         ),
       ),
     ),

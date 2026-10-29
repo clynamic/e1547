@@ -174,7 +174,6 @@ class UserPage extends StatelessWidget {
               initialIndex: initialPage.index,
               child: Scaffold(
                 appBar: appbar,
-                drawer: const RouterDrawer(),
                 endDrawer: ContextDrawer(
                   title: const Text('Posts'),
                   children: [

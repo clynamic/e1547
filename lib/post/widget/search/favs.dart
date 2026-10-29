@@ -13,56 +13,48 @@ class FavPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final client = context.watch<Client>();
-    return RouterDrawerEntry<FavPage>(
-      child: client.identity.username == null
-          ? const AdaptiveScaffold(
-              appBar: DefaultAppBar(title: Text('Favorites')),
-              body: IconMessage(
-                icon: Icon(Icons.person_search),
-                title: Text('Favorites are unavailable for anonymous users'),
+    return client.identity.username == null
+        ? const AdaptiveScaffold(
+            appBar: DefaultAppBar(title: Text('Favorites')),
+            body: IconMessage(
+              icon: Icon(Icons.person_search),
+              title: Text('Favorites are unavailable for anonymous users'),
+            ),
+          )
+        : FilterControllerProvider<PostFilter, Post>(
+            create: (_) => FavoritePostFilter(client),
+            keys: (_) => [client],
+            child: ChangeNotifierProvider(
+              create: (_) => PostParamsController(
+                initial: PostParams(tags: 'fav:${client.identity.username}'),
               ),
-            )
-          : FilterControllerProvider<PostFilter, Post>(
-              create: (_) => FavoritePostFilter(client),
-              keys: (_) => [client],
-              child: ChangeNotifierProvider(
-                create: (_) => PostParamsController(
-                  initial: PostParams(tags: 'fav:${client.identity.username}'),
-                ),
-                child: PostPageHistoryConnector(
-                  child: PostPageQueryBuilder(
-                    builder: (context, state, query) => SelectionLayout<Post>(
-                      items: state.data?.pages.expand((p) => p).toList(),
-                      child: AdaptiveScaffold(
-                        appBar: const PostSelectionAppBar(
-                          child: PostPageAppBar(),
-                        ),
-                        floatingActionButton: const PostsPageFab(),
-                        drawer: const RouterDrawer(),
-                        endDrawer: ContextDrawer(
-                          title: const Text('Posts'),
-                          children: [
-                            const FavoriteOrderSwitch(),
-                            const Divider(),
-                            const DrawerDenySwitch(),
-                            DrawerTagCounter(
-                              posts: state.data?.pages
-                                  .expand((p) => p)
-                                  .toList(),
-                              error: state.error,
-                            ),
-                          ],
-                        ),
-                        body: LimitedWidthLayout(
-                          child: ListenableBuilder(
-                            listenable: context.watch<Settings>().tileSize,
-                            builder: (context, child) => TileLayout(
-                              tileSize: context
-                                  .watch<Settings>()
-                                  .tileSize
-                                  .value,
-                              child: const PostList(),
-                            ),
+              child: PostPageHistoryConnector(
+                child: PostPageQueryBuilder(
+                  builder: (context, state, query) => SelectionLayout<Post>(
+                    items: state.data?.pages.expand((p) => p).toList(),
+                    child: AdaptiveScaffold(
+                      appBar: const PostSelectionAppBar(
+                        child: PostPageAppBar(),
+                      ),
+                      floatingActionButton: const PostsPageFab(),
+                      endDrawer: ContextDrawer(
+                        title: const Text('Posts'),
+                        children: [
+                          const FavoriteOrderSwitch(),
+                          const Divider(),
+                          const DrawerDenySwitch(),
+                          DrawerTagCounter(
+                            posts: state.data?.pages.expand((p) => p).toList(),
+                            error: state.error,
+                          ),
+                        ],
+                      ),
+                      body: LimitedWidthLayout(
+                        child: ListenableBuilder(
+                          listenable: context.watch<Settings>().tileSize,
+                          builder: (context, child) => TileLayout(
+                            tileSize: context.watch<Settings>().tileSize.value,
+                            child: const PostList(),
                           ),
                         ),
                       ),
@@ -71,7 +63,7 @@ class FavPage extends StatelessWidget {
                 ),
               ),
             ),
-    );
+          );
   }
 }
 

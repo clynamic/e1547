@@ -14,50 +14,47 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final client = context.watch<Client>();
-    return RouterDrawerEntry<HomePage>(
-      child: FilterControllerProvider(
-        create: (_) => PostFilter(client),
-        keys: (_) => [client],
-        child: ChangeNotifierProvider(
-          create: (_) => PostParamsController(
-            initial: PostParams(tags: client.traits.value.homeTags),
-          ),
-          builder: (context, _) => SubValueListener(
-            listenable: context.watch<PostParamsController>(),
-            listener: (PostParams value) => client.traits.value = client
-                .traits
-                .value
-                .copyWith(homeTags: value.tags ?? ''),
-            builder: (context, _) => PostPageHistoryConnector(
-              child: PostPageQueryBuilder(
-                builder: (context, state, query) => SelectionLayout<Post>(
-                  items: state.data?.pages.expand((p) => p).toList(),
-                  child: AdaptiveScaffold(
-                    appBar: const PostSelectionAppBar(
-                      child: DefaultAppBar(
-                        title: Center(child: AppIcon()),
-                        actions: [ContextDrawerButton()],
+    return FilterControllerProvider(
+      create: (_) => PostFilter(client),
+      keys: (_) => [client],
+      child: ChangeNotifierProvider(
+        create: (_) => PostParamsController(
+          initial: PostParams(tags: client.traits.value.homeTags),
+        ),
+        builder: (context, _) => SubValueListener(
+          listenable: context.watch<PostParamsController>(),
+          listener: (PostParams value) => client.traits.value = client
+              .traits
+              .value
+              .copyWith(homeTags: value.tags ?? ''),
+          builder: (context, _) => PostPageHistoryConnector(
+            child: PostPageQueryBuilder(
+              builder: (context, state, query) => SelectionLayout<Post>(
+                items: state.data?.pages.expand((p) => p).toList(),
+                child: AdaptiveScaffold(
+                  appBar: const PostSelectionAppBar(
+                    child: DefaultAppBar(
+                      title: Center(child: AppIcon()),
+                      actions: [ContextDrawerButton()],
+                    ),
+                  ),
+                  floatingActionButton: const PostsPageFab(),
+                  endDrawer: ContextDrawer(
+                    title: const Text('Posts'),
+                    children: [
+                      const DrawerDenySwitch(),
+                      DrawerTagCounter(
+                        posts: state.data?.pages.expand((p) => p).toList(),
+                        error: state.error,
                       ),
-                    ),
-                    floatingActionButton: const PostsPageFab(),
-                    drawer: const RouterDrawer(),
-                    endDrawer: ContextDrawer(
-                      title: const Text('Posts'),
-                      children: [
-                        const DrawerDenySwitch(),
-                        DrawerTagCounter(
-                          posts: state.data?.pages.expand((p) => p).toList(),
-                          error: state.error,
-                        ),
-                      ],
-                    ),
-                    body: LimitedWidthLayout(
-                      child: ListenableBuilder(
-                        listenable: context.watch<Settings>().tileSize,
-                        builder: (context, child) => TileLayout(
-                          tileSize: context.watch<Settings>().tileSize.value,
-                          child: const PostList(),
-                        ),
+                    ],
+                  ),
+                  body: LimitedWidthLayout(
+                    child: ListenableBuilder(
+                      listenable: context.watch<Settings>().tileSize,
+                      builder: (context, child) => TileLayout(
+                        tileSize: context.watch<Settings>().tileSize.value,
+                        child: const PostList(),
                       ),
                     ),
                   ),

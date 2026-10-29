@@ -4,10 +4,13 @@ import 'dart:io';
 import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
 import 'package:e1547/follow/follow.dart';
+import 'package:e1547/history/history.dart';
 import 'package:e1547/identity/identity.dart';
 import 'package:e1547/logs/logs.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
+import 'package:e1547/task/task.dart';
+import 'package:e1547/traits/traits.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sub/flutter_sub.dart';
 import 'package:local_auth/local_auth.dart';
@@ -59,7 +62,11 @@ class SettingsPage extends StatelessWidget {
                             '${traits.denylist.join(' ').split(' ').trim().where((e) => e[0] != '-').length} tags blocked',
                           )
                         : null,
-                    onTap: () => Navigator.pushNamed(context, '/blacklist'),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const DenyListPage(),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -98,7 +105,11 @@ class SettingsPage extends StatelessWidget {
                               ? Text('$count pages visited')
                               : null,
                           leading: const Icon(Icons.history),
-                          onTap: () => Navigator.pushNamed(context, '/history'),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const HistoriesPage(),
+                            ),
+                          ),
                           onTapSeparated: () => client.traits.value = client
                               .traits
                               .value
@@ -114,6 +125,13 @@ class SettingsPage extends StatelessWidget {
                       },
                     );
                   },
+                ),
+              ),
+              ListTile(
+                title: const Text('Tasks'),
+                leading: const Icon(Icons.task_alt),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const TasksPage()),
                 ),
               ),
               const Divider(),
@@ -406,6 +424,14 @@ class SettingsPage extends StatelessWidget {
                   ),
                 ),
               ],
+              const Divider(),
+              ListTile(
+                title: const Text('About'),
+                leading: const DrawerUpdateIcon(),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const AboutPage()),
+                ),
+              ),
             ],
           ),
         ),

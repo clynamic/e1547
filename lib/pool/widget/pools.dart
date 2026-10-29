@@ -16,7 +16,7 @@ class PoolsPage extends StatefulWidget {
   State<StatefulWidget> createState() => _PoolsPageState();
 }
 
-class _PoolsPageState extends State<PoolsPage> with RouterDrawerEntryWidget {
+class _PoolsPageState extends State<PoolsPage> {
   @override
   Widget build(BuildContext context) {
     final client = context.watch<Client>();
@@ -43,7 +43,6 @@ class _PoolsPageState extends State<PoolsPage> with RouterDrawerEntryWidget {
                   actions: [ContextDrawerButton()],
                 ),
                 floatingActionButton: const PoolsPageFab(),
-                drawer: const RouterDrawer(),
                 endDrawer: ContextDrawer(
                   title: const Text('Pools'),
                   children: [

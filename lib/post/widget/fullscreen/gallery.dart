@@ -30,62 +30,64 @@ class _PostFullscreenGalleryState extends State<PostFullscreenGallery>
   @override
   Widget build(BuildContext context) {
     closeWhenSearchChanged(context);
-    return PostPageQueryBuilder(
-      builder: (context, state, query) {
-        final items = state.paging.items;
-        final index = postId == null
-            ? 0
-            : items?.indexWhere((post) => post.id == postId) ?? -1;
+    return NavBarCovered(
+      child: PostPageQueryBuilder(
+        builder: (context, state, query) {
+          final items = state.paging.items;
+          final index = postId == null
+              ? 0
+              : items?.indexWhere((post) => post.id == postId) ?? -1;
 
-        if (index < 0) {
-          if (items != null) close();
-          return const ScaffoldFrame(
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
+          if (index < 0) {
+            if (items != null) close();
+            return const ScaffoldFrame(
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
 
-        return SubDefault<PageController>(
-          value: widget.pageController,
-          create: () => PageController(initialPage: index),
-          builder: (context, pageController) => ScaffoldFrame(
-            child: GalleryButtons(
-              controller: pageController,
-              child: NotificationListener<ScrollEndNotification>(
-                onNotification: (notification) {
-                  final metrics = notification.metrics;
-                  final page = metrics is PageMetrics ? metrics.page : null;
-                  if (notification.depth == 0 && page != null) {
-                    widget.onPageSettled?.call(page.round());
-                  }
-                  return false;
-                },
-                child: PagedPageView<int, Post>(
-                  pageController: pageController,
-                  state: state.paging,
-                  fetchNextPage: query.getNextPage,
-                  onPageChanged: (index) {
-                    final items = state.paging.items;
-                    if (items != null && index < items.length) {
-                      postId = items[index].id;
+          return SubDefault<PageController>(
+            value: widget.pageController,
+            create: () => PageController(initialPage: index),
+            builder: (context, pageController) => ScaffoldFrame(
+              child: GalleryButtons(
+                controller: pageController,
+                child: NotificationListener<ScrollEndNotification>(
+                  onNotification: (notification) {
+                    final metrics = notification.metrics;
+                    final page = metrics is PageMetrics ? metrics.page : null;
+                    if (notification.depth == 0 && page != null) {
+                      widget.onPageSettled?.call(page.round());
                     }
-                    preloadPostImages(
-                      context: context,
-                      index: index,
-                      posts: items ?? [],
-                      size: PostImageSize.file,
-                    );
+                    return false;
                   },
-                  builderDelegate: defaultPagedChildBuilderDelegate(
-                    onRetry: query.getNextPage,
-                    itemBuilder: (context, item, index) =>
-                        PostFullscreen(post: item),
+                  child: PagedPageView<int, Post>(
+                    pageController: pageController,
+                    state: state.paging,
+                    fetchNextPage: query.getNextPage,
+                    onPageChanged: (index) {
+                      final items = state.paging.items;
+                      if (items != null && index < items.length) {
+                        postId = items[index].id;
+                      }
+                      preloadPostImages(
+                        context: context,
+                        index: index,
+                        posts: items ?? [],
+                        size: PostImageSize.file,
+                      );
+                    },
+                    builderDelegate: defaultPagedChildBuilderDelegate(
+                      onRetry: query.getNextPage,
+                      itemBuilder: (context, item, index) =>
+                          PostFullscreen(post: item),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
