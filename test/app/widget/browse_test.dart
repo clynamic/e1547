@@ -1,19 +1,24 @@
 import 'package:drift/native.dart';
 import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
+import 'package:e1547/follow/follow.dart';
 import 'package:e1547/identity/identity.dart';
+import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/settings/settings.dart';
+import 'package:e1547/shared/shared.dart';
+import 'package:e1547/tag/tag.dart';
 import 'package:e1547/traits/traits.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:notified_preferences/notified_preferences.dart';
-import 'package:provider/provider.dart';
+import 'package:relative_time/relative_time.dart';
 
 import '../../_support/fake_e621.dart';
 import '../../_support/harness.dart';
 import '../../_support/images.dart';
+import '../../_support/video.dart';
 
 void main() {
   test('each feed searches its own query', () {
@@ -198,8 +203,16 @@ void main() {
       expect(picked, [(BrowseFeed.popular, PopularScale.day)]);
     });
 
-    Future<Settings> showPage(WidgetTester tester) async {
+    Future<Settings> showPage(
+      WidgetTester tester, {
+      BrowseFeed? feed,
+      bool settled = true,
+    }) async {
       final Settings settings = Settings(await SharedPreferences.getInstance());
+      if (feed != null) settings.browseFeed.value = feed;
+      final AnyRouteObserver routeObserver = AnyRouteObserver();
+      final VideoService videos = fakeVideoService();
+      addTearDown(videos.dispose);
       await tester.pumpWidget(
         MultiProvider(
           providers: [
@@ -208,10 +221,22 @@ void main() {
             Provider<BaseCacheManager>.value(
               value: const NoImageCacheManager(),
             ),
+            Provider<AnyRouteObserver>.value(value: routeObserver),
+            ChangeNotifierProvider<VideoService>.value(value: videos),
           ],
-          child: const MaterialApp(home: BrowsePage()),
+          child: MaterialApp(
+            theme: AppTheme.dark.data,
+            navigatorObservers: [routeObserver],
+            localizationsDelegates: const [
+              DefaultMaterialLocalizations.delegate,
+              DefaultWidgetsLocalizations.delegate,
+              RelativeTimeLocalizations.delegate,
+            ],
+            home: const BrowsePage(),
+          ),
         ),
       );
+      if (!settled) return settings;
       await tester.runAsync(() async {
         for (int i = 0; i < 6; i++) {
           await tester.pump(const Duration(milliseconds: 50));
@@ -255,6 +280,77 @@ void main() {
       await show(tester, picking: true);
 
       expect(find.text('No tags'), findsOneWidget);
+    });
+
+    displayTest('the timeline loads behind feed skeletons', (tester) async {
+      await client.follows.create(tags: 'tag_32', type: FollowType.update);
+
+      await showPage(tester, feed: BrowseFeed.timeline, settled: false);
+      await tester.pump();
+
+      expect(find.byType(PostFeedSkeleton), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      await tester.runAsync(() async {
+        for (int i = 0; i < 6; i++) {
+          await tester.pump(const Duration(milliseconds: 50));
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+        }
+      });
+      await tester.pumpAndSettle();
+    });
+
+    displayTest(
+      'a timeline post shows its artist in the artist hue, comments and description',
+      (tester) async {
+        await client.follows.create(tags: 'tag_32', type: FollowType.update);
+
+        await showPage(tester, feed: BrowseFeed.timeline);
+
+        final Finder first = find.byType(PostFeedTile).first;
+        expect(tester.widget<PostFeedTile>(first).post.id, 1000);
+        Finder inFirst(Finder finder) =>
+            find.descendant(of: first, matching: finder);
+        expect(inFirst(find.text('tag 32')), findsOneWidget);
+        expect(inFirst(find.text('450')), findsOneWidget);
+        expect(
+          inFirst(
+            find.textContaining('Recorded text with', findRichText: true),
+          ),
+          findsOneWidget,
+        );
+        final Container mark = tester.widget<Container>(
+          find
+              .ancestor(
+                of: inFirst(find.text('tag 32')),
+                matching: find.byType(Container),
+              )
+              .first,
+        );
+        expect(
+          ((mark.decoration! as BoxDecoration).border! as Border).left.color,
+          TagCategory.artist.colorFor(Brightness.dark),
+        );
+      },
+    );
+
+    displayTest('a timeline post opens on its own', (tester) async {
+      await client.follows.create(tags: 'tag_32', type: FollowType.update);
+      await showPage(tester, feed: BrowseFeed.timeline);
+
+      await tester.tap(find.byType(PostImageTile).first);
+      await tester.runAsync(() async {
+        for (int i = 0; i < 6; i++) {
+          await tester.pump(const Duration(milliseconds: 50));
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+        }
+      });
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.byType(PostFullscreenGallery), findsNothing);
+      expect(
+        tester.widget<PostFullscreen>(find.byType(PostFullscreen)).post.id,
+        1000,
+      );
     });
   });
 }

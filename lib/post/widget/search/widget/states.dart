@@ -9,10 +9,11 @@ PagedChildBuilderDelegate<Post> postPagedChildBuilderDelegate({
   required ItemWidgetBuilder<Post> itemBuilder,
   required PagingState<int, Post> state,
   required VoidCallback fetchNextPage,
+  Widget skeleton = const PostGridSkeleton(),
 }) {
   return PagedChildBuilderDelegate<Post>(
     itemBuilder: itemBuilder,
-    firstPageProgressIndicatorBuilder: (context) => const PostGridSkeleton(),
+    firstPageProgressIndicatorBuilder: (context) => skeleton,
     firstPageErrorIndicatorBuilder: (context) =>
         PostResultsFailure(error: state.error, onRetry: fetchNextPage),
     noItemsFoundIndicatorBuilder: (context) => const PostResultsEmpty(),
@@ -117,6 +118,61 @@ class PostGridSkeleton extends StatelessWidget {
                             screen,
                           ))
                             tile(height),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class PostFeedSkeleton extends StatelessWidget {
+  const PostFeedSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final Color color = PostGridSkeleton.color(Theme.of(context));
+    final double screen = MediaQuery.sizeOf(context).height;
+    return SizedBox(
+      height: screen,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final double image = (constraints.maxWidth - 16) * 0.9;
+          return ClipRect(
+            child: OverflowBox(
+              alignment: Alignment.topCenter,
+              maxHeight: double.infinity,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (int item = 0; item * image < screen; item++)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 14),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            height: image,
+                            margin: const EdgeInsets.symmetric(horizontal: 8),
+                            decoration: BoxDecoration(
+                              color: color,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                          Container(
+                            width: 120,
+                            height: 12,
+                            margin: const EdgeInsets.fromLTRB(16, 13, 16, 7),
+                            decoration: BoxDecoration(
+                              color: color,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
                         ],
                       ),
                     ),

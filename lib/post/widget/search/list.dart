@@ -39,23 +39,43 @@ class SliverPostList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => PostPageQueryBuilder(
-    builder: (context, state, query) => switch (displayType ??
-        context.watch<PostDisplayController?>()?.value ??
-        PostDisplayType.grid) {
-      PostDisplayType.grid => PostGridSliver(
-        state: state.paging,
-        fetchNextPage: query.getNextPage,
-      ),
-      PostDisplayType.comic => PostComicSliver(
-        state: state.paging,
-        fetchNextPage: query.getNextPage,
-      ),
-      PostDisplayType.timeline => PostTimelineSliver(
-        state: state.paging,
-        fetchNextPage: query.getNextPage,
-      ),
-    },
+    builder: (context, state, query) => PostDisplaySliver(
+      state: state.paging,
+      fetchNextPage: query.getNextPage,
+      displayType: displayType,
+    ),
   );
+}
+
+class PostDisplaySliver extends StatelessWidget {
+  const PostDisplaySliver({
+    super.key,
+    required this.state,
+    required this.fetchNextPage,
+    this.displayType,
+  });
+
+  final PagingState<int, Post> state;
+  final VoidCallback fetchNextPage;
+  final PostDisplayType? displayType;
+
+  @override
+  Widget build(BuildContext context) => switch (displayType ??
+      context.watch<PostDisplayController?>()?.value ??
+      PostDisplayType.grid) {
+    PostDisplayType.grid => PostGridSliver(
+      state: state,
+      fetchNextPage: fetchNextPage,
+    ),
+    PostDisplayType.comic => PostComicSliver(
+      state: state,
+      fetchNextPage: fetchNextPage,
+    ),
+    PostDisplayType.timeline => PostTimelineSliver(
+      state: state,
+      fetchNextPage: fetchNextPage,
+    ),
+  };
 }
 
 class PostGridSliver extends StatelessWidget {
@@ -163,6 +183,7 @@ class PostTimelineSliver extends StatelessWidget {
       builderDelegate: postPagedChildBuilderDelegate(
         state: state,
         fetchNextPage: fetchNextPage,
+        skeleton: const PostFeedSkeleton(),
         itemBuilder: (context, item, index) => Padding(
           padding:
               LimitedWidthLayout.maybeOf(context)?.padding ?? EdgeInsets.zero,

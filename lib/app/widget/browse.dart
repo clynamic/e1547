@@ -131,9 +131,7 @@ class BrowseTimeline extends StatelessWidget {
             return CustomScrollView(
               slivers: [
                 ...top(null),
-                const SliverFillRemaining(
-                  child: Center(child: CircularProgressIndicator()),
-                ),
+                const SliverToBoxAdapter(child: PostFeedSkeleton()),
               ],
             );
           }
@@ -155,13 +153,12 @@ class BrowseTimeline extends StatelessWidget {
               ],
             );
           }
-          return LimitedWidthLayout(
-            child: ListenableBuilder(
-              listenable: context.watch<Settings>().tileSize,
-              builder: (context, child) => TileLayout(
-                tileSize: context.watch<Settings>().tileSize.value,
-                child: FollowTimelinePostList(tags: followed, top: top),
-              ),
+          return ChangeNotifierProvider(
+            create: (_) => PostDisplayController(PostDisplayType.timeline),
+            child: PostResults(
+              query: client.posts.useByTags(tags: followed),
+              top: top,
+              dimmed: dimmed,
             ),
           );
         },

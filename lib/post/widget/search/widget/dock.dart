@@ -13,7 +13,7 @@ class PostSearchDock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final PostParamsController params = context.watch<PostParamsController>();
+    final PostParamsController? params = context.watch<PostParamsController?>();
     final PostFilter filter = context.watch<PostFilter>();
     final SelectionLayoutData<Post>? selection = SelectionLayout.maybeOf<Post>(
       context,
@@ -23,7 +23,7 @@ class PostSearchDock extends StatelessWidget {
       full: selecting,
       builder: selecting
           ? (_) => PostSelectionBar(selection: selection)
-          : params.canSearch
+          : params != null && params.canSearch
           ? (_) => PostDock(
               params: params,
               filter: filter,

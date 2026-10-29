@@ -90,9 +90,16 @@ class LikeDisplay extends StatelessWidget {
 }
 
 class FavoriteButton extends StatelessWidget {
-  const FavoriteButton({super.key, required this.post});
+  const FavoriteButton({
+    super.key,
+    required this.post,
+    this.size = 30,
+    this.outlined = false,
+  });
 
   final Post post;
+  final double size;
+  final bool outlined;
 
   @override
   Widget build(BuildContext context) {
@@ -108,6 +115,7 @@ class FavoriteButton extends StatelessWidget {
         return InkResponse(
           onTap: state.isLoading ? null : () {},
           child: LikeButton(
+            size: size,
             isLiked: post.isFavorited,
             circleColor: const CircleColor(start: Colors.pink, end: Colors.red),
             bubblesColor: const BubblesColor(
@@ -115,7 +123,7 @@ class FavoriteButton extends StatelessWidget {
               dotSecondaryColor: Colors.red,
             ),
             likeBuilder: (isLiked) => Icon(
-              Icons.favorite,
+              isLiked || !outlined ? Icons.favorite : Icons.favorite_border,
               color: isLiked ? Colors.pinkAccent : IconTheme.of(context).color,
             ),
             onTap: (isLiked) async {

@@ -17,6 +17,17 @@ abstract final class DateFormatting {
   static String time(DateTime time) =>
       DateFormat.jm(Platform.localeName).format(time);
 
+  static String age(DateTime time, {DateTime? now}) {
+    final Duration age = (now ?? DateTime.now()).difference(time);
+    if (age.inMinutes < 1) return 'now';
+    if (age.inHours < 1) return '${age.inMinutes} min';
+    if (age.inDays < 1) return '${age.inHours} h';
+    if (age.inDays < 7) return '${age.inDays} d';
+    if (age.inDays < 30) return '${age.inDays ~/ 7} w';
+    if (age.inDays < 365) return '${age.inDays ~/ 30} mo';
+    return '${age.inDays ~/ 365} y';
+  }
+
   static String named(DateTime date) {
     DateTime today = DateUtils.dateOnly(DateTime.now());
     if (today.isAtSameMomentAs(DateUtils.dateOnly(date))) {

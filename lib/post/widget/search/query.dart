@@ -5,15 +5,19 @@ import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
 class PostPageQueryBuilder extends StatelessWidget {
-  const PostPageQueryBuilder({super.key, required this.builder});
+  const PostPageQueryBuilder({super.key, required this.builder, this.query});
 
   final PageQueryBuilderCallback<Post, int> builder;
+  final InfiniteQuery<List<int>, int>? query;
 
   @override
   Widget build(BuildContext context) {
     final client = context.watch<Client>();
-    final controller = context.watch<PostParamsController>();
-    final query = client.posts.usePage(query: controller.value.toQuery());
+    final InfiniteQuery<List<int>, int> query =
+        this.query ??
+        client.posts.usePage(
+          query: context.watch<PostParamsController>().value.toQuery(),
+        );
 
     return PagedQueryBuilder(
       query: query,

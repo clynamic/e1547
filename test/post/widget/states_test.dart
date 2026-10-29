@@ -188,6 +188,23 @@ void main() {
     expect(tiles.map((e) => e.height).toSet().length, greaterThan(1));
   });
 
+  testWidgets('a feed loads behind feed skeletons', (tester) async {
+    await show(
+      tester,
+      CustomScrollView(
+        slivers: [
+          PostTimelineSliver(
+            state: PagingState<int, Post>(isLoading: true),
+            fetchNextPage: () {},
+          ),
+        ],
+      ),
+    );
+
+    expect(find.byType(PostFeedSkeleton), findsOneWidget);
+    expect(find.byType(PostGridSkeleton), findsNothing);
+  });
+
   displayTest('no posts offers to remove the last term in a new page', (
     tester,
   ) async {

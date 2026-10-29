@@ -7,10 +7,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class PostResults extends StatefulWidget {
-  const PostResults({super.key, required this.top, this.dimmed = false});
+  const PostResults({
+    super.key,
+    required this.top,
+    this.dimmed = false,
+    this.query,
+  });
 
   final SliverTop top;
   final bool dimmed;
+  final InfiniteQuery<List<int>, int>? query;
 
   @override
   State<PostResults> createState() => _PostResultsState();
@@ -41,41 +47,38 @@ class _PostResultsState extends State<PostResults> {
   }
 
   @override
-  Widget build(BuildContext context) => ListenableProvider<RefreshNote>.value(
-    value: note,
-    child: PostPageHistoryConnector(
-      child: FollowSeenConnector(
-        child: PostPageQueryBuilder(
-          builder: (context, state, query) => SelectionLayout<Post>(
-            items: state.data?.pages.expand((e) => e).toList(),
-            keyOf: (post) => post.id,
-            child: PostSearchDock(
-              child: LimitedWidthLayout(
-                child: ListenableBuilder(
-                  listenable: context.watch<Settings>().tileSize,
-                  builder: (context, child) => TileLayout(
-                    tileSize: context.watch<Settings>().tileSize.value,
-                    child: RefreshShortcuts(
-                      onRefresh: () => refresh(query),
-                      child: CustomScrollView(
-                        primary: true,
-                        physics: refreshPhysics,
-                        slivers: [
-                          ...widget.top(() => refresh(query)),
-                          SliverDim(
-                            dimmed: widget.dimmed,
-                            sliver: SliverPadding(
-                              padding: defaultListPadding.copyWith(
-                                bottom:
-                                    MediaQuery.paddingOf(context).bottom +
-                                    defaultListPadding.bottom,
-                              ),
-                              sliver: const SliverPostList(),
-                            ),
+  Widget build(BuildContext context) {
+    final Widget results = PostPageQueryBuilder(
+      query: widget.query,
+      builder: (context, state, query) => SelectionLayout<Post>(
+        items: state.data?.pages.expand((e) => e).toList(),
+        keyOf: (post) => post.id,
+        child: PostSearchDock(
+          child: LimitedWidthLayout(
+            child: ListenableBuilder(
+              listenable: context.watch<Settings>().tileSize,
+              builder: (context, child) => TileLayout(
+                tileSize: context.watch<Settings>().tileSize.value,
+                child: RefreshShortcuts(
+                  onRefresh: () => refresh(query),
+                  child: CustomScrollView(
+                    primary: true,
+                    physics: refreshPhysics,
+                    slivers: [
+                      ...widget.top(() => refresh(query)),
+                      SliverDim(
+                        dimmed: widget.dimmed,
+                        sliver: SliverBottomInsetPadding(
+                          padding: defaultListPadding.copyWith(
+                            top: kContentPadding,
                           ),
-                        ],
+                          sliver: PostDisplaySliver(
+                            state: state.paging,
+                            fetchNextPage: query.getNextPage,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ),
@@ -83,6 +86,14 @@ class _PostResultsState extends State<PostResults> {
           ),
         ),
       ),
-    ),
-  );
+    );
+    return ListenableProvider<RefreshNote>.value(
+      value: note,
+      child: widget.query != null
+          ? results
+          : PostPageHistoryConnector(
+              child: FollowSeenConnector(child: results),
+            ),
+    );
+  }
 }

@@ -1,13 +1,11 @@
 import 'dart:math';
 
-import 'package:e1547/app/app.dart';
-import 'package:e1547/client/client.dart';
 import 'package:e1547/comment/comment.dart';
 import 'package:e1547/markup/markup.dart';
 import 'package:e1547/post/post.dart';
-import 'package:e1547/query/query.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
+import 'package:e1547/tag/tag.dart';
 import 'package:flutter/material.dart';
 
 class PostImageTile extends StatelessWidget {
@@ -275,197 +273,149 @@ class PostFeedTile extends StatelessWidget {
 
   final Post post;
 
+  static const double minRatio = 0.6;
+
+  void _openFullscreen(BuildContext context) {
+    final int? cacheSize = context.read<ImageCacheSize>().size;
+    final PostParamsController? params = context.read<PostParamsController?>();
+    final PostFilter? filter = context.read<PostFilter?>();
+    Navigator.of(context).push(
+      DismissRoute<void>(
+        builder: (context) => ImageCacheSizeProvider(
+          size: cacheSize,
+          child: PostRouteScope(
+            params: params,
+            filter: filter,
+            child: params != null
+                ? PostFullscreenGallery(initialPostId: post.id)
+                : PostFullscreen(post: post),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    int? cacheSize = context.read<ImageCacheSize>().size;
-
-    Widget actions() {
-      return Dimmed(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.comment),
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => PostCommentsPage(postId: post.id),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(post.commentCount.toString()),
-              ],
-            ),
-            MutationBuilder(
-              mutation: context.watch<Client>().posts.useVote(id: post.id),
-              builder: (context, state, mutate) {
-                final client = context.watch<Client>();
-                final messenger = ScaffoldMessenger.of(context);
-                final enabled = client.hasLogin && !state.isLoading;
-
-                return VoteDisplay(
-                  vote: post.vote,
-                  score: post.score,
-                  onUpvote: enabled
-                      ? (isLiked) async {
-                          mutate((upvote: true, replace: !isLiked)).catchError((
-                            error,
-                          ) {
-                            messenger.showSnackBar(
-                              SnackBar(
-                                duration: const Duration(seconds: 1),
-                                content: Text(
-                                  'Failed to upvote Post #${post.id}',
-                                ),
-                              ),
-                            );
-                            return error;
-                          });
-                          return !isLiked;
-                        }
-                      : null,
-                  onDownvote: enabled
-                      ? (isLiked) async {
-                          mutate((upvote: false, replace: !isLiked)).catchError(
-                            (error) {
-                              messenger.showSnackBar(
-                                SnackBar(
-                                  duration: const Duration(seconds: 1),
-                                  content: Text(
-                                    'Failed to downvote Post #${post.id}',
-                                  ),
-                                ),
-                              );
-                              return error;
-                            },
-                          );
-                          return !isLiked;
-                        }
-                      : null,
-                );
-              },
-            ),
-            Row(
-              children: [
-                FavoriteButton(post: post),
-                const SizedBox(width: 4),
-                Text(post.favCount.toString()),
-              ],
-            ),
-            IconButton(
-              icon: const Icon(Icons.share),
-              onPressed: () => Share.text(
-                context,
-                context.read<Client>().withHost(post.link),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    Widget menu() {
-      return PopupMenuButton<VoidCallback>(
-        icon: Icon(Icons.more_vert, color: dimTextColor(context)),
-        iconSize: 18,
-        onSelected: (value) => value(),
-        itemBuilder: (context) => [
-          if (post.file != null)
-            PopupMenuTile(
-              value: () => postDownloadingNotification(context, {post}),
-              title: 'Download',
-              icon: Icons.file_download,
-            ),
-          PopupMenuTile(
-            value: () => launch(context.read<Client>().withHost(post.link)),
-            title: 'Browse',
-            icon: Icons.open_in_browser,
-          ),
-        ],
-      );
-    }
-
-    Widget image() {
-      final params = context.read<PostParamsController?>();
-      final filter = context.read<PostFilter?>();
-      return ConstrainedBox(
-        constraints: const BoxConstraints(maxHeight: 400),
-        child: AspectRatio(
-          aspectRatio: max(post.width / post.height, 0.9),
-          child: PostImageTile(
-            post: post,
-            onTap: () => Navigator.of(context).push(
-              DismissRoute<void>(
-                builder: (context) => ImageCacheSizeProvider(
-                  size: cacheSize,
-                  child: PostRouteScope(
-                    params: params,
-                    filter: filter,
-                    child: params != null
-                        ? PostFullscreenGallery(initialPostId: post.id)
-                        : PostFullscreen(post: post),
-                  ),
-                ),
+    final ThemeData theme = Theme.of(context);
+    final Color onSurface = theme.colorScheme.onSurface;
+    final List<String> artists = filterArtists(post.tags['artist'] ?? const []);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: AspectRatio(
+              aspectRatio: max(post.width / post.height, minRatio),
+              child: PostImageTile(
+                post: post,
+                onTap: () => _openFullscreen(context),
               ),
             ),
           ),
-        ),
-      );
-    }
-
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(4),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(4),
+          InkWell(
             onTap: () => defaultPushPostDetail(context, post),
             child: Padding(
-              padding: const EdgeInsets.all(8).copyWith(bottom: 0),
-              child: Column(
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
+              child: Row(
+                spacing: 10,
                 children: [
-                  Row(
-                    children: [
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: TimedText(
-                          created: post.createdAt,
-                          child: DefaultTextStyle(
-                            style: Theme.of(context).textTheme.bodyMedium!
-                                .copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                            child: ArtistName(post: post),
-                          ),
-                        ),
-                      ),
-                      menu(),
-                    ],
-                  ),
-                  if (post.description.isNotEmpty)
-                    Row(
+                  Expanded(
+                    child: Row(
+                      spacing: 10,
                       children: [
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: DText(post.description.ellipse(200)),
+                        if (artists.isNotEmpty)
+                          Flexible(
+                            child: TagGesture(
+                              tag: artists.first,
+                              child: Container(
+                                padding: const EdgeInsets.only(left: 6),
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    left: BorderSide(
+                                      color: TagCategory.artist.colorFor(
+                                        theme.brightness,
+                                      ),
+                                      width: 2,
+                                    ),
+                                  ),
+                                ),
+                                child: Text(
+                                  artists.map(tagToName).join(', '),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    height: 18 / 15,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        Text(
+                          DateFormatting.age(post.createdAt),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: onSurface.withValues(alpha: 0.5),
                           ),
                         ),
                       ],
                     ),
-                  image(),
-                  const SizedBox(height: 8),
-                  actions(),
+                  ),
+                  InkWell(
+                    borderRadius: BorderRadius.circular(4),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => PostCommentsPage(postId: post.id),
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Row(
+                        spacing: 4,
+                        children: [
+                          Icon(
+                            Icons.comment,
+                            size: 16,
+                            color: onSurface.withValues(alpha: 0.6),
+                          ),
+                          Text(
+                            '${post.commentCount}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: onSurface.withValues(alpha: 0.6),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  IconTheme.merge(
+                    data: IconThemeData(
+                      color: onSurface.withValues(alpha: 0.75),
+                    ),
+                    child: FavoriteButton(post: post, size: 22, outlined: true),
+                  ),
                 ],
               ),
             ),
           ),
-        ),
-        const Divider(indent: 8, endIndent: 8),
-      ],
+          if (post.description.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: DefaultTextStyle.merge(
+                style: TextStyle(
+                  fontSize: 13,
+                  height: 18 / 13,
+                  color: onSurface.withValues(alpha: 0.65),
+                ),
+                child: DText(post.description.ellipse(200)),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
