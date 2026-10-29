@@ -23,6 +23,7 @@ class GalleryButtons extends StatelessWidget {
       return child;
     }
     return Material(
+      type: MaterialType.transparency,
       child: Stack(
         fit: StackFit.passthrough,
         children: [
