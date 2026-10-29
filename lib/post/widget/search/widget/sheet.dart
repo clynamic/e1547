@@ -353,6 +353,7 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
                 ),
               ),
               Padding(
+                key: const ValueKey('field'),
                 padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,

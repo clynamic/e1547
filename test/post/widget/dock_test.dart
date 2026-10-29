@@ -436,6 +436,7 @@ void main() {
       await settle(tester);
 
       expect(find.byType(MetaPanel), findsNothing);
+      expect(tester.testTextInput.isVisible, isTrue);
     });
 
     displayTest('a chip takes the colour of its tag category', (tester) async {
