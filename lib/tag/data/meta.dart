@@ -111,7 +111,23 @@ final DateFormat metaDateWords = DateFormat.MMMd();
   return (key: body.substring(0, colon), value: body.substring(colon + 1));
 }
 
+List<String> groupTerms(String term) {
+  if (!term.endsWith(')')) return const [];
+  final int open = term.indexOf('(');
+  if (open == -1 || open > 1) return const [];
+  return term
+      .substring(open + 1, term.length - 1)
+      .split(RegExp(r'\s+'))
+      .where((e) => e.isNotEmpty)
+      .toList();
+}
+
 MetaKind? metaKindOf(String term) {
+  final List<String> group = groupTerms(term);
+  if (group.isNotEmpty) {
+    final Set<MetaKind?> kinds = group.map(metaKindOf).toSet();
+    return kinds.length == 1 ? kinds.single : null;
+  }
   final meta = splitMeta(term);
   if (meta == null) return null;
   return switch (meta.key) {
@@ -172,6 +188,8 @@ String? dateWords(String value) {
 }
 
 String? metaWords(String term) {
+  final List<String> group = groupTerms(term);
+  if (group.isNotEmpty) return groupWords(group);
   final meta = splitMeta(term);
   if (meta == null) return null;
   final String value = meta.value;
@@ -191,6 +209,175 @@ String? metaWords(String term) {
       null => null,
     },
     'rating' => ratingNames[value]?.toLowerCase(),
+    'type' || 'filetype' => fileTypeWords([value]),
+    'duration' =>
+      LengthOption.byValue(value)?.words ?? '${rangeWords(value)} s',
+    'mpixels' => '${rangeWords(value)} MP',
+    'ratio' => ShapeOption.byValue(value)?.label.toLowerCase(),
+    'filesize' => FileSizeOption.byValue(value)?.words,
+    'fav' || 'votedup' || 'voteddown' || 'user' || 'commenter' || 'noter' =>
+      '${PeopleRelation.byKey(meta.key)!.words} '
+          '${value.replaceAll('_', ' ')}',
+    'inpool' ||
+    'hassource' ||
+    'hasdescription' ||
+    'ischild' ||
+    'isparent' ||
+    'artverified' => switch (value.toLowerCase()) {
+      'true' => PostProperty.byKey(meta.key)!.yes,
+      'false' => PostProperty.byKey(meta.key)!.no,
+      _ => null,
+    },
+    'status' => switch (PostStatus.byValue(value)) {
+      PostStatus.any => 'any status',
+      final PostStatus status => status.label.toLowerCase(),
+      null => null,
+    },
     _ => null,
   };
+}
+
+enum FileKind {
+  images('Images', ['jpg', 'png', 'webp']),
+  animated('Animated', ['gif', 'apng']),
+  videos('Videos', ['mp4', 'webm']),
+  flash('Flash', ['swf']);
+
+  const FileKind(this.label, this.types);
+
+  final String label;
+  final List<String> types;
+}
+
+enum LengthOption {
+  short('Under 30 s', '<30', 'under 30 s'),
+  medium('30 s to 2 min', '30..120', '30 s to 2 min'),
+  long('Over 2 min', '>120', 'over 2 min');
+
+  const LengthOption(this.label, this.value, this.words);
+
+  final String label;
+  final String value;
+  final String words;
+
+  static LengthOption? byValue(String value) =>
+      values.where((e) => e.value == value).firstOrNull;
+}
+
+enum ResolutionOption {
+  one('≥ 1 MP', '>=1'),
+  four('≥ 4 MP', '>=4'),
+  sixteen('≥ 16 MP', '>=16');
+
+  const ResolutionOption(this.label, this.value);
+
+  final String label;
+  final String value;
+}
+
+enum ShapeOption {
+  portrait('Portrait', '<1'),
+  square('Square', '1'),
+  landscape('Landscape', '>1');
+
+  const ShapeOption(this.label, this.value);
+
+  final String label;
+  final String value;
+
+  static ShapeOption? byValue(String value) =>
+      values.where((e) => e.value == value).firstOrNull;
+}
+
+enum FileSizeOption {
+  two('Under 2 MB', '<2MB', 'under 2 MB'),
+  ten('Under 10 MB', '<10MB', 'under 10 MB');
+
+  const FileSizeOption(this.label, this.value, this.words);
+
+  final String label;
+  final String value;
+  final String words;
+
+  static FileSizeOption? byValue(String value) =>
+      values.where((e) => e.value == value).firstOrNull;
+}
+
+enum PeopleRelation {
+  favorited('Favorited', 'fav', 'favorited by'),
+  upvoted('Upvoted', 'votedup', 'upvoted by'),
+  downvoted('Downvoted', 'voteddown', 'downvoted by'),
+  uploaded('Uploaded', 'user', 'uploaded by'),
+  commented('Commented on', 'commenter', 'commented on by'),
+  noted('Noted', 'noter', 'noted by');
+
+  const PeopleRelation(this.label, this.key, this.words);
+
+  final String label;
+  final String key;
+  final String words;
+
+  static PeopleRelation? byKey(String key) =>
+      values.where((e) => e.key == key).firstOrNull;
+}
+
+enum PostProperty {
+  inPool('In a pool', 'inpool', 'in a pool', 'not in a pool'),
+  hasSource('Has source', 'hassource', 'has source', 'no source'),
+  hasDescription(
+    'Has description',
+    'hasdescription',
+    'has description',
+    'no description',
+  ),
+  hasParent('Has parent', 'ischild', 'has parent', 'no parent'),
+  hasChildren('Has children', 'isparent', 'has children', 'no children'),
+  verified('Verified artist', 'artverified', 'verified artist', 'unverified');
+
+  const PostProperty(this.label, this.key, this.yes, this.no);
+
+  final String label;
+  final String key;
+  final String yes;
+  final String no;
+
+  static PostProperty? byKey(String key) =>
+      values.where((e) => e.key == key).firstOrNull;
+}
+
+enum PostStatus {
+  active('Active', null),
+  pending('Pending', 'pending'),
+  flagged('Flagged', 'flagged'),
+  deleted('Deleted', 'deleted'),
+  any('Any', 'any');
+
+  const PostStatus(this.label, this.value);
+
+  final String label;
+  final String? value;
+
+  static PostStatus? byValue(String value) =>
+      values.where((e) => e.value == value).firstOrNull;
+}
+
+String? fileTypeWords(List<String> types) {
+  for (final FileKind kind in FileKind.values) {
+    if (kind.types.toSet().containsAll(types) &&
+        types.toSet().containsAll(kind.types)) {
+      return kind.label.toLowerCase();
+    }
+  }
+  return types.join(' or ');
+}
+
+String? groupWords(List<String> terms) {
+  final List<({String key, String value})?> metas = terms
+      .map((e) => splitMeta(e))
+      .toList();
+  if (metas.isEmpty || metas.any((e) => e == null)) return null;
+  if (metas.every((e) => e!.key == 'type' || e.key == 'filetype')) {
+    return fileTypeWords(metas.map((e) => e!.value).toList());
+  }
+  return null;
 }

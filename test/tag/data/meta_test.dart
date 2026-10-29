@@ -27,4 +27,22 @@ void main() {
     expect(metaKindOf('order:rank'), MetaKind.order);
     expect(metaKindOf('riolu'), isNull);
   });
+
+  test('file, size, people and property terms read in words', () {
+    expect(metaWords('( ~type:mp4 ~type:webm )'), 'videos');
+    expect(metaWords('type:png'), 'png');
+    expect(metaWords('duration:<30'), 'under 30 s');
+    expect(metaWords('mpixels:>=4'), '≥ 4 MP');
+    expect(metaWords('ratio:>1'), 'landscape');
+    expect(metaWords('filesize:<10MB'), 'under 10 MB');
+    expect(metaWords('fav:tester'), 'favorited by tester');
+    expect(metaWords('hassource:false'), 'no source');
+    expect(metaWords('ischild:true'), 'has parent');
+    expect(metaWords('status:pending'), 'pending');
+  });
+
+  test('a group of file types belongs to the file builder', () {
+    expect(metaKindOf('( ~type:gif ~type:apng )'), MetaKind.file);
+    expect(metaKindOf('( ~type:gif ~fav:tester )'), isNull);
+  });
 }

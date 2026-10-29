@@ -6,6 +6,13 @@ const Set<MetaKind> builtMetaKinds = {
   MetaKind.counts,
   MetaKind.order,
   MetaKind.rating,
+  MetaKind.file,
+  MetaKind.size,
+  MetaKind.people,
+  MetaKind.properties,
+  MetaKind.family,
+  MetaKind.status,
+  MetaKind.text,
 };
 
 Color metaWell(ThemeData theme) => Color.alphaBlend(
@@ -20,12 +27,14 @@ class MetaPanel extends StatelessWidget {
     required this.kind,
     required this.onPick,
     required this.onBack,
+    this.me,
   });
 
   final QueryFieldController controller;
   final MetaKind? kind;
   final ValueChanged<MetaKind> onPick;
   final VoidCallback onBack;
+  final String? me;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +46,7 @@ class MetaPanel extends StatelessWidget {
         final String raw = kind == null
             ? ''
             : controller.terms.where((e) => metaKindOf(e) == kind).join(' ');
-        return ColoredBox(
+        return Material(
           color: Color.alphaBlend(
             Colors.black.withValues(alpha: 0.15),
             theme.cardColor,
@@ -102,7 +111,33 @@ class MetaPanel extends StatelessWidget {
                   MetaKind.counts => CountsBuilder(controller: controller),
                   MetaKind.order => OrderBuilder(controller: controller),
                   MetaKind.rating => RatingBuilder(controller: controller),
-                  _ => const SizedBox.shrink(),
+                  MetaKind.file => FileBuilder(controller: controller),
+                  MetaKind.size => SizeBuilder(controller: controller),
+                  MetaKind.people => PeopleBuilder(
+                    controller: controller,
+                    me: me,
+                  ),
+                  MetaKind.properties => PropertiesBuilder(
+                    controller: controller,
+                    properties: PostProperty.values,
+                    status: true,
+                  ),
+                  MetaKind.family => PropertiesBuilder(
+                    controller: controller,
+                    properties: const [
+                      PostProperty.hasParent,
+                      PostProperty.hasChildren,
+                    ],
+                  ),
+                  MetaKind.text => PropertiesBuilder(
+                    controller: controller,
+                    properties: const [
+                      PostProperty.hasSource,
+                      PostProperty.hasDescription,
+                    ],
+                  ),
+                  MetaKind.status => StatusBuilder(controller: controller),
+                  MetaKind.pools => const SizedBox.shrink(),
                 },
               ),
             ],
@@ -663,6 +698,386 @@ class RatingBuilder extends StatelessWidget {
               ['rating:$key'],
             ),
           ),
+      ],
+    );
+  }
+}
+
+String? metaValue(QueryFieldController controller, String key) => controller
+    .terms
+    .map(splitMeta)
+    .where((e) => e?.key == key)
+    .firstOrNull
+    ?.value;
+
+class FileBuilder extends StatelessWidget {
+  const FileBuilder({super.key, required this.controller});
+
+  final QueryFieldController controller;
+
+  bool _isType(String term) =>
+      metaKindOf(term) == MetaKind.file && !isMetaKey(term, {'duration'});
+
+  @override
+  Widget build(BuildContext context) {
+    final Set<String> types = {
+      for (final String term in controller.terms.where(_isType))
+        for (final String part in [
+          ...groupTerms(term),
+          if (groupTerms(term).isEmpty) term,
+        ])
+          ?splitMeta(part)?.value,
+    };
+    final String? length = metaValue(controller, 'duration');
+
+    void writeTypes(Set<String> types) => controller.replaceWhere(_isType, [
+      if (types.length == 1)
+        'type:${types.single}'
+      else if (types.length > 1)
+        '( ${types.map((e) => '~type:$e').join(' ')} )',
+    ]);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 8,
+      children: [
+        const MetaLabel('Kind · pick any'),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          primary: false,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 6,
+          crossAxisSpacing: 6,
+          childAspectRatio: 3,
+          children: [
+            for (final FileKind kind in FileKind.values)
+              MetaOption(
+                label: kind.label,
+                sub: kind.types.join(' '),
+                selected: types.containsAll(kind.types),
+                onTap: () => writeTypes(
+                  types.containsAll(kind.types)
+                      ? types.difference(kind.types.toSet())
+                      : types.union(kind.types.toSet()),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        const MetaLabel('Length'),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            MetaOption(
+              label: 'Any',
+              selected: length == null,
+              onTap: () => controller.replaceWhere(
+                (e) => isMetaKey(e, {'duration'}),
+                [],
+              ),
+            ),
+            for (final LengthOption option in LengthOption.values)
+              MetaOption(
+                label: option.label,
+                selected: length == option.value,
+                onTap: () => controller.replaceWhere(
+                  (e) => isMetaKey(e, {'duration'}),
+                  ['duration:${option.value}'],
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class MetaChoices<T> extends StatelessWidget {
+  const MetaChoices({
+    super.key,
+    required this.label,
+    required this.options,
+    required this.name,
+    required this.selected,
+    required this.onPick,
+  });
+
+  final String label;
+  final List<T> options;
+  final String Function(T option) name;
+  final T? selected;
+  final ValueChanged<T?> onPick;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    spacing: 6,
+    children: [
+      MetaLabel(label),
+      Wrap(
+        spacing: 6,
+        runSpacing: 6,
+        children: [
+          MetaOption(
+            label: 'Any',
+            selected: selected == null,
+            onTap: () => onPick(null),
+          ),
+          for (final T option in options)
+            MetaOption(
+              label: name(option),
+              selected: option == selected,
+              onTap: () => onPick(option),
+            ),
+        ],
+      ),
+    ],
+  );
+}
+
+class SizeBuilder extends StatelessWidget {
+  const SizeBuilder({super.key, required this.controller});
+
+  final QueryFieldController controller;
+
+  void write(String key, String? value) => controller.replaceWhere(
+    (e) => isMetaKey(e, {key}),
+    [if (value != null) '$key:$value'],
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final String? mpixels = metaValue(controller, 'mpixels');
+    final String? ratio = metaValue(controller, 'ratio');
+    final String? filesize = metaValue(controller, 'filesize');
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 12,
+      children: [
+        MetaChoices<ResolutionOption>(
+          label: 'Resolution',
+          options: ResolutionOption.values,
+          name: (e) => e.label,
+          selected: ResolutionOption.values
+              .where((e) => e.value == mpixels)
+              .firstOrNull,
+          onPick: (e) => write('mpixels', e?.value),
+        ),
+        MetaChoices<ShapeOption>(
+          label: 'Shape',
+          options: ShapeOption.values,
+          name: (e) => e.label,
+          selected: ratio == null ? null : ShapeOption.byValue(ratio),
+          onPick: (e) => write('ratio', e?.value),
+        ),
+        MetaChoices<FileSizeOption>(
+          label: 'File size',
+          options: FileSizeOption.values,
+          name: (e) => e.label,
+          selected: filesize == null ? null : FileSizeOption.byValue(filesize),
+          onPick: (e) => write('filesize', e?.value),
+        ),
+      ],
+    );
+  }
+}
+
+class PeopleBuilder extends StatelessWidget {
+  const PeopleBuilder({super.key, required this.controller, this.me});
+
+  final QueryFieldController controller;
+  final String? me;
+
+  bool _isPeople(String term) => metaKindOf(term) == MetaKind.people;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final ({String key, String value})? current = controller.terms
+        .where(_isPeople)
+        .map(splitMeta)
+        .firstOrNull;
+    final PeopleRelation relation =
+        PeopleRelation.byKey(current?.key ?? '') ?? PeopleRelation.favorited;
+    final String? who = current?.value;
+    final bool isMe = who != null && who == me;
+
+    void write(PeopleRelation relation, String? who) => controller.replaceWhere(
+      _isPeople,
+      [if (who != null && who.isNotEmpty) '${relation.key}:$who'],
+    );
+
+    Future<void> someone() async {
+      final TextEditingController text = TextEditingController(
+        text: isMe ? '' : who ?? '',
+      );
+      final String? name = await showDialog<String>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Someone else'),
+          content: TextField(
+            controller: text,
+            autofocus: true,
+            decoration: const InputDecoration(labelText: 'Username'),
+            onSubmitted: (value) => Navigator.of(context).pop(value),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(text.text),
+              child: const Text('Set'),
+            ),
+          ],
+        ),
+      );
+      text.dispose();
+      if (name == null) return;
+      write(relation, name.trim().replaceAll(' ', '_'));
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 8,
+      children: [
+        Row(
+          spacing: 6,
+          children: [
+            if (me != null)
+              Expanded(
+                child: MetaOption(
+                  label: 'Me',
+                  selected: isMe,
+                  onTap: () => write(relation, isMe ? null : me),
+                ),
+              ),
+            Expanded(
+              flex: 2,
+              child: MetaOption(
+                label: who != null && !isMe
+                    ? who.replaceAll('_', ' ')
+                    : 'Someone else',
+                selected: who != null && !isMe,
+                onTap: someone,
+              ),
+            ),
+          ],
+        ),
+        RadioGroup<PeopleRelation>(
+          groupValue: relation,
+          onChanged: (value) {
+            if (value != null) write(value, who ?? me);
+          },
+          child: Column(
+            children: [
+              for (final PeopleRelation value in PeopleRelation.values)
+                RadioListTile<PeopleRelation>(
+                  value: value,
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                  title: Text(value.label),
+                  secondary: Text(
+                    '${value.key}:',
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 11,
+                      color: theme.colorScheme.onSurface.withValues(
+                        alpha: 0.45,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class PropertiesBuilder extends StatelessWidget {
+  const PropertiesBuilder({
+    super.key,
+    required this.controller,
+    required this.properties,
+    this.status = false,
+  });
+
+  final QueryFieldController controller;
+  final List<PostProperty> properties;
+  final bool status;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    spacing: 4,
+    children: [
+      for (final PostProperty property in properties)
+        Row(
+          children: [
+            Expanded(child: Text(property.label)),
+            SizedBox(
+              width: 150,
+              child: MetaSegments<bool?>(
+                values: const [null, true, false],
+                label: (e) => switch (e) {
+                  null => 'Any',
+                  true => 'Yes',
+                  false => 'No',
+                },
+                selected: switch (metaValue(controller, property.key)) {
+                  'true' => true,
+                  'false' => false,
+                  _ => null,
+                },
+                onPick: (value) => controller.replaceWhere(
+                  (e) => isMetaKey(e, {property.key}),
+                  [if (value != null) '${property.key}:$value'],
+                ),
+              ),
+            ),
+          ],
+        ),
+      if (status) ...[
+        const SizedBox(height: 8),
+        StatusBuilder(controller: controller),
+      ],
+    ],
+  );
+}
+
+class StatusBuilder extends StatelessWidget {
+  const StatusBuilder({super.key, required this.controller});
+
+  final QueryFieldController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final String? value = metaValue(controller, 'status');
+    final PostStatus selected = value == null
+        ? PostStatus.active
+        : PostStatus.byValue(value) ?? PostStatus.active;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 6,
+      children: [
+        const MetaLabel('Status'),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final PostStatus status in PostStatus.values)
+              MetaOption(
+                label: status.label,
+                selected: status == selected,
+                onTap: () => controller.replaceWhere(
+                  (e) => isMetaKey(e, {'status'}),
+                  [if (status.value != null) 'status:${status.value}'],
+                ),
+              ),
+          ],
+        ),
       ],
     );
   }

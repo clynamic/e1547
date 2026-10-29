@@ -61,6 +61,17 @@ void main() {
       expect(controller.terms, ['riolu', 'human']);
     });
 
+    test('a pasted group stays one term', () {
+      type('( ~type:mp4 ~type:webm ) solo ');
+
+      expect(controller.terms, [
+        'riolu',
+        '-human',
+        '( ~type:mp4 ~type:webm )',
+        'solo',
+      ]);
+    });
+
     test('a committed suggestion with spaces adds each term', () {
       controller.commit('lucario solo');
 

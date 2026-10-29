@@ -28,7 +28,7 @@ class QueryFieldController extends ChangeNotifier {
       [..._terms, if (typed.trim().isNotEmpty) typed.trim()].join(' ');
 
   static List<String> _split(String value) =>
-      value.split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
+      splitQueryTerms(value.split(RegExp(r'\s+')));
 
   void _add(Iterable<String> terms) {
     for (final String term in terms) {
@@ -65,7 +65,7 @@ class QueryFieldController extends ChangeNotifier {
     if (value.contains(RegExp(r'\s'))) {
       final List<String> parts = value.split(RegExp(r'\s+'));
       value = parts.removeLast();
-      _add(parts.where((e) => e.isNotEmpty));
+      _add(splitQueryTerms(parts));
       _selected = null;
     }
     if (value.isNotEmpty) _selected = null;
@@ -120,6 +120,26 @@ class QueryFieldController extends ChangeNotifier {
     text.dispose();
     super.dispose();
   }
+}
+
+List<String> splitQueryTerms(Iterable<String> words) {
+  final List<String> terms = [];
+  List<String>? group;
+  for (final String word in words.where((e) => e.isNotEmpty)) {
+    if (group != null) {
+      group.add(word);
+      if (word == ')') {
+        terms.add(group.join(' '));
+        group = null;
+      }
+    } else if (word == '(' || word == '-(') {
+      group = [word];
+    } else {
+      terms.add(word);
+    }
+  }
+  if (group != null) terms.addAll(group);
+  return terms;
 }
 
 TagCategory? tagCategoryOf(int? id) =>

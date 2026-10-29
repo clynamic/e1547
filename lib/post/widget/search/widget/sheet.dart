@@ -393,6 +393,7 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
                     primary: false,
                     child: MetaPanel(
                       controller: controller,
+                      me: context.watch<Client>().identity.username,
                       kind: building,
                       onPick: _openPanel,
                       onBack: building != null

@@ -8,20 +8,22 @@ void main() {
   setUp(() => controller = QueryFieldController(query: 'riolu'));
   tearDown(() => controller.dispose());
 
-  Future<void> show(WidgetTester tester, MetaKind? kind) => tester.pumpWidget(
-    MaterialApp(
-      home: Scaffold(
-        body: SingleChildScrollView(
-          child: MetaPanel(
-            controller: controller,
-            kind: kind,
-            onPick: (_) {},
-            onBack: () {},
+  Future<void> show(WidgetTester tester, MetaKind? kind, {String? me}) =>
+      tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: MetaPanel(
+                controller: controller,
+                me: me,
+                kind: kind,
+                onPick: (_) {},
+                onBack: () {},
+              ),
+            ),
           ),
         ),
-      ),
-    ),
-  );
+      );
 
   testWidgets('the catalog lists the filters that have builders', (
     tester,
@@ -34,6 +36,7 @@ void main() {
     );
 
     expect(find.text('Order'), findsOneWidget);
+    expect(find.text('Status'), findsOneWidget);
     expect(find.text('Pools & sets'), findsNothing);
 
     await tester.tap(find.text('Order'));
@@ -127,5 +130,85 @@ void main() {
 
     expect(find.text('score ≥ 100', findRichText: true), findsOneWidget);
     expect(find.byIcon(MetaKind.counts.icon), findsOneWidget);
+  });
+
+  testWidgets('a file kind adds its types as one group and a second tap '
+      'removes it', (tester) async {
+    await show(tester, MetaKind.file);
+
+    await tester.tap(find.text('Videos'));
+    await tester.pump();
+    expect(controller.terms, ['riolu', '( ~type:mp4 ~type:webm )']);
+
+    await tester.tap(find.text('Videos'));
+    await tester.pump();
+    expect(controller.terms, ['riolu']);
+  });
+
+  testWidgets('a length sets the duration', (tester) async {
+    await show(tester, MetaKind.file);
+
+    await tester.tap(find.text('Under 30 s'));
+    await tester.pump();
+
+    expect(controller.terms, ['riolu', 'duration:<30']);
+  });
+
+  testWidgets('a shape sets the ratio and Any clears it', (tester) async {
+    await show(tester, MetaKind.size);
+
+    await tester.tap(find.text('Landscape'));
+    await tester.pump();
+    expect(controller.terms, ['riolu', 'ratio:>1']);
+
+    await tester.tap(find.text('Any').at(1));
+    await tester.pump();
+    expect(controller.terms, ['riolu']);
+  });
+
+  testWidgets('people pairs a relation with the reader', (tester) async {
+    await show(tester, MetaKind.people, me: 'tester');
+
+    await tester.tap(find.text('Me'));
+    await tester.pump();
+    expect(controller.terms, ['riolu', 'fav:tester']);
+
+    await tester.tap(find.text('Upvoted'));
+    await tester.pump();
+    expect(controller.terms, ['riolu', 'votedup:tester']);
+  });
+
+  testWidgets('people offers Me only to a signed in reader', (tester) async {
+    await show(tester, MetaKind.people);
+
+    expect(find.text('Me'), findsNothing);
+    expect(find.text('Someone else'), findsOneWidget);
+  });
+
+  testWidgets('a property is set to yes, no or any', (tester) async {
+    await show(tester, MetaKind.properties);
+    final Finder row = find
+        .ancestor(of: find.text('In a pool'), matching: find.byType(Row))
+        .first;
+
+    await tester.tap(find.descendant(of: row, matching: find.text('No')));
+    await tester.pump();
+    expect(controller.terms, ['riolu', 'inpool:false']);
+
+    await tester.tap(find.descendant(of: row, matching: find.text('Any')));
+    await tester.pump();
+    expect(controller.terms, ['riolu']);
+  });
+
+  testWidgets('a status other than active is added', (tester) async {
+    await show(tester, MetaKind.status);
+
+    await tester.tap(find.text('Deleted'));
+    await tester.pump();
+    expect(controller.terms, ['riolu', 'status:deleted']);
+
+    await tester.tap(find.text('Active'));
+    await tester.pump();
+    expect(controller.terms, ['riolu']);
   });
 }
