@@ -133,3 +133,96 @@ class CoverRow extends StatelessWidget {
     );
   }
 }
+
+int coverCardColumns(BuildContext context) =>
+    (TileLayout.of(context).crossAxisCount * 0.5).round().clamp(2, 8);
+
+class CoverCardSkeleton extends StatelessWidget {
+  const CoverCardSkeleton({super.key, this.coverHeight});
+
+  final double? coverHeight;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color color = PostGridSkeleton.color(Theme.of(context));
+    final int columns = coverCardColumns(context);
+    final double screen = MediaQuery.sizeOf(context).height;
+    Widget line(double fontSize, double widthFactor) => Stack(
+      alignment: Alignment.centerLeft,
+      children: [
+        Text(' ', style: TextStyle(fontSize: fontSize)),
+        FractionallySizedBox(
+          widthFactor: widthFactor,
+          child: Container(
+            height: fontSize * 0.75,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+        ),
+      ],
+    );
+    Widget card(double cover) => Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 6,
+        children: [
+          Container(
+            height: cover,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [line(14, 0.8), line(12, 0.5)],
+          ),
+        ],
+      ),
+    );
+    return SizedBox(
+      height: screen,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final double width =
+              (constraints.maxWidth - 8 * (columns - 1)) / columns;
+          return ClipRect(
+            child: OverflowBox(
+              alignment: Alignment.topCenter,
+              maxHeight: double.infinity,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 8,
+                children: [
+                  for (int column = 0; column < columns; column++)
+                    Expanded(
+                      child: Column(
+                        children: [
+                          for (final double cover
+                              in coverHeight != null
+                                  ? List.filled(
+                                      (screen / coverHeight!).ceil(),
+                                      coverHeight!,
+                                    )
+                                  : PostGridSkeleton.masonry(
+                                      PostGridSkeleton.ratios[column %
+                                          PostGridSkeleton.ratios.length],
+                                      width,
+                                      screen,
+                                    ))
+                            card(cover),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}

@@ -47,6 +47,9 @@ class PostGridSkeleton extends StatelessWidget {
     [1.0, 1.35, 1.05, 1.1],
   ];
 
+  static Color color(ThemeData theme) =>
+      theme.colorScheme.onSurface.withValues(alpha: 0.05);
+
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
@@ -60,7 +63,7 @@ class PostGridSkeleton extends StatelessWidget {
       child: Container(
         height: height,
         decoration: BoxDecoration(
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+          color: color(theme),
           borderRadius: BorderRadius.circular(4),
         ),
       ),

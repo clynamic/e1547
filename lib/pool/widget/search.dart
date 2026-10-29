@@ -110,10 +110,7 @@ class SliverPoolGrid extends StatelessWidget {
     showNoMoreItemsIndicatorAsGridChild: false,
     state: state.paging,
     fetchNextPage: query.getNextPage,
-    crossAxisCount: (TileLayout.of(context).crossAxisCount * 0.5).round().clamp(
-      2,
-      8,
-    ),
+    crossAxisCount: coverCardColumns(context),
     crossAxisSpacing: 8,
     builderDelegate: defaultPagedChildBuilderDelegate<Pool>(
       onRetry: query.getNextPage,
@@ -121,6 +118,7 @@ class SliverPoolGrid extends StatelessWidget {
         size: TileLayout.of(context).tileSize * 2,
         child: PoolCard(pool: item, onTap: () => openPool(context, item)),
       ),
+      onLoading: const CoverCardSkeleton(),
       onEmpty: const Text('No pools'),
       onError: const Text('Failed to load pools'),
     ),

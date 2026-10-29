@@ -164,9 +164,7 @@ class SliverPostSetGrid extends StatelessWidget {
         showNoMoreItemsIndicatorAsGridChild: false,
         state: state.paging,
         fetchNextPage: query.getNextPage,
-        crossAxisCount: (TileLayout.of(context).crossAxisCount * 0.5)
-            .round()
-            .clamp(2, 8),
+        crossAxisCount: coverCardColumns(context),
         crossAxisSpacing: 8,
         builderDelegate: defaultPagedChildBuilderDelegate<PostSet>(
           onRetry: query.getNextPage,
@@ -177,6 +175,7 @@ class SliverPostSetGrid extends StatelessWidget {
               onTap: () => openPostSet(context, item),
             ),
           ),
+          onLoading: const CoverCardSkeleton(coverHeight: 170),
           onEmpty: const Text('No sets'),
           onError: const Text('Failed to load sets'),
         ),

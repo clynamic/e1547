@@ -21,6 +21,7 @@ class PagedChildBuilderRetryButton extends StatelessWidget {
 PagedChildBuilderDelegate<T> defaultPagedChildBuilderDelegate<T>({
   required ItemWidgetBuilder<T> itemBuilder,
   VoidCallback? onRetry,
+  Widget? onLoading,
   Widget? onEmpty,
   Widget? onError,
   Widget Function(BuildContext context, Widget child)? pageBuilder,
@@ -30,12 +31,13 @@ PagedChildBuilderDelegate<T> defaultPagedChildBuilderDelegate<T>({
     itemBuilder: itemBuilder,
     firstPageProgressIndicatorBuilder: (context) => pageBuilder!(
       context,
-      const Material(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [CircularProgressIndicator()],
-        ),
-      ),
+      onLoading ??
+          const Material(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [CircularProgressIndicator()],
+            ),
+          ),
     ),
     newPageProgressIndicatorBuilder: (context) => pageBuilder!(
       context,

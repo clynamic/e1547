@@ -236,7 +236,11 @@ void main() {
 
     late NavBarDocks docks;
 
-    Future<Settings> showPage(WidgetTester tester, {SearchKind? kind}) async {
+    Future<Settings> showPage(
+      WidgetTester tester, {
+      SearchKind? kind,
+      bool settled = true,
+    }) async {
       docks = NavBarDocks();
       final Settings settings = Settings(await SharedPreferences.getInstance());
       if (kind != null) settings.searchKind.value = kind;
@@ -272,9 +276,42 @@ void main() {
           ),
         ),
       );
-      await settle(tester);
+      if (settled) await settle(tester);
       return settings;
     }
+
+    Rect skeletonCover(WidgetTester tester) => tester.getRect(
+      find
+          .descendant(
+            of: find.byType(CoverCardSkeleton),
+            matching: find.byType(Container),
+          )
+          .first,
+    );
+
+    displayTest('pools load behind skeletons as wide as their cards', (
+      tester,
+    ) async {
+      await showPage(tester, kind: SearchKind.pools, settled: false);
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      final Rect cover = skeletonCover(tester);
+
+      await settle(tester);
+      expect(cover.width, tester.getSize(find.byType(PoolCard).first).width);
+    });
+
+    displayTest('sets load behind skeletons with covers as tall as theirs', (
+      tester,
+    ) async {
+      await showPage(tester, kind: SearchKind.sets, settled: false);
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(skeletonCover(tester).height, 170);
+      await settle(tester);
+    });
 
     displayTest('the header unfolds every kind in order, the current checked', (
       tester,
