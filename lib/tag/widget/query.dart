@@ -102,6 +102,14 @@ class QueryFieldController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void replaceWhere(bool Function(String term) test, List<String> terms) {
+    final int at = _terms.indexWhere(test);
+    _terms.removeWhere(test);
+    _terms.insertAll(at == -1 ? _terms.length : at, terms);
+    _selected = null;
+    notifyListeners();
+  }
+
   void replace(int index, String term) {
     _terms[index] = term;
     notifyListeners();
@@ -124,6 +132,7 @@ class QueryField extends StatelessWidget {
     this.previews = const {},
     this.focusNode,
     this.onSubmit,
+    this.onChipTap,
     this.color,
   });
 
@@ -131,6 +140,7 @@ class QueryField extends StatelessWidget {
   final Map<String, TagPreview> previews;
   final FocusNode? focusNode;
   final VoidCallback? onSubmit;
+  final ValueChanged<int>? onChipTap;
   final Color? color;
 
   @override
@@ -169,7 +179,9 @@ class QueryField extends StatelessWidget {
                         term: term,
                         preview: previews[tagWithoutPrefix(term)],
                         selected: controller.selected == index,
-                        onTap: () => controller.select(index),
+                        onTap: () => onChipTap != null
+                            ? onChipTap!(index)
+                            : controller.select(index),
                       ),
                     QueryFieldInput(
                       controller: controller,
@@ -274,6 +286,8 @@ class QueryChip extends StatelessWidget {
     final String name = term.substring(prefix.length);
     final bool meta = name.contains(':');
     final bool unknown = !meta && preview?.postCount == 0;
+    final String? words = metaWords(name);
+    final MetaKind? kind = words == null ? null : metaKindOf(name);
     final Color stripe = meta || unknown
         ? Colors.grey
         : tagCategoryOf(preview?.category)?.color ??
@@ -297,6 +311,11 @@ class QueryChip extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(width: 3, color: stripe),
+              if (kind != null)
+                Padding(
+                  padding: const EdgeInsets.only(left: 5),
+                  child: Icon(kind.icon, size: dense ? 13 : 14),
+                ),
               Padding(
                 padding: dense
                     ? const EdgeInsets.fromLTRB(6, 0, 7, 0)
@@ -314,7 +333,7 @@ class QueryChip extends StatelessWidget {
                           ),
                         ),
                       TextSpan(
-                        text: name.replaceAll('_', ' '),
+                        text: words ?? name.replaceAll('_', ' '),
                         style: unknown
                             ? TextStyle(
                                 decoration: TextDecoration.underline,

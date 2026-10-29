@@ -4,6 +4,7 @@ export 'count.dart';
 export 'filter.dart';
 export 'json.dart';
 export 'map.dart';
+export 'meta.dart';
 export 'node.dart';
 export 'parser.dart';
 export 'preview.dart';

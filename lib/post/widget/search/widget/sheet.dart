@@ -136,9 +136,51 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
   final FocusNode focus = FocusNode();
   final Map<String, TagPreview> previews = {};
   PostSearchSheetTab tab = PostSearchSheetTab.recent;
+  bool catalog = false;
+  MetaKind? building;
+
+  bool get panel => catalog || building != null;
+
+  @override
+  void initState() {
+    super.initState();
+    focus.addListener(_onFocus);
+  }
+
+  void _onFocus() {
+    if (focus.hasFocus && panel) {
+      setState(() {
+        catalog = false;
+        building = null;
+      });
+    }
+  }
+
+  void _openPanel(MetaKind? kind) {
+    focus.unfocus();
+    setState(() {
+      catalog = true;
+      building = kind;
+    });
+  }
+
+  void _closePanel() => setState(() {
+    catalog = false;
+    building = null;
+  });
+
+  void _tapChip(int index) {
+    final MetaKind? kind = metaKindOf(controller.terms[index]);
+    if (kind != null && builtMetaKinds.contains(kind)) {
+      _openPanel(kind);
+    } else {
+      controller.select(index);
+    }
+  }
 
   @override
   void dispose() {
+    focus.removeListener(_onFocus);
     controller.dispose();
     focus.dispose();
     super.dispose();
@@ -223,6 +265,7 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
           }
           final int? unknown = unknownIn(controller.terms);
           final bool tabs =
+              !panel &&
               controller.selected == null &&
               controller.typed.isEmpty &&
               unknown == null;
@@ -231,7 +274,7 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SheetGrip(),
-              body(unknown),
+              if (!panel) body(unknown),
               if (tabs)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -272,6 +315,34 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
                           );
                         },
                       ),
+                    SizedBox.square(
+                      dimension: 32,
+                      child: Material(
+                        color: panel
+                            ? theme.colorScheme.primary.withValues(alpha: 0.16)
+                            : well,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                          side: BorderSide(
+                            color: panel
+                                ? theme.colorScheme.primary
+                                : Colors.transparent,
+                          ),
+                        ),
+                        child: InkWell(
+                          onTap: panel ? _closePanel : () => _openPanel(null),
+                          borderRadius: BorderRadius.circular(4),
+                          child: Tooltip(
+                            message: 'Add a filter',
+                            child: Icon(
+                              Icons.add,
+                              size: 20,
+                              color: panel ? theme.colorScheme.primary : null,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                     const Spacer(),
                     SizedBox.square(
                       dimension: typing ? 44 : 48,
@@ -301,6 +372,7 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
                       controller: controller,
                       focusNode: focus,
                       onSubmit: submit,
+                      onChipTap: _tapChip,
                       previews: previews,
                       color: well,
                     ),
@@ -315,6 +387,20 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
                   ],
                 ),
               ),
+              if (panel)
+                Flexible(
+                  child: SingleChildScrollView(
+                    primary: false,
+                    child: MetaPanel(
+                      controller: controller,
+                      kind: building,
+                      onPick: _openPanel,
+                      onBack: building != null
+                          ? () => _openPanel(null)
+                          : _closePanel,
+                    ),
+                  ),
+                ),
             ],
           );
         },

@@ -3,6 +3,7 @@ export 'drawer.dart';
 export 'filter.dart';
 export 'gesture.dart';
 export 'input.dart';
+export 'meta.dart';
 export 'prompt.dart';
 export 'query.dart';
 export 'search.dart';

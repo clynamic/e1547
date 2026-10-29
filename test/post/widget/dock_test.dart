@@ -389,6 +389,43 @@ void main() {
       expect(submitted, ['riolu tag_37']);
     });
 
+    displayTest('the add button opens the filter catalog over the lists', (
+      tester,
+    ) async {
+      await tester.runAsync(() => search('lucario', DateTime(2026, 10)));
+      await openSheet(tester);
+      expect(find.text('lucario', findRichText: true), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Add a filter'));
+      await settle(tester);
+
+      expect(find.byType(MetaCatalog), findsOneWidget);
+      expect(find.text('lucario', findRichText: true), findsNothing);
+    });
+
+    displayTest('a metatag chip opens its builder', (tester) async {
+      await openSheet(tester);
+      await tester.enterText(find.byType(TextField), 'order:score ');
+      await settle(tester);
+
+      await tester.tap(find.widgetWithText(QueryChip, 'by score'));
+      await settle(tester);
+
+      expect(find.byType(OrderBuilder), findsOneWidget);
+      expect(find.byType(QueryChipActions), findsNothing);
+    });
+
+    displayTest('focusing the field closes the filters', (tester) async {
+      await openSheet(tester);
+      await tester.tap(find.byTooltip('Add a filter'));
+      await settle(tester);
+
+      await tester.tap(find.byType(TextField));
+      await settle(tester);
+
+      expect(find.byType(MetaPanel), findsNothing);
+    });
+
     displayTest('a chip takes the colour of its tag category', (tester) async {
       await openSheet(tester);
       await tester.tap(find.text('In results'));
