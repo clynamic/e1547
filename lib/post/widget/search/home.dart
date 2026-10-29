@@ -38,7 +38,6 @@ class HomePage extends StatelessWidget {
                       actions: [ContextDrawerButton()],
                     ),
                   ),
-                  floatingActionButton: const PostsPageFab(),
                   endDrawer: ContextDrawer(
                     title: const Text('Posts'),
                     children: [
@@ -49,12 +48,14 @@ class HomePage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  body: LimitedWidthLayout(
-                    child: ListenableBuilder(
-                      listenable: context.watch<Settings>().tileSize,
-                      builder: (context, child) => TileLayout(
-                        tileSize: context.watch<Settings>().tileSize.value,
-                        child: const PostList(),
+                  body: PostSearchDock(
+                    child: LimitedWidthLayout(
+                      child: ListenableBuilder(
+                        listenable: context.watch<Settings>().tileSize,
+                        builder: (context, child) => TileLayout(
+                          tileSize: context.watch<Settings>().tileSize.value,
+                          child: const PostList(),
+                        ),
                       ),
                     ),
                   ),

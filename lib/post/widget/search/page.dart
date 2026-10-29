@@ -32,10 +32,6 @@ class PostsPage extends StatelessWidget {
                   items: state.data?.pages.expand((p) => p).toList(),
                   child: AdaptiveScaffold(
                     appBar: const PostSelectionAppBar(child: PostPageAppBar()),
-                    floatingActionButton:
-                        context.watch<PostParamsController>().canSearch
-                        ? const PostsPageFab()
-                        : null,
                     endDrawer: ContextDrawer(
                       title: const Text('Posts'),
                       children: [
@@ -56,12 +52,14 @@ class PostsPage extends StatelessWidget {
                         ),
                       ],
                     ),
-                    body: LimitedWidthLayout(
-                      child: ListenableBuilder(
-                        listenable: context.watch<Settings>().tileSize,
-                        builder: (context, child) => TileLayout(
-                          tileSize: context.watch<Settings>().tileSize.value,
-                          child: const PostList(),
+                    body: PostSearchDock(
+                      child: LimitedWidthLayout(
+                        child: ListenableBuilder(
+                          listenable: context.watch<Settings>().tileSize,
+                          builder: (context, child) => TileLayout(
+                            tileSize: context.watch<Settings>().tileSize.value,
+                            child: const PostList(),
+                          ),
                         ),
                       ),
                     ),

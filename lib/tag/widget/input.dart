@@ -125,11 +125,11 @@ class TagInput extends StatelessWidget {
             ],
           ),
           suggestionsCallback: (pattern) async {
-            final client = context.read<Client>();
             List<String> tags = controller.text.split(' ');
             int selection = findTag(tags, controller.selection.extent.offset);
             String tag = tags[selection];
             if (tag.isEmpty) return [];
+            final client = context.read<Client>();
             return client.tags.autocomplete(
               search: tagToRaw(tags[selection]),
               category: category,

@@ -144,21 +144,24 @@ class _AppShellState extends State<AppShell> {
                 cover: cover,
                 child: NavBarCoverScope(
                   cover: cover,
-                  child: AnimatedIndexedStack(
-                    index: shell.tab.index,
-                    children: [
-                      for (final ShellTab tab in ShellTab.values)
-                        if (visited.contains(tab))
-                          ShellNavigator(
-                            navigatorKey: shell.navigatorOf(tab),
-                            scroll: scrollOf(tab),
-                            reselect: reselectOf(tab),
-                            active: tab == shell.tab,
-                            builder: (context) => widget.root(context, tab),
-                          )
-                        else
-                          const SizedBox.shrink(),
-                    ],
+                  child: NavBarVisibilityScope(
+                    visibility: visibility,
+                    child: AnimatedIndexedStack(
+                      index: shell.tab.index,
+                      children: [
+                        for (final ShellTab tab in ShellTab.values)
+                          if (visited.contains(tab))
+                            ShellNavigator(
+                              navigatorKey: shell.navigatorOf(tab),
+                              scroll: scrollOf(tab),
+                              reselect: reselectOf(tab),
+                              active: tab == shell.tab,
+                              builder: (context) => widget.root(context, tab),
+                            )
+                          else
+                            const SizedBox.shrink(),
+                      ],
+                    ),
                   ),
                 ),
               ),

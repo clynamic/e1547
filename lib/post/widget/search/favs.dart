@@ -36,7 +36,6 @@ class FavPage extends StatelessWidget {
                       appBar: const PostSelectionAppBar(
                         child: PostPageAppBar(),
                       ),
-                      floatingActionButton: const PostsPageFab(),
                       endDrawer: ContextDrawer(
                         title: const Text('Posts'),
                         children: [
@@ -49,12 +48,17 @@ class FavPage extends StatelessWidget {
                           ),
                         ],
                       ),
-                      body: LimitedWidthLayout(
-                        child: ListenableBuilder(
-                          listenable: context.watch<Settings>().tileSize,
-                          builder: (context, child) => TileLayout(
-                            tileSize: context.watch<Settings>().tileSize.value,
-                            child: const PostList(),
+                      body: PostSearchDock(
+                        child: LimitedWidthLayout(
+                          child: ListenableBuilder(
+                            listenable: context.watch<Settings>().tileSize,
+                            builder: (context, child) => TileLayout(
+                              tileSize: context
+                                  .watch<Settings>()
+                                  .tileSize
+                                  .value,
+                              child: const PostList(),
+                            ),
                           ),
                         ),
                       ),

@@ -15,8 +15,13 @@ class PostList extends StatelessWidget {
       child: CustomScrollView(
         primary: true,
         slivers: [
-          SliverPadding(
-            padding: defaultActionListPadding,
+          SliverBottomInsetPadding(
+            padding: defaultListPadding.copyWith(
+              bottom:
+                  (Scaffold.maybeOf(context)?.hasFloatingActionButton ?? false)
+                  ? defaultActionListBottomHeight
+                  : defaultListPadding.bottom,
+            ),
             sliver: SliverPostList(displayType: displayType),
           ),
         ],

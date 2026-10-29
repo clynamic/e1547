@@ -106,3 +106,21 @@ class NavBarSlide extends StatelessWidget {
     child: child,
   );
 }
+
+class NavBarVisibilityScope extends InheritedWidget {
+  const NavBarVisibilityScope({
+    super.key,
+    required this.visibility,
+    required super.child,
+  });
+
+  final NavBarVisibility visibility;
+
+  static NavBarVisibility? maybeOf(BuildContext context) => context
+      .getInheritedWidgetOfExactType<NavBarVisibilityScope>()
+      ?.visibility;
+
+  @override
+  bool updateShouldNotify(NavBarVisibilityScope oldWidget) =>
+      oldWidget.visibility != visibility;
+}
