@@ -67,6 +67,8 @@ void main() {
     await sqlite.close();
   });
 
+  bool animating = false;
+
   Future<void> settle(WidgetTester tester) async {
     await tester.runAsync(() async {
       for (int i = 0; i < 6; i++) {
@@ -74,7 +76,11 @@ void main() {
         await Future<void>.delayed(const Duration(milliseconds: 50));
       }
     });
-    await tester.pumpAndSettle();
+    if (animating) {
+      await tester.pump(const Duration(milliseconds: 300));
+    } else {
+      await tester.pumpAndSettle();
+    }
   }
 
   Future<void> show(
@@ -274,5 +280,87 @@ void main() {
 
     expect(find.text('Did not load'), findsOneWidget);
     expect(find.text('No connection'), findsNothing);
+  });
+
+  int fetches = 0;
+
+  Future<void> showGrid(
+    WidgetTester tester,
+    PagingState<int, Post> state,
+  ) async {
+    fetches = 0;
+    final PostFilter filter = PostFilter(client)
+      ..track('page', [
+        samplePost(
+          id: 7,
+          tags: const {
+            'general': ['spider'],
+          },
+        ),
+      ]);
+    addTearDown(filter.dispose);
+    await show(
+      tester,
+      TileLayout(
+        child: CustomScrollView(
+          slivers: [
+            PostGridSliver(state: state, fetchNextPage: () => fetches++),
+          ],
+        ),
+      ),
+      filter: filter,
+    );
+    await tester.scrollUntilVisible(
+      find.byType(LoadMoreFooter),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+  }
+
+  final List<Post> shown = [samplePost(id: 3), samplePost(id: 4)];
+
+  displayTest(
+    'a later page loads under a moving hexagon and the hidden count',
+    (tester) async {
+      animating = true;
+      addTearDown(() => animating = false);
+      await showGrid(
+        tester,
+        PagingState(pages: [shown], keys: const [1], isLoading: true),
+      );
+
+      final LoadMoreFooter footer = tester.widget(find.byType(LoadMoreFooter));
+      expect(footer.state, LoadMoreState.loading);
+      expect(find.text('1 hidden so far'), findsOneWidget);
+    },
+  );
+
+  displayTest('a page that did not load names itself and retries', (
+    tester,
+  ) async {
+    await showGrid(
+      tester,
+      PagingState(
+        pages: [shown, shown],
+        keys: const [1, 2],
+        error: Exception('failed'),
+      ),
+    );
+
+    expect(find.text('Page 3 did not load'), findsOneWidget);
+    final int before = fetches;
+    await tester.tap(find.text('Retry'));
+    expect(fetches, before + 1);
+  });
+
+  displayTest('the end of the results closes the hexagon', (tester) async {
+    await showGrid(
+      tester,
+      PagingState(pages: [shown], keys: const [1], hasNextPage: false),
+    );
+
+    final LoadMoreFooter footer = tester.widget(find.byType(LoadMoreFooter));
+    expect(footer.state, LoadMoreState.end);
+    expect(find.text('No more posts'), findsOneWidget);
   });
 }

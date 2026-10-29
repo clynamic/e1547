@@ -190,10 +190,12 @@ class HexagonRefreshIndicator extends StatefulWidget {
     super.key,
     required this.mode,
     required this.progress,
+    this.size = hexagonRefreshSize,
   });
 
   final RefreshIndicatorMode mode;
   final double progress;
+  final double size;
 
   @override
   State<HexagonRefreshIndicator> createState() =>
@@ -242,7 +244,7 @@ class _HexagonRefreshIndicatorState extends State<HexagonRefreshIndicator>
     return AnimatedBuilder(
       animation: travel,
       builder: (context, child) => CustomPaint(
-        size: const Size.square(hexagonRefreshSize),
+        size: Size.square(widget.size),
         painter: HexagonRefreshPainter(
           mode: widget.mode,
           progress: widget.progress,

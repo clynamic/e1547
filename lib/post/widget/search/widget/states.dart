@@ -10,20 +10,21 @@ PagedChildBuilderDelegate<Post> postPagedChildBuilderDelegate({
   required PagingState<int, Post> state,
   required VoidCallback fetchNextPage,
 }) {
-  final PagedChildBuilderDelegate<Post> fallback =
-      defaultPagedChildBuilderDelegate<Post>(
-        itemBuilder: itemBuilder,
-        onRetry: fetchNextPage,
-        onError: const Text('Failed to load posts'),
-      );
   return PagedChildBuilderDelegate<Post>(
     itemBuilder: itemBuilder,
     firstPageProgressIndicatorBuilder: (context) => const PostGridSkeleton(),
     firstPageErrorIndicatorBuilder: (context) =>
         PostResultsFailure(error: state.error, onRetry: fetchNextPage),
     noItemsFoundIndicatorBuilder: (context) => const PostResultsEmpty(),
-    newPageProgressIndicatorBuilder: fallback.newPageProgressIndicatorBuilder,
-    newPageErrorIndicatorBuilder: fallback.newPageErrorIndicatorBuilder,
+    newPageProgressIndicatorBuilder: (context) =>
+        const LoadMoreFooter(state: LoadMoreState.loading, note: HiddenSoFar()),
+    newPageErrorIndicatorBuilder: (context) => LoadMoreFooter(
+      state: LoadMoreState.failed,
+      label: 'Page ${(state.keys?.lastOrNull ?? 0) + 1} did not load',
+      onRetry: fetchNextPage,
+    ),
+    noMoreItemsIndicatorBuilder: (context) =>
+        const LoadMoreFooter(state: LoadMoreState.end, label: 'No more posts'),
   );
 }
 
@@ -369,6 +370,32 @@ class PostResultsHidden extends StatelessWidget {
         label: 'Show $hidden posts',
         onPressed: () => filter.denying = false,
       ),
+    );
+  }
+}
+
+class HiddenSoFar extends StatelessWidget {
+  const HiddenSoFar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final PostFilter? filter = context.watch<PostFilter?>();
+    if (filter == null || !filter.denying || filter.blockedCount == 0) {
+      return const SizedBox.shrink();
+    }
+    final Color dim = Theme.of(
+      context,
+    ).colorScheme.onSurface.withValues(alpha: 0.5);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      spacing: 5,
+      children: [
+        Icon(Icons.block, size: 14, color: dim),
+        Text(
+          '${filter.blockedCount} hidden so far',
+          style: TextStyle(fontSize: 13, color: dim),
+        ),
+      ],
     );
   }
 }
