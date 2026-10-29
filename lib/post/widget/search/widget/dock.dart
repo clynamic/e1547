@@ -209,23 +209,41 @@ class QueryLine extends StatelessWidget {
         ),
       );
     }
-    return ClipRect(
+    Widget line(Map<String, TagPreview> previews) => ClipRect(
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         physics: const NeverScrollableScrollPhysics(),
         child: Row(
-          spacing: 10,
-          children: [for (final String token in tokens) QueryToken(token)],
+          spacing: 12,
+          children: [
+            for (final String token in tokens)
+              QueryToken(token, preview: previews[tagWithoutPrefix(token)]),
+          ],
         ),
       ),
+    );
+    final Client? client = context.watch<Client?>();
+    if (client == null) return line(const {});
+    return QueryBuilder(
+      query: client.tags.usePreview(
+        names: tokens
+            .map(tagWithoutPrefix)
+            .where((e) => !e.contains(':'))
+            .toList(),
+      ),
+      builder: (context, state) => line({
+        for (final TagPreview preview in state.data ?? const <TagPreview>[])
+          preview.name: preview,
+      }),
     );
   }
 }
 
 class QueryToken extends StatelessWidget {
-  const QueryToken(this.token, {super.key});
+  const QueryToken(this.token, {super.key, this.preview});
 
   final String token;
+  final TagPreview? preview;
 
   @override
   Widget build(BuildContext context) {
@@ -235,60 +253,38 @@ class QueryToken extends StatelessWidget {
       _ => '',
     };
     final String name = token.substring(prefix.length).replaceAll('_', ' ');
-    return Container(
-      padding: const EdgeInsets.only(left: 5),
-      decoration: BoxDecoration(
-        border: Border(
-          left: BorderSide(
-            width: 2,
-            color: name.contains(':')
-                ? Colors.grey
-                : theme.colorScheme.onSurface.withValues(alpha: 0.38),
-          ),
-        ),
-      ),
-      child: Text.rich(
-        TextSpan(
-          children: [
-            if (prefix.isNotEmpty)
-              TextSpan(
-                text: prefix,
-                style: TextStyle(
-                  color: prefix == '~'
-                      ? Colors.orange.shade300
-                      : Colors.red.shade300,
-                ),
-              ),
-            TextSpan(text: name),
-          ],
-        ),
-        maxLines: 1,
-        style: theme.textTheme.bodyLarge?.copyWith(fontSize: 15, height: 1.2),
-      ),
-    );
-  }
-}
-
-class HiddenCount extends StatelessWidget {
-  const HiddenCount({super.key, required this.count});
-
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final Color color = theme.colorScheme.onSurface.withValues(alpha: 0.6);
     return Row(
       mainAxisSize: MainAxisSize.min,
-      spacing: 4,
       children: [
-        Icon(Icons.block, size: 14, color: color),
-        Text(
-          '$count',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            fontSize: 13,
-            color: color,
+        Container(
+          width: 2,
+          height: 15,
+          margin: const EdgeInsets.only(right: 6),
+          decoration: BoxDecoration(
+            color: name.contains(':')
+                ? Colors.grey
+                : tagCategoryOf(preview?.category)?.color ??
+                      theme.colorScheme.onSurface.withValues(alpha: 0.38),
+            borderRadius: BorderRadius.circular(1),
           ),
+        ),
+        Text.rich(
+          TextSpan(
+            children: [
+              if (prefix.isNotEmpty)
+                TextSpan(
+                  text: prefix,
+                  style: TextStyle(
+                    color: prefix == '~'
+                        ? Colors.orange.shade300
+                        : Colors.red.shade300,
+                  ),
+                ),
+              TextSpan(text: name),
+            ],
+          ),
+          maxLines: 1,
+          style: const TextStyle(fontSize: 14),
         ),
       ],
     );

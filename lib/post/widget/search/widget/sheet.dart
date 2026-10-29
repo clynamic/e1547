@@ -651,7 +651,7 @@ class RecentPostSearches extends StatelessWidget {
                 icon: Icons.history,
                 onTap: () => onPick(tags),
                 trailing: Text(entry.visitedAt.relativeTime(context)),
-                child: QueryChipRow(query: tags),
+                child: QueryLine(query: tags),
               ),
           ],
         );
@@ -712,7 +712,7 @@ class SavedPostSearches extends StatelessWidget {
                   spacing: 4,
                   children: [
                     if (follow.title != null) Text(follow.title!),
-                    QueryChipRow(query: follow.tags),
+                    QueryLine(query: follow.tags),
                   ],
                 ),
               ),

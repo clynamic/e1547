@@ -466,6 +466,31 @@ void main() {
       expect(stripe.color, TagCategory.species.color);
     });
 
+    displayTest('recent searches read their tags as text with a mark', (
+      tester,
+    ) async {
+      await tester.runAsync(() => search('riolu rating:s', DateTime(2026, 10)));
+      await openSheet(tester);
+
+      final Finder entry = find.byType(SheetEntry);
+      expect(
+        find.descendant(of: entry, matching: find.byType(QueryChip)),
+        findsNothing,
+      );
+      Color? mark(String token) {
+        final Container box = tester.widget<Container>(
+          find.descendant(
+            of: find.widgetWithText(QueryToken, token),
+            matching: find.byType(Container),
+          ),
+        );
+        return (box.decoration! as BoxDecoration).color;
+      }
+
+      expect(mark('riolu'), TagCategory.species.color);
+      expect(mark('rating:s'), Colors.grey);
+    });
+
     void addPools() => fake.state.pools
       ..clear()
       ..addAll([
