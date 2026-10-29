@@ -45,17 +45,23 @@ class PostSetRow extends StatelessWidget {
     required this.set,
     required this.onTap,
     this.owned = true,
+    this.tag,
   });
 
   final PostSet set;
   final VoidCallback onTap;
   final bool owned;
+  final String? tag;
 
   @override
   Widget build(BuildContext context) => CoverRow(
     cover: set.postIds.firstOrNull,
     title: tagToName(set.name),
-    subtitle: owned ? Text(postSetSubtitle(set)) : PostSetByline(set: set),
+    subtitle: switch ((owned, tag)) {
+      (true, null) => Text(postSetSubtitle(set)),
+      (true, final String tag) => Text('${postSetCountWords(set)} · $tag'),
+      (false, _) => PostSetByline(set: set, suffix: tag),
+    },
     onTap: onTap,
   );
 }
@@ -114,9 +120,10 @@ class PostSetCard extends StatelessWidget {
 }
 
 class PostSetByline extends StatelessWidget {
-  const PostSetByline({super.key, required this.set});
+  const PostSetByline({super.key, required this.set, this.suffix});
 
   final PostSet set;
+  final String? suffix;
 
   @override
   Widget build(BuildContext context) => QueryBuilder(
@@ -130,6 +137,7 @@ class PostSetByline extends StatelessWidget {
         [
           if (user != null) 'by ${user.name}',
           postSetCountWords(set),
+          ?suffix,
         ].join(' · '),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
@@ -284,10 +292,12 @@ class PostSetSuggestions extends StatelessWidget {
     super.key,
     required this.params,
     required this.onPick,
+    this.tagged = false,
   });
 
   final PostSetParams params;
   final ValueChanged<PostSet> onPick;
+  final bool tagged;
 
   @override
   Widget build(BuildContext context) {
@@ -306,6 +316,7 @@ class PostSetSuggestions extends StatelessWidget {
               PostSetRow(
                 set: set,
                 owned: set.creatorId == client.traits.value.userId,
+                tag: tagged ? 'set:${set.shortname}' : null,
                 onTap: () => onPick(set),
               ),
           ],

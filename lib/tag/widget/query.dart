@@ -1,5 +1,9 @@
 import 'dart:math';
 
+import 'package:e1547/client/client.dart';
+import 'package:e1547/pool/pool.dart';
+import 'package:e1547/query/query.dart';
+import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
 import 'package:e1547/wiki/wiki.dart';
 import 'package:flutter/material.dart';
@@ -307,7 +311,37 @@ class QueryChip extends StatelessWidget {
     final bool meta = name.contains(':');
     final bool unknown = !meta && preview?.postCount == 0;
     final String? words = metaWords(name);
-    final MetaKind? kind = words == null ? null : metaKindOf(name);
+    final int? pool = poolIdOf(name);
+    final MetaKind? kind = words == null && pool == null
+        ? null
+        : metaKindOf(name);
+    Widget label(String text) => Text.rich(
+      TextSpan(
+        children: [
+          if (prefix.isNotEmpty)
+            TextSpan(
+              text: prefix,
+              style: TextStyle(
+                color: prefix == '~'
+                    ? Colors.orange.shade300
+                    : Colors.red.shade300,
+              ),
+            ),
+          TextSpan(
+            text: text,
+            style: unknown
+                ? TextStyle(
+                    decoration: TextDecoration.underline,
+                    decorationStyle: TextDecorationStyle.wavy,
+                    decorationColor: theme.colorScheme.error,
+                  )
+                : null,
+          ),
+        ],
+      ),
+      maxLines: 1,
+      style: dense ? const TextStyle(fontSize: 13) : null,
+    );
     final Color stripe = meta || unknown
         ? Colors.grey
         : tagCategoryOf(preview?.category)?.color ??
@@ -340,33 +374,16 @@ class QueryChip extends StatelessWidget {
                 padding: dense
                     ? const EdgeInsets.fromLTRB(6, 0, 7, 0)
                     : const EdgeInsets.symmetric(horizontal: 6),
-                child: Text.rich(
-                  TextSpan(
-                    children: [
-                      if (prefix.isNotEmpty)
-                        TextSpan(
-                          text: prefix,
-                          style: TextStyle(
-                            color: prefix == '~'
-                                ? Colors.orange.shade300
-                                : Colors.red.shade300,
-                          ),
+                child: pool == null
+                    ? label(words ?? name.replaceAll('_', ' '))
+                    : QueryBuilder(
+                        query: context.watch<Client>().pools.useGet(id: pool),
+                        builder: (context, state) => label(
+                          state.data == null
+                              ? 'pool #$pool'
+                              : tagToName(state.data!.name),
                         ),
-                      TextSpan(
-                        text: words ?? name.replaceAll('_', ' '),
-                        style: unknown
-                            ? TextStyle(
-                                decoration: TextDecoration.underline,
-                                decorationStyle: TextDecorationStyle.wavy,
-                                decorationColor: theme.colorScheme.error,
-                              )
-                            : null,
                       ),
-                    ],
-                  ),
-                  maxLines: 1,
-                  style: dense ? const TextStyle(fontSize: 13) : null,
-                ),
               ),
             ],
           ),
@@ -374,6 +391,12 @@ class QueryChip extends StatelessWidget {
       ),
     );
   }
+}
+
+int? poolIdOf(String term) {
+  final meta = splitMeta(term);
+  if (meta == null || meta.key != 'pool') return null;
+  return int.tryParse(meta.value);
 }
 
 class QueryChipActions extends StatelessWidget {

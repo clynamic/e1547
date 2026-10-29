@@ -14,11 +14,14 @@ void main() {
     expect(metaWords('order:id'), 'oldest first');
     expect(metaWords('order:id_desc'), 'newest first');
     expect(metaWords('rating:s'), 'safe');
+    expect(metaWords('set:ref_sheets'), 'ref sheets');
+    expect(metaWords('pool:river_story'), 'river story');
   });
 
   test('plain tags and unknown metatags have no words', () {
     expect(metaWords('riolu'), isNull);
     expect(metaWords('md5:abc'), isNull);
+    expect(metaWords('pool:41'), isNull);
   });
 
   test('metatags belong to their builder', () {

@@ -1,6 +1,7 @@
 import 'package:e1547/client/client.dart';
 import 'package:e1547/follow/follow.dart';
 import 'package:e1547/history/history.dart';
+import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/settings/settings.dart';
@@ -36,6 +37,12 @@ Future<void> showPostSearchSheet(
           Navigator.of(sheetContext).pop();
           page.push(
             MaterialPageRoute(builder: (context) => const HistoriesPage()),
+          );
+        },
+        onOpenPool: (pool) {
+          Navigator.of(sheetContext).pop();
+          page.push(
+            MaterialPageRoute(builder: (context) => PoolPage(pool: pool)),
           );
         },
         onSubmit: (value) =>
@@ -117,6 +124,7 @@ class PostSearchSheet extends StatefulWidget {
     this.filter,
     this.onShowHidden,
     this.onAllRecent,
+    this.onOpenPool,
   });
 
   final String query;
@@ -125,6 +133,7 @@ class PostSearchSheet extends StatefulWidget {
   final PostFilter? filter;
   final VoidCallback? onShowHidden;
   final VoidCallback? onAllRecent;
+  final ValueChanged<Pool>? onOpenPool;
 
   @override
   State<PostSearchSheet> createState() => _PostSearchSheetState();
@@ -172,7 +181,7 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
 
   void _tapChip(int index) {
     final MetaKind? kind = metaKindOf(controller.terms[index]);
-    if (kind != null && builtMetaKinds.contains(kind)) {
+    if (kind != null) {
       _openPanel(kind);
     } else {
       controller.select(index);
@@ -330,6 +339,12 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
                           icon: Icons.tune,
                           label: compact ? null : 'Filters',
                           tooltip: 'Filters',
+                          count: switch (controller.terms
+                              .where((e) => metaKindOf(e) != null)
+                              .length) {
+                            0 => null,
+                            final int count => count,
+                          },
                         ),
                         const Spacer(),
                         SizedBox.square(
@@ -385,6 +400,11 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
                     child: MetaPanel(
                       controller: controller,
                       me: context.watch<Client>().identity.username,
+                      pools: PoolSetBuilder(
+                        controller: controller,
+                        me: context.watch<Client>().identity.username,
+                        onOpenPool: widget.onOpenPool,
+                      ),
                       kind: building,
                       onPick: _openPanel,
                       onBack: building != null

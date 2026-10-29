@@ -1,20 +1,6 @@
 import 'package:e1547/tag/tag.dart';
 import 'package:flutter/material.dart';
 
-const Set<MetaKind> builtMetaKinds = {
-  MetaKind.date,
-  MetaKind.counts,
-  MetaKind.order,
-  MetaKind.rating,
-  MetaKind.file,
-  MetaKind.size,
-  MetaKind.people,
-  MetaKind.properties,
-  MetaKind.family,
-  MetaKind.status,
-  MetaKind.text,
-};
-
 Color metaWell(ThemeData theme) => Color.alphaBlend(
   theme.colorScheme.onSurface.withValues(alpha: 0.05),
   theme.cardColor,
@@ -28,6 +14,7 @@ class MetaPanel extends StatelessWidget {
     required this.onPick,
     required this.onBack,
     this.me,
+    this.pools,
   });
 
   final QueryFieldController controller;
@@ -35,6 +22,7 @@ class MetaPanel extends StatelessWidget {
   final ValueChanged<MetaKind> onPick;
   final VoidCallback onBack;
   final String? me;
+  final Widget? pools;
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +125,7 @@ class MetaPanel extends StatelessWidget {
                     ],
                   ),
                   MetaKind.status => StatusBuilder(controller: controller),
-                  MetaKind.pools => const SizedBox.shrink(),
+                  MetaKind.pools => pools ?? const SizedBox.shrink(),
                 },
               ),
             ],
@@ -156,9 +144,6 @@ class MetaCatalog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final List<MetaKind> kinds = MetaKind.values
-        .where(builtMetaKinds.contains)
-        .toList();
     return GridView.count(
       crossAxisCount: 3,
       shrinkWrap: true,
@@ -168,7 +153,7 @@ class MetaCatalog extends StatelessWidget {
       crossAxisSpacing: 6,
       childAspectRatio: 2,
       children: [
-        for (final MetaKind kind in kinds)
+        for (final MetaKind kind in MetaKind.values)
           Material(
             color: metaWell(theme),
             borderRadius: BorderRadius.circular(4),

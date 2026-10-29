@@ -1,8 +1,10 @@
 import 'package:e1547/client/client.dart';
 import 'package:e1547/follow/follow.dart';
 import 'package:e1547/history/history.dart';
+import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
+import 'package:e1547/set/set.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
 import 'package:flutter/material.dart';
@@ -40,6 +42,21 @@ class _PostSearchSuggestionsState extends State<PostSearchSuggestions> {
         ? typed[0]
         : '';
     final String search = typed.substring(prefix.length).toLowerCase();
+    if (search.startsWith('pool:')) {
+      final String name = search.substring('pool:'.length);
+      return PoolSuggestions(
+        params: PoolParams(name: name.isEmpty ? null : name),
+        onPick: (pool) => onPick('${prefix}pool:${pool.id}'),
+      );
+    }
+    if (search.startsWith('set:')) {
+      final String name = search.substring('set:'.length);
+      return PostSetSuggestions(
+        params: PostSetParams(name: name.isEmpty ? null : name),
+        tagged: true,
+        onPick: (set) => onPick('${prefix}set:${set.shortname}'),
+      );
+    }
     if (search.startsWith('rating:')) {
       final String value = search.substring('rating:'.length);
       return SuggestionList(

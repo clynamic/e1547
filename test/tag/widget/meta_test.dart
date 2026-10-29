@@ -25,7 +25,7 @@ void main() {
         ),
       );
 
-  testWidgets('the catalog lists the filters that have builders', (
+  testWidgets('the catalog lists every filter and picks the tapped one', (
     tester,
   ) async {
     MetaKind? picked;
@@ -37,11 +37,11 @@ void main() {
 
     expect(find.text('Order'), findsOneWidget);
     expect(find.text('Status'), findsOneWidget);
-    expect(find.text('Pools & sets'), findsNothing);
+    expect(find.text('Pools & sets'), findsOneWidget);
 
-    await tester.tap(find.text('Order'));
+    await tester.tap(find.text('Pools & sets'));
 
-    expect(picked, MetaKind.order);
+    expect(picked, MetaKind.pools);
   });
 
   testWidgets('a date preset sets the date and a second tap clears it', (

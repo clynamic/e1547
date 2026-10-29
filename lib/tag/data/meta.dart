@@ -228,6 +228,8 @@ String? metaWords(String term) {
       'false' => PostProperty.byKey(meta.key)!.no,
       _ => null,
     },
+    'pool' => int.tryParse(value) == null ? value.replaceAll('_', ' ') : null,
+    'set' => value.replaceAll('_', ' '),
     'status' => switch (PostStatus.byValue(value)) {
       PostStatus.any => 'any status',
       final PostStatus status => status.label.toLowerCase(),

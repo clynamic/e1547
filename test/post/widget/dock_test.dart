@@ -4,12 +4,14 @@ import 'package:e1547/client/client.dart';
 import 'package:e1547/follow/follow.dart';
 import 'package:e1547/history/history.dart';
 import 'package:e1547/identity/identity.dart';
+import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/tag/tag.dart';
 import 'package:e1547/traits/traits.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:notified_preferences/notified_preferences.dart';
 import 'package:provider/provider.dart';
@@ -17,6 +19,7 @@ import 'package:relative_time/relative_time.dart';
 
 import '../../_support/fake_e621.dart';
 import '../../_support/harness.dart';
+import '../../_support/images.dart';
 import '../../_support/posts.dart';
 
 void main() {
@@ -125,11 +128,17 @@ void main() {
     Future<List<String>> openSheet(
       WidgetTester tester, {
       List<Post> posts = const [],
+      ValueChanged<Pool>? onOpenPool,
     }) async {
       final List<String> submitted = [];
       await tester.pumpWidget(
-        Provider<Client>.value(
-          value: client,
+        MultiProvider(
+          providers: [
+            Provider<Client>.value(value: client),
+            Provider<BaseCacheManager>.value(
+              value: const NoImageCacheManager(),
+            ),
+          ],
           child: MaterialApp(
             localizationsDelegates: const [
               DefaultMaterialLocalizations.delegate,
@@ -147,6 +156,7 @@ void main() {
                       posts: posts,
                       onSubmit: submitted.add,
                       onAllRecent: () {},
+                      onOpenPool: onOpenPool,
                     ),
                   ),
                   child: const Text('open'),
@@ -454,6 +464,137 @@ void main() {
         ),
       );
       expect(stripe.color, TagCategory.species.color);
+    });
+
+    void addPools() => fake.state.pools
+      ..clear()
+      ..addAll([
+        for (final (int index, String name) in [
+          'river_story',
+          'river_sketches',
+        ].indexed)
+          {
+            'id': 40 + index,
+            'name': name,
+            'created_at': '2026-09-01T12:00:00.000-04:00',
+            'updated_at': '2026-10-23T12:00:00.000-04:00',
+            'creator_id': 1,
+            'description': '',
+            'is_active': true,
+            'category': 'series',
+            'post_ids': [1, 2, 3],
+            'post_count': 3,
+          },
+      ]);
+
+    displayTest('a pool chip names its pool', (tester) async {
+      addPools();
+      await openSheet(tester);
+
+      await tester.enterText(find.byType(TextField), 'pool:41 ');
+      await settle(tester);
+
+      expect(find.widgetWithText(QueryChip, 'river sketches'), findsOneWidget);
+    });
+
+    displayTest('typing pool: suggests pools and writes the picked id', (
+      tester,
+    ) async {
+      addPools();
+      final List<String> submitted = await openSheet(tester);
+
+      await tester.enterText(find.byType(TextField), 'pool:sketch');
+      await settle(tester);
+      expect(find.text('river story'), findsNothing);
+      await tester.tap(find.text('river sketches'));
+      await settle(tester);
+      await tester.tap(find.byIcon(Icons.search).last);
+      await settle(tester);
+
+      expect(submitted, ['riolu pool:41']);
+    });
+
+    displayTest('the pools builder picks a recently updated pool', (
+      tester,
+    ) async {
+      addPools();
+      final List<Pool> opened = [];
+      await openSheet(tester, onOpenPool: opened.add);
+      await tester.tap(find.text('Filters'));
+      await settle(tester);
+      await tester.tap(find.text('Pools & sets'));
+      await settle(tester);
+
+      await tester.tap(find.text('river story'));
+      await settle(tester);
+
+      expect(find.widgetWithText(QueryChip, 'river story'), findsOneWidget);
+      await tester.tap(find.text('Open the pool as pages'));
+      expect(opened.map((e) => e.id), [40]);
+    });
+
+    displayTest('the Filters button counts the filters in use', (tester) async {
+      await openSheet(tester);
+      await tester.enterText(find.byType(TextField), 'order:score rating:s ');
+      await settle(tester);
+
+      expect(
+        find.descendant(
+          of: find.widgetWithText(SheetButton, 'Filters'),
+          matching: find.text('2'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    displayTest('signed in, the sets builder picks one of your sets', (
+      tester,
+    ) async {
+      fake.state.sets.add({
+        'id': 5,
+        'name': 'wallpapers',
+        'shortname': 'wallpapers',
+        'description': '',
+        'is_public': false,
+        'creator_id': 3044,
+        'post_ids': [1],
+        'post_count': 1,
+        'created_at': '2026-09-01T12:00:00.000-04:00',
+        'updated_at': '2026-10-23T12:00:00.000-04:00',
+      });
+      await tester.runAsync(() async {
+        client = Client(
+          identity: await IdentityRepository(
+            sqlite,
+          ).add(IdentityRequest(host: fake.url, username: 'user_34')),
+          traits: traits,
+          storage: AppStorage(
+            preferences: await SharedPreferences.getInstance(),
+            temporaryFiles: '.',
+            queryCache: CachedQuery.asNewInstance()
+              ..config(
+                config: const GlobalQueryConfig(
+                  cacheDuration: Duration(milliseconds: 1),
+                ),
+              ),
+            sqlite: sqlite,
+          ),
+        );
+      });
+      final List<String> submitted = await openSheet(tester);
+      await tester.tap(find.text('Filters'));
+      await settle(tester);
+      await tester.tap(find.text('Pools & sets'));
+      await settle(tester);
+
+      await tester.tap(find.text('Sets'));
+      await settle(tester);
+      await tester.tap(find.text('wallpapers'));
+      await settle(tester);
+      await tester.tap(find.byIcon(Icons.search).last);
+      await settle(tester);
+
+      expect(submitted, ['riolu set:wallpapers']);
     });
   });
 }
