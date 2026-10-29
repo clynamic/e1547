@@ -256,7 +256,7 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
                                 ),
                               const Spacer(),
                               SizedBox.square(
-                                dimension: typing ? 44 : dockHeight,
+                                dimension: typing ? 44 : 56,
                                 child: Material(
                                   color: theme.colorScheme.secondary,
                                   elevation: 3,

@@ -63,7 +63,11 @@ class NavBarPadding extends StatelessWidget {
     final MediaQueryData media = MediaQuery.of(context);
     return MediaQuery(
       data: media.copyWith(
-        padding: media.padding.copyWith(bottom: media.padding.bottom + space),
+        padding: media.padding.copyWith(
+          bottom:
+              media.padding.bottom +
+              math.max(0, space - media.viewInsets.bottom),
+        ),
         viewPadding: media.viewPadding.copyWith(
           bottom: media.viewPadding.bottom + space,
         ),

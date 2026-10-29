@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:e1547/app/app.dart';
 import 'package:e1547/logs/logs.dart';
 import 'package:e1547/shared/shared.dart';
@@ -7,7 +6,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-const double navBarHeight = 64;
+const double navBarHeight = 60;
+const double navBarMargin = 12;
+const double navBarBottomMargin = 16;
+const double navBarDockHeight = 72;
+
+double navBarSpace({required bool docked}) =>
+    navBarHeight + navBarBottomMargin + (docked ? navBarDockHeight + 1 : 0);
 
 class ShellController extends ChangeNotifier {
   ShellTab _tab = ShellTab.browse;
@@ -66,11 +71,16 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  final NavBarVisibility visibility = NavBarVisibility(height: navBarHeight);
+  final NavBarVisibility visibility = NavBarVisibility(
+    height: navBarHeight + navBarBottomMargin,
+  );
   final NavBarCover cover = NavBarCover();
   final Set<ShellTab> visited = {};
   final Map<ShellTab, ScrollController> scrolls = {};
   final Map<ShellTab, NavBarReselectController> reselects = {};
+  final Map<ShellTab, NavBarDocks> docks = {};
+
+  NavBarDocks docksOf(ShellTab tab) => docks.putIfAbsent(tab, NavBarDocks.new);
 
   ScrollController scrollOf(ShellTab tab) =>
       scrolls.putIfAbsent(tab, ScrollController.new);
@@ -82,6 +92,9 @@ class _AppShellState extends State<AppShell> {
   void dispose() {
     for (final ScrollController controller in scrolls.values) {
       controller.dispose();
+    }
+    for (final NavBarDocks value in docks.values) {
+      value.dispose();
     }
     visibility.dispose();
     cover.dispose();
@@ -129,71 +142,82 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     final ShellController shell = context.watch<ShellController>();
     visited.add(shell.tab);
+    final NavBarDocks active = docksOf(shell.tab);
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) _back(shell);
       },
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: NavBarPadding(
-              space: navBarHeight,
-              child: NavBarScrollListener(
-                controller: visibility,
-                cover: cover,
-                child: NavBarCoverScope(
-                  cover: cover,
-                  child: NavBarVisibilityScope(
-                    visibility: visibility,
-                    child: AnimatedIndexedStack(
-                      index: shell.tab.index,
-                      children: [
-                        for (final ShellTab tab in ShellTab.values)
-                          if (visited.contains(tab))
-                            ShellNavigator(
-                              navigatorKey: shell.navigatorOf(tab),
-                              scroll: scrollOf(tab),
-                              reselect: reselectOf(tab),
-                              active: tab == shell.tab,
-                              builder: (context) => widget.root(context, tab),
-                            )
-                          else
-                            const SizedBox.shrink(),
-                      ],
+      child: ListenableBuilder(
+        listenable: active,
+        builder: (context, child) {
+          final WidgetBuilder? dock = active.current;
+          final double space = navBarSpace(docked: dock != null);
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: NavBarPadding(space: space, child: child!),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: ListenableBuilder(
+                  listenable: cover,
+                  builder: (context, child) {
+                    final double coverage = cover.coverage;
+                    if (coverage >= 1) return const SizedBox.shrink();
+                    return FractionalTranslation(
+                      translation: Offset(
+                        0,
+                        1.4 * Curves.easeInOut.transform(coverage),
+                      ),
+                      child: IgnorePointer(
+                        ignoring: coverage > 0,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: NavBarSlide(
+                    controller: visibility,
+                    child: NavBar(
+                      selected: shell.tab,
+                      dock: dock,
+                      onGo: (tab) => _go(shell, tab),
                     ),
                   ),
                 ),
               ),
-            ),
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: ListenableBuilder(
-              listenable: cover,
-              builder: (context, child) {
-                final double coverage = cover.coverage;
-                if (coverage >= 1) return const SizedBox.shrink();
-                return FractionalTranslation(
-                  translation: Offset(
-                    0,
-                    1.4 * Curves.easeInOut.transform(coverage),
-                  ),
-                  child: IgnorePointer(ignoring: coverage > 0, child: child),
-                );
-              },
-              child: NavBarSlide(
-                controller: visibility,
-                child: NavBar(
-                  selected: shell.tab,
-                  onGo: (tab) => _go(shell, tab),
-                ),
+            ],
+          );
+        },
+        child: NavBarScrollListener(
+          controller: visibility,
+          cover: cover,
+          child: NavBarCoverScope(
+            cover: cover,
+            child: NavBarVisibilityScope(
+              visibility: visibility,
+              child: AnimatedIndexedStack(
+                index: shell.tab.index,
+                children: [
+                  for (final ShellTab tab in ShellTab.values)
+                    if (visited.contains(tab))
+                      ShellNavigator(
+                        navigatorKey: shell.navigatorOf(tab),
+                        scroll: scrollOf(tab),
+                        reselect: reselectOf(tab),
+                        docks: docksOf(tab),
+                        active: tab == shell.tab,
+                        builder: (context) => widget.root(context, tab),
+                      )
+                    else
+                      const SizedBox.shrink(),
+                ],
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -205,6 +229,7 @@ class ShellNavigator extends StatefulWidget {
     required this.navigatorKey,
     required this.scroll,
     required this.reselect,
+    required this.docks,
     required this.active,
     required this.builder,
   });
@@ -212,6 +237,7 @@ class ShellNavigator extends StatefulWidget {
   final GlobalKey<NavigatorState> navigatorKey;
   final ScrollController scroll;
   final NavBarReselectController reselect;
+  final NavBarDocks docks;
   final bool active;
   final WidgetBuilder builder;
 
@@ -241,19 +267,22 @@ class _ShellNavigatorState extends State<ShellNavigator> {
   @override
   Widget build(BuildContext context) => Provider<AnyRouteObserver>.value(
     value: observer,
-    child: HeroControllerScope(
-      controller: heroes,
-      child: Navigator(
-        key: widget.navigatorKey,
-        observers: [observer, logger, gate],
-        onGenerateRoute: (settings) => MaterialPageRoute(
-          settings: settings,
-          builder: (context) => NavBarReselect(
-            controller: widget.reselect,
-            child: PrimaryScrollController(
-              controller: widget.scroll,
-              automaticallyInheritForPlatforms: TargetPlatform.values.toSet(),
-              child: widget.builder(context),
+    child: NavBarDockScope(
+      docks: widget.docks,
+      child: HeroControllerScope(
+        controller: heroes,
+        child: Navigator(
+          key: widget.navigatorKey,
+          observers: [observer, logger, gate],
+          onGenerateRoute: (settings) => MaterialPageRoute(
+            settings: settings,
+            builder: (context) => NavBarReselect(
+              controller: widget.reselect,
+              child: PrimaryScrollController(
+                controller: widget.scroll,
+                automaticallyInheritForPlatforms: TargetPlatform.values.toSet(),
+                child: widget.builder(context),
+              ),
             ),
           ),
         ),
@@ -305,40 +334,106 @@ class ShellPopGate extends NavigatorObserver implements PopEntry<Object?> {
 }
 
 class NavBar extends StatelessWidget {
-  const NavBar({super.key, required this.selected, required this.onGo});
+  const NavBar({
+    super.key,
+    required this.selected,
+    required this.onGo,
+    this.dock,
+  });
 
   final ShellTab selected;
   final ValueChanged<ShellTab> onGo;
+  final WidgetBuilder? dock;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    return Material(
-      color: theme.canvasColor,
-      shape: Border(
-        top: BorderSide(
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
-        ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: navBarHeight,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (final ShellTab tab in ShellTab.values)
-                Expanded(
-                  child: NavBarTab(
-                    tab: tab,
-                    chosen: tab == selected,
-                    onTap: () => onGo(tab),
-                  ),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          top: -80,
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  stops: const [0, 0.75],
+                  colors: [
+                    theme.scaffoldBackgroundColor.withValues(alpha: 0),
+                    theme.scaffoldBackgroundColor,
+                  ],
                 ),
-            ],
+              ),
+            ),
           ),
         ),
-      ),
+        SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              navBarMargin,
+              0,
+              navBarMargin,
+              navBarBottomMargin,
+            ),
+            child: Material(
+              color: theme.cardColor,
+              elevation: 8,
+              shadowColor: Colors.black,
+              borderRadius: BorderRadius.circular(8),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedSize(
+                    duration: defaultAnimationDuration,
+                    curve: Curves.easeOutCubic,
+                    alignment: Alignment.bottomCenter,
+                    child: dock != null
+                        ? Column(
+                            children: [
+                              SizedBox(
+                                height: navBarDockHeight,
+                                child: Builder(builder: dock!),
+                              ),
+                              Divider(
+                                height: 1,
+                                thickness: 1,
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.07,
+                                ),
+                              ),
+                            ],
+                          )
+                        : const SizedBox(width: double.infinity),
+                  ),
+                  SizedBox(
+                    height: navBarHeight,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (final ShellTab tab in ShellTab.values)
+                          Expanded(
+                            child: NavBarTab(
+                              tab: tab,
+                              chosen: tab == selected,
+                              onTap: () => onGo(tab),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -361,22 +456,31 @@ class NavBarTab extends StatelessWidget {
     final Color tint = chosen
         ? theme.colorScheme.primary
         : theme.colorScheme.onSurface.withValues(alpha: 0.6);
-    return InkWell(
-      onTap: onTap,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(tab.icon, color: tint, size: 24),
-          const SizedBox(height: 4),
-          Text(
-            tab.label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: tint,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+    return Tooltip(
+      message: tab.label,
+      child: InkWell(
+        onTap: onTap,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Icon(tab.icon, color: tint, size: 24),
             ),
-          ),
-        ],
+            if (chosen)
+              Positioned(
+                bottom: 6,
+                child: Container(
+                  width: 24,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

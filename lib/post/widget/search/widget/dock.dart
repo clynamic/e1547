@@ -1,5 +1,9 @@
+import 'package:e1547/client/client.dart';
 import 'package:e1547/post/post.dart';
+import 'package:e1547/query/query.dart';
+import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
+import 'package:e1547/tag/tag.dart';
 import 'package:flutter/material.dart';
 
 class PostSearchDock extends StatelessWidget {
@@ -12,32 +16,164 @@ class PostSearchDock extends StatelessWidget {
     final PostParamsController params = context.watch<PostParamsController>();
     if (!params.canSearch) return child;
     final PostFilter filter = context.watch<PostFilter>();
-    return DockLayout(
-      onTap: () => showPostSearchSheet(context),
-      mark: const Icon(Icons.search),
-      content: Row(
-        spacing: 12,
-        children: [
-          Expanded(child: QueryLine(query: params.value.tags ?? '')),
-          ListenableBuilder(
-            listenable: filter,
-            builder: (context, child) {
-              if (!filter.denying || filter.blockedCount == 0) {
-                return const SizedBox.shrink();
-              }
-              return InkWell(
-                onTap: () => showHiddenPostsSheet(context, filter),
-                borderRadius: BorderRadius.circular(4),
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: HiddenCount(count: filter.blockedCount),
-                ),
-              );
-            },
-          ),
-        ],
+    return NavBarDock(
+      builder: (_) => PostDock(
+        params: params,
+        filter: filter,
+        onOpen: () => showPostSearchSheet(context),
+        onHidden: () => showHiddenPostsSheet(context, filter),
       ),
       child: child,
+    );
+  }
+}
+
+class PostDock extends StatelessWidget {
+  const PostDock({
+    super.key,
+    required this.params,
+    required this.filter,
+    required this.onOpen,
+    required this.onHidden,
+  });
+
+  final PostParamsController params;
+  final PostFilter filter;
+  final VoidCallback onOpen;
+  final VoidCallback onHidden;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final bool left = Handedness.of(context) == Handedness.left;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onVerticalDragEnd: (details) {
+        if ((details.primaryVelocity ?? 0) < 0) onOpen();
+      },
+      child: InkWell(
+        onTap: onOpen,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Container(
+                width: 32,
+                height: 3,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: left
+                    ? const EdgeInsets.fromLTRB(8, 4, 12, 8)
+                    : const EdgeInsets.fromLTRB(12, 4, 8, 8),
+                child: Row(
+                  textDirection: left ? TextDirection.rtl : TextDirection.ltr,
+                  spacing: 10,
+                  children: [
+                    Expanded(
+                      child: Directionality(
+                        textDirection: TextDirection.ltr,
+                        child: ListenableBuilder(
+                          listenable: Listenable.merge([params, filter]),
+                          builder: (context, child) => Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            spacing: 5,
+                            children: [
+                              DockQuery(query: params.value.tags ?? ''),
+                              if (filter.denying && filter.blockedCount > 0)
+                                GestureDetector(
+                                  onTap: onHidden,
+                                  child: Text(
+                                    '${filter.blockedCount} hidden',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onSurface
+                                          .withValues(alpha: 0.6),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox.square(
+                      dimension: 40,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Icon(
+                          Icons.search,
+                          color: theme.colorScheme.onPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class DockQuery extends StatelessWidget {
+  const DockQuery({super.key, required this.query});
+
+  final String query;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final List<String> terms = query.split(RegExp(r'\s+'))
+      ..removeWhere((e) => e.isEmpty);
+    if (terms.isEmpty) {
+      return Text(
+        'Search',
+        style: theme.textTheme.bodyLarge?.copyWith(
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+        ),
+      );
+    }
+    final List<String> names = terms
+        .map(tagWithoutPrefix)
+        .where((e) => !e.contains(':'))
+        .toList();
+    return QueryBuilder(
+      query: context.watch<Client>().tags.usePreview(names: names),
+      builder: (context, state) {
+        final Map<String, TagPreview> previews = {
+          for (final TagPreview preview in state.data ?? const <TagPreview>[])
+            preview.name: preview,
+        };
+        return ClipRect(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const NeverScrollableScrollPhysics(),
+            child: Row(
+              spacing: 4,
+              children: [
+                for (final String term in terms)
+                  QueryChip(
+                    term: term,
+                    dense: true,
+                    preview: previews[tagWithoutPrefix(term)],
+                    selected: false,
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

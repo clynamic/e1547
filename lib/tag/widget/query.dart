@@ -225,14 +225,16 @@ class QueryChip extends StatelessWidget {
     super.key,
     required this.term,
     required this.selected,
-    required this.onTap,
+    this.onTap,
     this.preview,
+    this.dense = false,
   });
 
   final String term;
   final TagPreview? preview;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+  final bool dense;
 
   @override
   Widget build(BuildContext context) {
@@ -261,13 +263,15 @@ class QueryChip extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: SizedBox(
-          height: 28,
+          height: dense ? 26 : 28,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(width: 3, color: stripe),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
+                padding: dense
+                    ? const EdgeInsets.fromLTRB(6, 0, 7, 0)
+                    : const EdgeInsets.symmetric(horizontal: 6),
                 child: Text.rich(
                   TextSpan(
                     children: [
@@ -293,6 +297,7 @@ class QueryChip extends StatelessWidget {
                     ],
                   ),
                   maxLines: 1,
+                  style: dense ? const TextStyle(fontSize: 13) : null,
                 ),
               ),
             ],

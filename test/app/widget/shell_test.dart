@@ -5,32 +5,44 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  Widget root(BuildContext context, ShellTab tab) => Scaffold(
-    body: ListView(
-      primary: true,
-      children: [
-        Text('${tab.label} root'),
-        TextButton(
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => Scaffold(body: Text('${tab.label} detail')),
+  final Map<ShellTab, EdgeInsets> paddings = {};
+
+  Widget root(BuildContext context, ShellTab tab) {
+    paddings[tab] = MediaQuery.paddingOf(context);
+    final Widget page = Scaffold(
+      body: ListView(
+        primary: true,
+        children: [
+          Text('${tab.label} root'),
+          TextButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) =>
+                    Scaffold(body: Text('${tab.label} detail')),
+              ),
             ),
+            child: Text('open ${tab.label}'),
           ),
-          child: Text('open ${tab.label}'),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) =>
-                  const NavBarCovered(child: Scaffold(body: Text('covering'))),
+          TextButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const NavBarCovered(
+                  child: Scaffold(body: Text('covering')),
+                ),
+              ),
             ),
+            child: Text('cover ${tab.label}'),
           ),
-          child: Text('cover ${tab.label}'),
-        ),
-        for (int i = 0; i < 40; i++) const SizedBox(height: 100),
-      ],
-    ),
-  );
+          for (int i = 0; i < 40; i++) const SizedBox(height: 100),
+        ],
+      ),
+    );
+    if (tab != ShellTab.search) return page;
+    return NavBarDock(
+      builder: (context) => const Text('search dock'),
+      child: page,
+    );
+  }
 
   Future<ShellController> pumpShell(WidgetTester tester) async {
     late ShellController shell;
@@ -50,8 +62,10 @@ void main() {
     return shell;
   }
 
-  Finder tab(ShellTab tab) =>
-      find.descendant(of: find.byType(NavBar), matching: find.text(tab.label));
+  Finder tab(ShellTab tab) => find.descendant(
+    of: find.byType(NavBar),
+    matching: find.byTooltip(tab.label),
+  );
 
   double barTop(WidgetTester tester) =>
       tester.getTopLeft(find.byType(NavBar)).dy;
@@ -252,6 +266,55 @@ void main() {
     expect(barTop(tester), shown);
   });
 
+  testWidgets('a page with a dock shows it in the bar above the tabs', (
+    tester,
+  ) async {
+    await pumpShell(tester);
+    expect(find.text('search dock'), findsNothing);
+
+    await tester.tap(tab(ShellTab.search));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(
+        of: find.byType(NavBar),
+        matching: find.text('search dock'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      tester.getBottomLeft(find.text('search dock')).dy,
+      lessThan(tester.getTopLeft(tab(ShellTab.search)).dy),
+    );
+  });
+
+  testWidgets('a pushed page without a dock leaves only the tabs', (
+    tester,
+  ) async {
+    await pumpShell(tester);
+    await tester.tap(tab(ShellTab.search));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('open Search'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('search dock'), findsNothing);
+  });
+
+  testWidgets('a docked page gets room for the dock below its content', (
+    tester,
+  ) async {
+    await pumpShell(tester);
+    await tester.tap(tab(ShellTab.search));
+    await tester.pumpAndSettle();
+    final double docked = paddings[ShellTab.search]!.bottom;
+
+    await tester.tap(tab(ShellTab.browse));
+    await tester.pumpAndSettle();
+
+    expect(docked - paddings[ShellTab.browse]!.bottom, navBarDockHeight + 1);
+  });
+
   testWidgets('a covering page hides the bar until it closes', (tester) async {
     await pumpShell(tester);
     expect(find.byType(NavBar), findsOneWidget);
@@ -301,5 +364,20 @@ void main() {
 
     expect(navigator, isNotNull);
     expect(find.text('Library root'), findsOneWidget);
+  });
+
+  testWidgets('an open keyboard covers the room kept for the bar', (
+    tester,
+  ) async {
+    await pumpShell(tester);
+    expect(paddings[ShellTab.browse]!.bottom, greaterThan(0));
+
+    tester.view.viewInsets = FakeViewPadding(
+      bottom: 300 * tester.view.devicePixelRatio,
+    );
+    addTearDown(tester.view.resetViewInsets);
+    await tester.pumpAndSettle();
+
+    expect(paddings[ShellTab.browse]!.bottom, 0);
   });
 }

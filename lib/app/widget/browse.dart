@@ -302,45 +302,63 @@ class BrowseHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(8, 14, 8, 10),
-            child: Material(
-              color: picking ? theme.cardColor : Colors.transparent,
-              borderRadius: BorderRadius.circular(4),
-              child: InkWell(
-                onTap: onToggle,
-                borderRadius: BorderRadius.circular(4),
-                child: SizedBox(
-                  height: 48,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      spacing: 4,
-                      children: [
-                        Text(
-                          feed.label,
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        AnimatedRotation(
-                          turns: picking ? 0.5 : 0,
-                          duration: defaultAnimationDuration,
-                          child: Icon(
-                            Icons.expand_more,
-                            color: picking
-                                ? theme.colorScheme.primary
-                                : theme.colorScheme.onSurface.withValues(
-                                    alpha: 0.7,
-                                  ),
-                          ),
-                        ),
-                      ],
+          SizedBox(
+            height: 72,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+              child: Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 0, 2, 0),
+                    child: Transform.translate(
+                      offset: const Offset(-2, 0),
+                      child: Image.asset(
+                        'assets/icon/app/inapp.png',
+                        width: 52,
+                        height: 52,
+                      ),
                     ),
                   ),
-                ),
+                  Material(
+                    color: picking ? theme.cardColor : Colors.transparent,
+                    borderRadius: BorderRadius.circular(4),
+                    child: InkWell(
+                      onTap: onToggle,
+                      borderRadius: BorderRadius.circular(4),
+                      child: SizedBox(
+                        height: 48,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: 4,
+                            children: [
+                              Text(
+                                feed.label,
+                                style: theme.textTheme.headlineSmall?.copyWith(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              AnimatedRotation(
+                                turns: picking ? 0.5 : 0,
+                                duration: defaultAnimationDuration,
+                                child: Icon(
+                                  Icons.expand_more,
+                                  color: picking
+                                      ? theme.colorScheme.primary
+                                      : theme.colorScheme.onSurface.withValues(
+                                          alpha: 0.7,
+                                        ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
