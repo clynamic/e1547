@@ -88,8 +88,7 @@ class HiddenPostsSheet extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '${entries.length} blacklist lines matched this search '
-                        '· most hits first',
+                        '${entries.length} blacklist lines matched this search',
                         style: TextStyle(color: dimTextColor(context)),
                       ),
                     ],
@@ -122,6 +121,33 @@ class HiddenPostsSheet extends StatelessWidget {
                   child: Column(
                     spacing: 8,
                     children: [
+                      InkWell(
+                        onTap: onEditBlacklist,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(minHeight: 48),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Edit blacklist',
+                                  style: TextStyle(
+                                    color: theme.colorScheme.primary,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              Transform.translate(
+                                offset: const Offset(4, 0),
+                                child: Icon(
+                                  Icons.chevron_right,
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
                         title: const Text('Use blacklist in this search'),
@@ -130,29 +156,6 @@ class HiddenPostsSheet extends StatelessWidget {
                         ),
                         value: filter.denying,
                         onChanged: (value) => filter.denying = value,
-                      ),
-                      Row(
-                        spacing: 8,
-                        children: [
-                          Expanded(
-                            child: SizedBox(
-                              height: 48,
-                              child: OutlinedButton(
-                                onPressed: onEditBlacklist,
-                                child: const Text('Edit blacklist'),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: SizedBox(
-                              height: 48,
-                              child: FilledButton(
-                                onPressed: () => Navigator.of(context).pop(),
-                                child: const Text('Done'),
-                              ),
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),

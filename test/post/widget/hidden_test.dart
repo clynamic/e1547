@@ -77,13 +77,19 @@ void main() {
     await sqlite.close();
   });
 
+  int edits = 0;
+
   Future<void> show(WidgetTester tester) async {
+    edits = 0;
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: Align(
             alignment: Alignment.bottomCenter,
-            child: HiddenPostsSheet(filter: filter, onEditBlacklist: () {}),
+            child: HiddenPostsSheet(
+              filter: filter,
+              onEditBlacklist: () => edits++,
+            ),
           ),
         ),
       ),
@@ -138,6 +144,17 @@ void main() {
       tester.getTopLeft(find.text('spider')).dy,
       lessThan(tester.getTopLeft(find.text('gore')).dy),
     );
+  });
+
+  testWidgets('the sheet states the matched lines and links to the blacklist', (
+    tester,
+  ) async {
+    await show(tester);
+
+    expect(find.text('2 blacklist lines matched this search'), findsOneWidget);
+    expect(find.text('Done'), findsNothing);
+    await tester.tap(find.text('Edit blacklist'));
+    expect(edits, 1);
   });
 
   testWidgets('switching a line off shows the posts only it hid', (
