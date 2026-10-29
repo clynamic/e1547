@@ -13,6 +13,8 @@ const ScrollPhysics refreshPhysics = AlwaysScrollableScrollPhysics(
   parent: BouncingScrollPhysics(),
 );
 
+typedef SliverTop = List<Widget> Function(Future<void> Function()? onRefresh);
+
 const double hexagonRefreshTrigger = 64;
 const double hexagonRefreshExtent = 64;
 const double hexagonRefreshSize = 40;

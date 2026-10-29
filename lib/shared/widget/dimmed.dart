@@ -1,3 +1,4 @@
+import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
 double smallIconSize(BuildContext context) => 18;
@@ -25,4 +26,21 @@ class Dimmed extends StatelessWidget {
       ),
     );
   }
+}
+
+class SliverDim extends StatelessWidget {
+  const SliverDim({super.key, required this.dimmed, required this.sliver});
+
+  final bool dimmed;
+  final Widget sliver;
+
+  @override
+  Widget build(BuildContext context) => SliverIgnorePointer(
+    ignoring: dimmed,
+    sliver: SliverAnimatedOpacity(
+      opacity: dimmed ? 0.45 : 1,
+      duration: defaultAnimationDuration,
+      sliver: sliver,
+    ),
+  );
 }

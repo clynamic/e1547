@@ -1,6 +1,5 @@
 import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
-import 'package:e1547/follow/follow.dart';
 import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
@@ -8,8 +7,6 @@ import 'package:e1547/set/set.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
-
-typedef SliverTop = List<Widget> Function(Future<void> Function()? onRefresh);
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -69,7 +66,7 @@ class _SearchPageState extends State<SearchPage> {
               body: GestureDetector(
                 onTap: picking ? () => setState(() => picking = false) : null,
                 child: switch (kind) {
-                  SearchKind.posts => SearchPosts(top: top, dimmed: picking),
+                  SearchKind.posts => PostResults(top: top, dimmed: picking),
                   SearchKind.pools => SearchPools(top: top, dimmed: picking),
                   SearchKind.sets => SearchSets(top: top, dimmed: picking),
                 },
@@ -80,99 +77,6 @@ class _SearchPageState extends State<SearchPage> {
       ),
     );
   }
-}
-
-class SearchPosts extends StatelessWidget {
-  const SearchPosts({super.key, required this.top, required this.dimmed});
-
-  final SliverTop top;
-  final bool dimmed;
-
-  @override
-  Widget build(BuildContext context) => PostPageHistoryConnector(
-    child: FollowSeenConnector(
-      child: PostPageQueryBuilder(
-        builder: (context, state, query) => PostSearchDock(
-          child: LimitedWidthLayout(
-            child: ListenableBuilder(
-              listenable: context.watch<Settings>().tileSize,
-              builder: (context, child) => TileLayout(
-                tileSize: context.watch<Settings>().tileSize.value,
-                child: RefreshShortcuts(
-                  onRefresh: query.invalidate,
-                  child: CustomScrollView(
-                    primary: true,
-                    physics: refreshPhysics,
-                    slivers: [
-                      ...top(query.invalidate),
-                      SliverDim(
-                        dimmed: dimmed,
-                        sliver: SliverPadding(
-                          padding: defaultListPadding.copyWith(
-                            bottom:
-                                MediaQuery.paddingOf(context).bottom +
-                                defaultListPadding.bottom,
-                          ),
-                          sliver: const SliverPostList(),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
-class SearchPools extends StatelessWidget {
-  const SearchPools({super.key, required this.top, required this.dimmed});
-
-  final SliverTop top;
-  final bool dimmed;
-
-  @override
-  Widget build(BuildContext context) => PoolsHistoryConnector(
-    child: PoolPageQueryBuilder(
-      builder: (context, state, query) => NavBarDock(
-        builder: (_) => PoolDock(
-          params: context.read<PoolParamsController>(),
-          onOpen: (transition) =>
-              showPoolSearchSheet(context, transition: transition),
-        ),
-        child: LimitedWidthLayout(
-          child: TileLayout(
-            child: RefreshShortcuts(
-              onRefresh: query.invalidate,
-              child: CustomScrollView(
-                primary: true,
-                physics: refreshPhysics,
-                slivers: [
-                  ...top(query.invalidate),
-                  SliverDim(
-                    dimmed: dimmed,
-                    sliver: SliverPadding(
-                      padding: EdgeInsets.fromLTRB(
-                        8,
-                        8,
-                        8,
-                        MediaQuery.paddingOf(context).bottom +
-                            defaultListPadding.bottom,
-                      ),
-                      sliver: SliverPoolGrid(state: state, query: query),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    ),
-  );
 }
 
 class SearchSets extends StatelessWidget {

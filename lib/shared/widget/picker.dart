@@ -7,8 +7,8 @@ class PickerHeader extends StatelessWidget {
   const PickerHeader({
     super.key,
     required this.label,
-    required this.picking,
-    required this.onToggle,
+    this.picking = false,
+    this.onToggle,
     this.subtitle,
     this.leading,
   });
@@ -16,7 +16,7 @@ class PickerHeader extends StatelessWidget {
   final String label;
   final String? subtitle;
   final bool picking;
-  final VoidCallback onToggle;
+  final VoidCallback? onToggle;
   final Widget? leading;
 
   @override
@@ -55,18 +55,19 @@ class PickerHeader extends StatelessWidget {
                                 height: subtitle == null ? null : 1.1,
                               ),
                             ),
-                            AnimatedRotation(
-                              turns: picking ? 0.5 : 0,
-                              duration: defaultAnimationDuration,
-                              child: Icon(
-                                Icons.expand_more,
-                                color: picking
-                                    ? theme.colorScheme.primary
-                                    : theme.colorScheme.onSurface.withValues(
-                                        alpha: 0.7,
-                                      ),
+                            if (onToggle != null)
+                              AnimatedRotation(
+                                turns: picking ? 0.5 : 0,
+                                duration: defaultAnimationDuration,
+                                child: Icon(
+                                  Icons.expand_more,
+                                  color: picking
+                                      ? theme.colorScheme.primary
+                                      : theme.colorScheme.onSurface.withValues(
+                                          alpha: 0.7,
+                                        ),
+                                ),
                               ),
-                            ),
                           ],
                         ),
                         if (subtitle case final subtitle?)
@@ -212,5 +213,41 @@ class PickerCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class SliverPickerHeader extends StatelessWidget {
+  const SliverPickerHeader({super.key, required this.header, this.onRefresh});
+
+  final Widget header;
+  final Future<void> Function()? onRefresh;
+
+  @override
+  Widget build(BuildContext context) => switch (onRefresh) {
+    final onRefresh? => SliverHexagonRefresh(
+      onRefresh: onRefresh,
+      headerExtent: pickerHeaderHeight + MediaQuery.paddingOf(context).top,
+      header: header,
+    ),
+    null => SliverToBoxAdapter(child: header),
+  };
+}
+
+class PickerPage extends StatelessWidget {
+  const PickerPage({super.key, required this.label, required this.body});
+
+  final String label;
+  final Widget Function(SliverTop top) body;
+
+  @override
+  Widget build(BuildContext context) {
+    final Widget header = PickerHeader(
+      label: label,
+      leading: const BackButton(),
+    );
+    List<Widget> top(Future<void> Function()? onRefresh) => [
+      SliverPickerHeader(header: header, onRefresh: onRefresh),
+    ];
+    return Scaffold(body: body(top));
   }
 }

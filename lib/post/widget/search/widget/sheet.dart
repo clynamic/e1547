@@ -45,8 +45,13 @@ Future<void> showPostSearchSheet(
             MaterialPageRoute(builder: (context) => PoolPage(pool: pool)),
           );
         },
-        onSubmit: (value) =>
-            params.update((p) => p.copyWith(tags: TagMap(value).toString())),
+        onSubmit: (value) {
+          final String tags = TagMap(value).toString();
+          if (tags == TagMap(params.value.tags).toString()) return;
+          page.push(
+            MaterialPageRoute(builder: (context) => PostSearchPage(tags: tags)),
+          );
+        },
       ),
     ),
   );
@@ -197,8 +202,9 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
   }
 
   void submit([String? query]) {
-    widget.onSubmit(query ?? controller.query);
+    final String value = query ?? controller.query;
     Navigator.of(context).pop();
+    widget.onSubmit(value);
   }
 
   void append(String tag) => controller.commit(tag);

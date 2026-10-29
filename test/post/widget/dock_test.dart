@@ -7,6 +7,8 @@ import 'package:e1547/identity/identity.dart';
 import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
+import 'package:e1547/settings/settings.dart';
+import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
 import 'package:e1547/traits/traits.dart';
 import 'package:flutter/material.dart';
@@ -489,6 +491,77 @@ void main() {
 
       expect(mark('riolu'), TagCategory.species.colorFor(Brightness.light));
       expect(mark('rating:s'), Colors.grey);
+    });
+
+    Future<PostParamsController> openFromPage(WidgetTester tester) async {
+      final PostParamsController params = PostParamsController(
+        initial: const PostParams(tags: 'riolu'),
+      );
+      addTearDown(params.dispose);
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<Client>.value(value: client),
+            Provider<BaseCacheManager>.value(
+              value: const NoImageCacheManager(),
+            ),
+            Provider<Settings>.value(
+              value: Settings(await SharedPreferences.getInstance()),
+            ),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: const [
+              DefaultMaterialLocalizations.delegate,
+              DefaultWidgetsLocalizations.delegate,
+              RelativeTimeLocalizations.delegate,
+            ],
+            home: FilterControllerProvider(
+              create: (_) => PostFilter(client),
+              child: ChangeNotifierProvider.value(
+                value: params,
+                child: Builder(
+                  builder: (context) => Scaffold(
+                    body: TextButton(
+                      onPressed: () => showPostSearchSheet(context),
+                      child: const Text('open'),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await settle(tester);
+      return params;
+    }
+
+    displayTest('a changed search opens a new page above the old one', (
+      tester,
+    ) async {
+      final PostParamsController params = await openFromPage(tester);
+
+      await tester.enterText(find.byType(TextField), 'solo ');
+      await settle(tester);
+      await tester.tap(find.byIcon(Icons.search).last);
+      await settle(tester);
+
+      expect(
+        tester.widget<PostSearchPage>(find.byType(PostSearchPage)).tags,
+        'riolu solo',
+      );
+      expect(params.value.tags, 'riolu');
+    });
+
+    displayTest('committing the same search stays on the page', (tester) async {
+      await openFromPage(tester);
+
+      await tester.tap(find.byIcon(Icons.search).last);
+      await settle(tester);
+
+      expect(find.byType(PostSearchPage), findsNothing);
+      expect(find.text('open'), findsOneWidget);
     });
 
     void addPools() => fake.state.pools

@@ -281,23 +281,6 @@ class TimelineEmpty extends StatelessWidget {
   }
 }
 
-class SliverDim extends StatelessWidget {
-  const SliverDim({super.key, required this.dimmed, required this.sliver});
-
-  final bool dimmed;
-  final Widget sliver;
-
-  @override
-  Widget build(BuildContext context) => SliverIgnorePointer(
-    ignoring: dimmed,
-    sliver: SliverAnimatedOpacity(
-      opacity: dimmed ? 0.45 : 1,
-      duration: defaultAnimationDuration,
-      sliver: sliver,
-    ),
-  );
-}
-
 class BrowseHeader extends StatelessWidget {
   const BrowseHeader({
     super.key,

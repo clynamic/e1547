@@ -502,5 +502,32 @@ void main() {
       await tester.tap(find.text('ref sheets'));
       expect(opened.map((e) => e.id), [2]);
     });
+
+    displayTest('the pools page lists the pools of the search it opens '
+        'with', (tester) async {
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<Client>.value(value: client),
+            Provider<BaseCacheManager>.value(
+              value: const NoImageCacheManager(),
+            ),
+            Provider<Settings>.value(
+              value: Settings(await SharedPreferences.getInstance()),
+            ),
+          ],
+          child: MaterialApp(
+            home: NavBarDockScope(
+              docks: NavBarDocks(),
+              child: const PoolsPage(search: PoolParams(name: 'lake')),
+            ),
+          ),
+        ),
+      );
+      await settle(tester);
+
+      expect(find.text('lake notes'), findsOneWidget);
+      expect(find.text('river story'), findsNothing);
+    });
   });
 }
