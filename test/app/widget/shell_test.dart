@@ -45,6 +45,26 @@ void main() {
             child: Text('cover ${tab.label}'),
           ),
           TextButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => NavBarDock(
+                  full: true,
+                  builder: (context) => const Text('selection bar'),
+                  child: Scaffold(
+                    body: ListView(
+                      primary: true,
+                      children: [
+                        for (int i = 0; i < 40; i++)
+                          const SizedBox(height: 100),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            child: Text('full ${tab.label}'),
+          ),
+          TextButton(
             onPressed: () => showDialog<void>(
               context: context,
               useRootNavigator: false,
@@ -166,6 +186,27 @@ void main() {
           tester.getRect(line).bottom,
       4,
     );
+  });
+
+  testWidgets('a full dock takes the whole card and stays while scrolling', (
+    tester,
+  ) async {
+    await pumpShell(tester);
+    await tester.tap(find.text('full Browse'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('selection bar'), findsOneWidget);
+    expect(find.byType(NavBarTab), findsNothing);
+    expect(
+      tester.getSize(find.byType(NavBar)).height,
+      navBarFullHeight + navBarBottomMargin,
+    );
+
+    final double top = tester.getTopLeft(find.text('selection bar')).dy;
+    await tester.drag(find.byType(ListView).last, const Offset(0, -600));
+    await tester.pumpAndSettle();
+
+    expect(tester.getTopLeft(find.text('selection bar')).dy, top);
   });
 
   testWidgets('each tab keeps its own stack', (tester) async {
@@ -380,6 +421,35 @@ void main() {
     expect(
       tester.getBottomLeft(find.text('search dock')).dy,
       lessThan(tester.getTopLeft(tab(ShellTab.search)).dy),
+    );
+  });
+
+  testWidgets('a dock that changes keeps showing its latest content', (
+    tester,
+  ) async {
+    final ShellController shell = await pumpShell(tester);
+    final ValueNotifier<int> count = ValueNotifier(0);
+    addTearDown(count.dispose);
+    shell.navigator!.push(
+      MaterialPageRoute(
+        builder: (context) => ValueListenableBuilder<int>(
+          valueListenable: count,
+          builder: (context, value, child) => NavBarDock(
+            builder: (context) => Text('dock $value'),
+            child: const Scaffold(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('dock 0'), findsOneWidget);
+
+    count.value = 1;
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(of: find.byType(NavBar), matching: find.text('dock 1')),
+      findsOneWidget,
     );
   });
 

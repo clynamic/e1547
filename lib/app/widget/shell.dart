@@ -11,6 +11,7 @@ const double navBarMargin = 12;
 const double navBarBottomMargin = 16;
 const double navBarDockHeight = 56;
 const double navBarFadeHeight = 64;
+const double navBarFullHeight = 64;
 
 double navBarSpace({required bool docked}) =>
     navBarHeight + navBarBottomMargin + (docked ? navBarDockHeight + 1 : 0);
@@ -159,7 +160,15 @@ class _AppShellState extends State<AppShell> {
         listenable: active,
         builder: (context, child) {
           final WidgetBuilder? dock = active.current;
-          final double space = navBarSpace(docked: dock != null);
+          final bool full = active.full;
+          if (visibility.pinned != full) {
+            WidgetsBinding.instance.addPostFrameCallback(
+              (_) => visibility.pinned = full,
+            );
+          }
+          final double space = full
+              ? navBarFullHeight + navBarBottomMargin
+              : navBarSpace(docked: dock != null);
           return Stack(
             children: [
               Positioned.fill(
@@ -189,7 +198,15 @@ class _AppShellState extends State<AppShell> {
                     controller: visibility,
                     child: NavBar(
                       selected: shell.tab,
-                      dock: dock,
+                      dock: dock == null
+                          ? null
+                          : (context) => ListenableBuilder(
+                              listenable: active.content,
+                              builder: (context, _) =>
+                                  active.current?.call(context) ??
+                                  const SizedBox(),
+                            ),
+                      full: full,
                       onGo: (tab) => _go(shell, tab),
                     ),
                   ),
@@ -355,11 +372,13 @@ class NavBar extends StatelessWidget {
     required this.selected,
     required this.onGo,
     this.dock,
+    this.full = false,
   });
 
   final ShellTab selected;
   final ValueChanged<ShellTab> onGo;
   final WidgetBuilder? dock;
+  final bool full;
 
   @override
   Widget build(BuildContext context) {
@@ -402,48 +421,58 @@ class NavBar extends StatelessWidget {
               shadowColor: Colors.black,
               borderRadius: BorderRadius.circular(8),
               clipBehavior: Clip.antiAlias,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AnimatedSize(
-                    duration: defaultAnimationDuration,
-                    curve: Curves.easeOutCubic,
-                    alignment: Alignment.bottomCenter,
-                    child: dock != null
-                        ? Column(
-                            children: [
-                              SizedBox(
-                                height: navBarDockHeight,
-                                child: Builder(builder: dock!),
-                              ),
-                              Divider(
-                                height: 1,
-                                thickness: 1,
-                                color: theme.colorScheme.onSurface.withValues(
-                                  alpha: 0.07,
-                                ),
-                              ),
-                            ],
-                          )
-                        : const SizedBox(width: double.infinity),
-                  ),
-                  SizedBox(
-                    height: navBarHeight,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        for (final ShellTab tab in ShellTab.values)
-                          Expanded(
-                            child: NavBarTab(
-                              tab: tab,
-                              chosen: tab == selected,
-                              onTap: () => onGo(tab),
+              child: AnimatedSize(
+                duration: defaultAnimationDuration,
+                curve: Curves.easeOutCubic,
+                alignment: Alignment.bottomCenter,
+                child: full && dock != null
+                    ? SizedBox(
+                        width: double.infinity,
+                        height: navBarFullHeight,
+                        child: Builder(builder: dock!),
+                      )
+                    : Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AnimatedSize(
+                            duration: defaultAnimationDuration,
+                            curve: Curves.easeOutCubic,
+                            alignment: Alignment.bottomCenter,
+                            child: dock != null
+                                ? Column(
+                                    children: [
+                                      SizedBox(
+                                        height: navBarDockHeight,
+                                        child: Builder(builder: dock!),
+                                      ),
+                                      Divider(
+                                        height: 1,
+                                        thickness: 1,
+                                        color: theme.colorScheme.onSurface
+                                            .withValues(alpha: 0.07),
+                                      ),
+                                    ],
+                                  )
+                                : const SizedBox(width: double.infinity),
+                          ),
+                          SizedBox(
+                            height: navBarHeight,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                for (final ShellTab tab in ShellTab.values)
+                                  Expanded(
+                                    child: NavBarTab(
+                                      tab: tab,
+                                      chosen: tab == selected,
+                                      onTap: () => onGo(tab),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
-                      ],
-                    ),
-                  ),
-                ],
+                        ],
+                      ),
               ),
             ),
           ),

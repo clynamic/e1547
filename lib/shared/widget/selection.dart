@@ -1,5 +1,7 @@
 import 'package:e1547/shared/shared.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 class SelectionLayoutData<T> extends InheritedWidget {
   /// Provides selection actions for a [SelectionLayout] to its subtree.
@@ -82,6 +84,7 @@ class SelectionLayout<T> extends StatefulWidget {
     required this.child,
     required this.items,
     this.enabled = true,
+    this.keyOf,
   });
 
   /// The widget below this one on the tree.
@@ -89,6 +92,8 @@ class SelectionLayout<T> extends StatefulWidget {
 
   /// All items which can be selected.
   final List<T>? items;
+
+  final Object Function(T item)? keyOf;
 
   /// Whether items can currently be selected.
   final bool enabled;
@@ -113,6 +118,16 @@ class _SelectionLayoutState<T> extends State<SelectionLayout<T>> {
   void didUpdateWidget(covariant SelectionLayout<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.items != widget.items) {
+      final Object Function(T item)? keyOf = widget.keyOf;
+      if (keyOf != null) {
+        final Set<Object> kept = selections.map(keyOf).toSet();
+        onSelectionChanged(
+          (widget.items ?? const [])
+              .where((e) => kept.contains(keyOf(e)))
+              .toSet(),
+        );
+        return;
+      }
       Set<T> updated = Set.from(selections);
       updated.removeWhere(
         (element) => !(widget.items?.contains(element) ?? false),
@@ -262,5 +277,124 @@ class SelectionItemOverlay<T> extends StatelessWidget {
     } else {
       return child;
     }
+  }
+}
+
+class _SelectionTag<T> {
+  const _SelectionTag(this.item);
+
+  final T item;
+}
+
+class TileSelectionOverlay<T> extends StatefulWidget {
+  const TileSelectionOverlay({
+    super.key,
+    required this.item,
+    required this.child,
+    this.marker,
+  });
+
+  final T item;
+  final Widget child;
+  final Widget? marker;
+
+  @override
+  State<TileSelectionOverlay<T>> createState() =>
+      _TileSelectionOverlayState<T>();
+}
+
+class _TileSelectionOverlayState<T> extends State<TileSelectionOverlay<T>> {
+  bool? dragSelects;
+
+  void _dragTo(SelectionLayoutData<T> data, Offset position) {
+    final bool? selects = dragSelects;
+    if (selects == null) return;
+    final HitTestResult result = HitTestResult();
+    WidgetsBinding.instance.hitTestInView(
+      result,
+      position,
+      View.of(context).viewId,
+    );
+    for (final HitTestEntry entry in result.path) {
+      final HitTestTarget target = entry.target;
+      if (target is RenderMetaData && target.metaData is _SelectionTag<T>) {
+        final T item = (target.metaData as _SelectionTag<T>).item;
+        if (data.isSelected(item) != selects) data.setSelection(item, selects);
+        return;
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final SelectionLayoutData<T>? data = SelectionLayout.maybeOf<T>(context);
+    if (data == null) return widget.child;
+    final ThemeData theme = Theme.of(context);
+    final bool selected = data.selections.contains(widget.item);
+    return MetaData(
+      metaData: _SelectionTag<T>(widget.item),
+      behavior: HitTestBehavior.translucent,
+      child: Stack(
+        fit: StackFit.passthrough,
+        children: [
+          widget.child,
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: data.selections.isNotEmpty
+                  ? () => data.toggleSelection(widget.item)
+                  : null,
+              onLongPressStart: (details) {
+                final bool next = !data.isSelected(widget.item);
+                data.setSelection(widget.item, next);
+                dragSelects = next;
+              },
+              onLongPressMoveUpdate: (details) =>
+                  _dragTo(data, details.globalPosition),
+              onLongPressEnd: (details) => dragSelects = null,
+              onSecondaryTap: () => data.toggleSelection(widget.item),
+              child: IgnorePointer(
+                child: AnimatedOpacity(
+                  duration: defaultAnimationDuration,
+                  opacity: selected ? 1 : 0,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: theme.colorScheme.primary,
+                        width: 3,
+                      ),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          left: 8,
+                          top: 8,
+                          child: Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.check,
+                              size: 18,
+                              color: theme.colorScheme.onPrimary,
+                            ),
+                          ),
+                        ),
+                        if (widget.marker case final marker?)
+                          Positioned(right: 8, bottom: 8, child: marker),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

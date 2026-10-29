@@ -420,4 +420,32 @@ void main() {
     await tester.pump(refreshNoteDuration);
     await tester.pumpAndSettle();
   });
+
+  displayTest('holding a post turns the dock into the selection bar', (
+    tester,
+  ) async {
+    final NavBarDocks docks = NavBarDocks();
+    addTearDown(docks.dispose);
+    await show(
+      tester,
+      NavBarDockScope(
+        docks: docks,
+        child: const PostSearchPage(tags: ''),
+      ),
+    );
+    expect(docks.full, isFalse);
+    expect(docks.current, isNotNull);
+
+    await tester.longPress(find.byType(PostTile).first);
+    await tester.pump();
+    await tester.pump();
+
+    expect(docks.full, isTrue);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: Builder(builder: docks.current!)),
+      ),
+    );
+    expect(find.text('1 post'), findsOneWidget);
+  });
 }

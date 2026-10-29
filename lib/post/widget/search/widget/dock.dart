@@ -14,16 +14,24 @@ class PostSearchDock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final PostParamsController params = context.watch<PostParamsController>();
-    if (!params.canSearch) return child;
     final PostFilter filter = context.watch<PostFilter>();
+    final SelectionLayoutData<Post>? selection = SelectionLayout.maybeOf<Post>(
+      context,
+    );
+    final bool selecting = selection != null && selection.selections.isNotEmpty;
     return NavBarDock(
-      builder: (_) => PostDock(
-        params: params,
-        filter: filter,
-        onOpen: (transition) =>
-            showPostSearchSheet(context, transition: transition),
-        onHidden: () => showHiddenPostsSheet(context, filter),
-      ),
+      full: selecting,
+      builder: selecting
+          ? (_) => PostSelectionBar(selection: selection)
+          : params.canSearch
+          ? (_) => PostDock(
+              params: params,
+              filter: filter,
+              onOpen: (transition) =>
+                  showPostSearchSheet(context, transition: transition),
+              onHidden: () => showHiddenPostsSheet(context, filter),
+            )
+          : null,
       child: child,
     );
   }

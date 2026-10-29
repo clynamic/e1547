@@ -47,31 +47,35 @@ class _PostResultsState extends State<PostResults> {
     child: PostPageHistoryConnector(
       child: FollowSeenConnector(
         child: PostPageQueryBuilder(
-          builder: (context, state, query) => PostSearchDock(
-            child: LimitedWidthLayout(
-              child: ListenableBuilder(
-                listenable: context.watch<Settings>().tileSize,
-                builder: (context, child) => TileLayout(
-                  tileSize: context.watch<Settings>().tileSize.value,
-                  child: RefreshShortcuts(
-                    onRefresh: () => refresh(query),
-                    child: CustomScrollView(
-                      primary: true,
-                      physics: refreshPhysics,
-                      slivers: [
-                        ...widget.top(() => refresh(query)),
-                        SliverDim(
-                          dimmed: widget.dimmed,
-                          sliver: SliverPadding(
-                            padding: defaultListPadding.copyWith(
-                              bottom:
-                                  MediaQuery.paddingOf(context).bottom +
-                                  defaultListPadding.bottom,
+          builder: (context, state, query) => SelectionLayout<Post>(
+            items: state.data?.pages.expand((e) => e).toList(),
+            keyOf: (post) => post.id,
+            child: PostSearchDock(
+              child: LimitedWidthLayout(
+                child: ListenableBuilder(
+                  listenable: context.watch<Settings>().tileSize,
+                  builder: (context, child) => TileLayout(
+                    tileSize: context.watch<Settings>().tileSize.value,
+                    child: RefreshShortcuts(
+                      onRefresh: () => refresh(query),
+                      child: CustomScrollView(
+                        primary: true,
+                        physics: refreshPhysics,
+                        slivers: [
+                          ...widget.top(() => refresh(query)),
+                          SliverDim(
+                            dimmed: widget.dimmed,
+                            sliver: SliverPadding(
+                              padding: defaultListPadding.copyWith(
+                                bottom:
+                                    MediaQuery.paddingOf(context).bottom +
+                                    defaultListPadding.bottom,
+                              ),
+                              sliver: const SliverPostList(),
                             ),
-                            sliver: const SliverPostList(),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),

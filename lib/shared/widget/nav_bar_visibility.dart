@@ -14,6 +14,15 @@ class NavBarVisibility extends ChangeNotifier {
   double _hidden = 0;
   double _climb = 0;
   bool _settling = false;
+  bool _pinned = false;
+
+  bool get pinned => _pinned;
+
+  set pinned(bool value) {
+    if (value == _pinned) return;
+    _pinned = value;
+    if (value) show();
+  }
 
   double get hidden => _hidden / height;
 
@@ -35,7 +44,7 @@ class NavBarVisibility extends ChangeNotifier {
   void _settle() => _move(_hidden < height / 2 ? 0 : height, settle: true);
 
   bool absorb(ScrollNotification notification) {
-    if (notification.depth != 0) return false;
+    if (_pinned || notification.depth != 0) return false;
     final ScrollMetrics metrics = notification.metrics;
     if (metrics.axis != Axis.vertical) return false;
     if (!metrics.hasContentDimensions) return false;

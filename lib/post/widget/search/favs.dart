@@ -33,9 +33,7 @@ class FavPage extends StatelessWidget {
                   builder: (context, state, query) => SelectionLayout<Post>(
                     items: state.data?.pages.expand((p) => p).toList(),
                     child: AdaptiveScaffold(
-                      appBar: const PostSelectionAppBar(
-                        child: PostPageAppBar(),
-                      ),
+                      appBar: const PostPageAppBar(),
                       endDrawer: ContextDrawer(
                         title: const Text('Posts'),
                         children: [

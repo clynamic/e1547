@@ -34,8 +34,11 @@ class PostImageTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: SelectionItemOverlay(
+      child: TileSelectionOverlay<Post>(
         item: post,
+        marker: post.isFavorited
+            ? const Icon(Icons.favorite, size: 18, color: Colors.pinkAccent)
+            : null,
         child: Stack(
           fit: StackFit.passthrough,
           clipBehavior: Clip.none,
