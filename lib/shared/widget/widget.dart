@@ -31,6 +31,7 @@ export 'navigation.dart';
 export 'ontap.dart';
 export 'padding.dart';
 export 'pagination.dart';
+export 'picker.dart';
 export 'popups.dart';
 export 'prompt.dart';
 export 'range.dart';

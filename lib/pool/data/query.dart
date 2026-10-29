@@ -19,6 +19,16 @@ extension PoolQuerying on PoolClient {
     config: poolCache.getConfig(vendored: vendored),
   );
 
+  Query<List<Pool>> useSearch({required QueryMap? query, int limit = 5}) =>
+      Query(
+        cache: queryCache,
+        key: [...queryKey, 'search', limit, query],
+        queryFn: () => page(limit: limit, query: query).then((pools) {
+          poolCache.savePage(pools);
+          return pools;
+        }),
+      );
+
   InfiniteQuery<List<int>, int> usePage({required QueryMap? query}) =>
       InfiniteQuery<List<int>, int>(
         cache: queryCache,

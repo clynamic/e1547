@@ -6,4 +6,5 @@ export 'pool.dart';
 export 'pools.dart';
 export 'prompt.dart';
 export 'query.dart';
+export 'search.dart';
 export 'tile.dart';

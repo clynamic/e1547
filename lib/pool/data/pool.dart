@@ -1,3 +1,4 @@
+import 'package:e1547/pool/pool.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'pool.freezed.dart';
@@ -14,6 +15,7 @@ abstract class Pool with _$Pool {
     required List<int> postIds,
     required int postCount,
     required bool active,
+    @Default(PoolCategory.series) PoolCategory category,
   }) = _Pool;
 
   factory Pool.fromJson(dynamic json) => _$PoolFromJson(json);

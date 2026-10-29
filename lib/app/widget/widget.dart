@@ -9,5 +9,6 @@ export 'lock.dart';
 export 'logging.dart';
 export 'notifications.dart';
 export 'provider.dart';
+export 'search.dart';
 export 'shell.dart';
 export 'window.dart';

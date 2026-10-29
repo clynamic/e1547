@@ -5,6 +5,7 @@ export 'initialize.dart';
 export 'link.dart';
 export 'navigation.dart';
 export 'notification.dart';
+export 'search.dart';
 export 'storage.dart';
 export 'storage.drift.dart';
 export 'task.dart';

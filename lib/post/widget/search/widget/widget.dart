@@ -1,4 +1,5 @@
 export 'actions.dart';
+export 'cover.dart';
 export 'dock.dart';
 export 'hidden.dart';
 export 'selection.dart';

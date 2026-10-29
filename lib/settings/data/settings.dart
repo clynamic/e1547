@@ -42,6 +42,12 @@ class Settings extends NotifiedSettings {
     values: PopularScale.values,
   );
 
+  late final ValueNotifier<SearchKind> searchKind = createEnumSetting(
+    key: 'searchKind',
+    initialValue: SearchKind.posts,
+    values: SearchKind.values,
+  );
+
   late final ValueNotifier<int> tileSize = createSetting(
     key: 'tileSize',
     initialValue: 200,

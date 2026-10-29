@@ -46,6 +46,42 @@ class PostDock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    return SearchDock(
+      onOpen: onOpen,
+      child: ListenableBuilder(
+        listenable: Listenable.merge([params, filter]),
+        builder: (context, child) => Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 5,
+          children: [
+            QueryChipRow(query: params.value.tags ?? ''),
+            if (filter.denying && filter.blockedCount > 0)
+              GestureDetector(
+                onTap: onHidden,
+                child: Text(
+                  '${filter.blockedCount} hidden',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class SearchDock extends StatelessWidget {
+  const SearchDock({super.key, required this.onOpen, required this.child});
+
+  final Future<void> Function(AnimationController? transition) onOpen;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
     final bool left = Handedness.of(context) == Handedness.left;
     return DragToOpen(
       open: onOpen,
@@ -76,28 +112,7 @@ class PostDock extends StatelessWidget {
                     Expanded(
                       child: Directionality(
                         textDirection: TextDirection.ltr,
-                        child: ListenableBuilder(
-                          listenable: Listenable.merge([params, filter]),
-                          builder: (context, child) => Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: 5,
-                            children: [
-                              QueryChipRow(query: params.value.tags ?? ''),
-                              if (filter.denying && filter.blockedCount > 0)
-                                GestureDetector(
-                                  onTap: onHidden,
-                                  child: Text(
-                                    '${filter.blockedCount} hidden',
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: theme.colorScheme.onSurface
-                                          .withValues(alpha: 0.6),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
+                        child: child,
                       ),
                     ),
                     SizedBox.square(

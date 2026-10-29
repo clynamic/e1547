@@ -17,6 +17,9 @@ _Pool _$PoolFromJson(Map<String, dynamic> json) => _Pool(
       .toList(),
   postCount: (json['post_count'] as num).toInt(),
   active: json['active'] as bool,
+  category:
+      $enumDecodeNullable(_$PoolCategoryEnumMap, json['category']) ??
+      PoolCategory.series,
 );
 
 Map<String, dynamic> _$PoolToJson(_Pool instance) => <String, dynamic>{
@@ -28,4 +31,10 @@ Map<String, dynamic> _$PoolToJson(_Pool instance) => <String, dynamic>{
   'post_ids': instance.postIds,
   'post_count': instance.postCount,
   'active': instance.active,
+  'category': _$PoolCategoryEnumMap[instance.category]!,
+};
+
+const _$PoolCategoryEnumMap = {
+  PoolCategory.series: 'series',
+  PoolCategory.collection: 'collection',
 };

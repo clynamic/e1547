@@ -12,6 +12,9 @@ abstract final class E621Pool {
       postIds: pick('post_ids').asListOrThrow((pick) => pick.asIntOrThrow()),
       postCount: pick('post_count').asIntOrThrow(),
       active: pick('is_active').asBoolOrThrow(),
+      category:
+          PoolCategory.values.asNameMap()[pick('category').asStringOrNull()] ??
+          PoolCategory.series,
     ),
   );
 }

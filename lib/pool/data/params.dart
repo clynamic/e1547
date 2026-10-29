@@ -4,17 +4,26 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'params.freezed.dart';
 
-enum PoolCategory { series, collection }
+enum PoolCategory {
+  series('Series'),
+  collection('Collections');
+
+  const PoolCategory(this.label);
+
+  final String label;
+}
 
 enum PoolOrder {
-  name('name'),
-  createdAt('created_at'),
-  updatedAt('updated_at'),
-  postCount('post_count');
+  updatedAt('updated_at', 'Recently updated', 'last updated'),
+  name('name', 'Name', 'by name'),
+  createdAt('created_at', 'Newest', 'newest first'),
+  postCount('post_count', 'Most posts', 'most posts');
 
-  const PoolOrder(this.value);
+  const PoolOrder(this.value, this.label, this.words);
 
   final String value;
+  final String label;
+  final String words;
 }
 
 @freezed

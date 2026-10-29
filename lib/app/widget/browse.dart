@@ -33,7 +33,7 @@ class _BrowsePageState extends State<BrowsePage> {
             SliverHexagonRefresh(
               onRefresh: onRefresh,
               headerExtent:
-                  browseHeaderHeight + MediaQuery.paddingOf(context).top,
+                  pickerHeaderHeight + MediaQuery.paddingOf(context).top,
               header: BrowseHeader(
                 feed: feed,
                 picking: picking,
@@ -296,8 +296,6 @@ class SliverDim extends StatelessWidget {
   );
 }
 
-const double browseHeaderHeight = 72;
-
 class BrowseHeader extends StatelessWidget {
   const BrowseHeader({
     super.key,
@@ -311,72 +309,18 @@ class BrowseHeader extends StatelessWidget {
   final VoidCallback onToggle;
 
   @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return Padding(
-      padding: EdgeInsets.only(top: MediaQuery.paddingOf(context).top),
-      child: SizedBox(
-        height: browseHeaderHeight,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-          child: Row(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(0, 0, 2, 0),
-                child: Transform.translate(
-                  offset: const Offset(-2, 0),
-                  child: Image.asset(
-                    'assets/icon/app/inapp.png',
-                    width: 52,
-                    height: 52,
-                  ),
-                ),
-              ),
-              Material(
-                color: picking ? theme.cardColor : Colors.transparent,
-                borderRadius: BorderRadius.circular(4),
-                child: InkWell(
-                  onTap: onToggle,
-                  borderRadius: BorderRadius.circular(4),
-                  child: SizedBox(
-                    height: 48,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        spacing: 4,
-                        children: [
-                          Text(
-                            feed.label,
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          AnimatedRotation(
-                            turns: picking ? 0.5 : 0,
-                            duration: defaultAnimationDuration,
-                            child: Icon(
-                              Icons.expand_more,
-                              color: picking
-                                  ? theme.colorScheme.primary
-                                  : theme.colorScheme.onSurface.withValues(
-                                      alpha: 0.7,
-                                    ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+  Widget build(BuildContext context) => PickerHeader(
+    label: feed.label,
+    picking: picking,
+    onToggle: onToggle,
+    leading: Padding(
+      padding: const EdgeInsets.fromLTRB(0, 0, 2, 0),
+      child: Transform.translate(
+        offset: const Offset(-2, 0),
+        child: Image.asset('assets/icon/app/inapp.png', width: 52, height: 52),
       ),
-    );
-  }
+    ),
+  );
 }
 
 class BrowseFeedPicker extends StatelessWidget {
@@ -394,27 +338,17 @@ class BrowseFeedPicker extends StatelessWidget {
   final void Function(BrowseFeed feed, PopularScale scale) onPick;
 
   @override
-  Widget build(BuildContext context) => AnimatedSize(
-    duration: defaultAnimationDuration,
-    curve: Curves.easeOutCubic,
-    alignment: Alignment.topCenter,
-    child: picking
-        ? Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
-            child: Column(
-              spacing: 8,
-              children: [
-                for (final BrowseFeed value in BrowseFeed.values)
-                  BrowseFeedCard(
-                    feed: value,
-                    scale: scale,
-                    selected: value == feed,
-                    onPick: onPick,
-                  ),
-              ],
-            ),
-          )
-        : const SizedBox(width: double.infinity),
+  Widget build(BuildContext context) => PickerList(
+    picking: picking,
+    children: [
+      for (final BrowseFeed value in BrowseFeed.values)
+        BrowseFeedCard(
+          feed: value,
+          scale: scale,
+          selected: value == feed,
+          onPick: onPick,
+        ),
+    ],
   );
 }
 
@@ -433,68 +367,18 @@ class BrowseFeedCard extends StatelessWidget {
   final void Function(BrowseFeed feed, PopularScale scale) onPick;
 
   @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final Color accent = theme.colorScheme.primary;
-    return Material(
-      color: selected
-          ? accent.withValues(alpha: 0.08)
-          : Color.alphaBlend(
-              theme.colorScheme.onSurface.withValues(alpha: 0.03),
-              theme.canvasColor,
-            ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: selected ? accent : Colors.transparent),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => onPick(feed, scale),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            spacing: 10,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 2,
-                      children: [
-                        Text(
-                          feed.label,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w500,
-                            color: selected ? accent : null,
-                          ),
-                        ),
-                        DefaultTextStyle.merge(
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: dimTextColor(context),
-                          ),
-                          child: BrowseFeedSubtitle(feed: feed),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (selected) Icon(Icons.check, color: accent),
-                ],
-              ),
-              if (feed == BrowseFeed.popular)
-                PopularScalePicker(
-                  scale: scale,
-                  onPick: (value) => onPick(BrowseFeed.popular, value),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => PickerCard(
+    title: feed.label,
+    subtitle: BrowseFeedSubtitle(feed: feed),
+    selected: selected,
+    onTap: () => onPick(feed, scale),
+    child: feed == BrowseFeed.popular
+        ? PopularScalePicker(
+            scale: scale,
+            onPick: (value) => onPick(BrowseFeed.popular, value),
+          )
+        : null,
+  );
 }
 
 class BrowseFeedSubtitle extends StatelessWidget {

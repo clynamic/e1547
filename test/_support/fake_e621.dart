@@ -57,7 +57,7 @@ class FakeE621 {
       '/forum_topics/<id|[0-9]+>.json',
       (Request request, String id) => _json(_find(state.topics, id)),
     )
-    ..get('/pools.json', (Request request) => _list(state.pools, request))
+    ..get('/pools.json', _listPools)
     ..get(
       '/pools/<id|[0-9]+>.json',
       (Request request, String id) => _json(_find(state.pools, id)),
@@ -98,6 +98,21 @@ class FakeE621 {
           orElse: () => {'name': name, 'post_count': 0},
         ),
     ]);
+  }
+
+  Response _listPools(Request request) {
+    final Map<String, String> query = request.url.queryParameters;
+    final String name = (query['search[name_matches]'] ?? '').toLowerCase();
+    final String? category = query['search[category]'];
+    return _json(
+      _paginate(
+        state.pools
+            .where((e) => (e['name']! as String).toLowerCase().contains(name))
+            .where((e) => category == null || e['category'] == category)
+            .toList(),
+        query,
+      ),
+    );
   }
 
   Response _list(List<Map<String, Object?>> items, Request request) =>

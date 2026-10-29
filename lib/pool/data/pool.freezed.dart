@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Pool {
 
- int get id; String get name; DateTime get createdAt; DateTime get updatedAt; String get description; List<int> get postIds; int get postCount; bool get active;
+ int get id; String get name; DateTime get createdAt; DateTime get updatedAt; String get description; List<int> get postIds; int get postCount; bool get active; PoolCategory get category;
 /// Create a copy of Pool
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $PoolCopyWith<Pool> get copyWith => _$PoolCopyWithImpl<Pool>(this as Pool, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Pool&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.description, description) || other.description == description)&&const DeepCollectionEquality().equals(other.postIds, postIds)&&(identical(other.postCount, postCount) || other.postCount == postCount)&&(identical(other.active, active) || other.active == active));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Pool&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.description, description) || other.description == description)&&const DeepCollectionEquality().equals(other.postIds, postIds)&&(identical(other.postCount, postCount) || other.postCount == postCount)&&(identical(other.active, active) || other.active == active)&&(identical(other.category, category) || other.category == category));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,createdAt,updatedAt,description,const DeepCollectionEquality().hash(postIds),postCount,active);
+int get hashCode => Object.hash(runtimeType,id,name,createdAt,updatedAt,description,const DeepCollectionEquality().hash(postIds),postCount,active,category);
 
 @override
 String toString() {
-  return 'Pool(id: $id, name: $name, createdAt: $createdAt, updatedAt: $updatedAt, description: $description, postIds: $postIds, postCount: $postCount, active: $active)';
+  return 'Pool(id: $id, name: $name, createdAt: $createdAt, updatedAt: $updatedAt, description: $description, postIds: $postIds, postCount: $postCount, active: $active, category: $category)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $PoolCopyWith<$Res>  {
   factory $PoolCopyWith(Pool value, $Res Function(Pool) _then) = _$PoolCopyWithImpl;
 @useResult
 $Res call({
- int id, String name, DateTime createdAt, DateTime updatedAt, String description, List<int> postIds, int postCount, bool active
+ int id, String name, DateTime createdAt, DateTime updatedAt, String description, List<int> postIds, int postCount, bool active, PoolCategory category
 });
 
 
@@ -65,7 +65,7 @@ class _$PoolCopyWithImpl<$Res>
 
 /// Create a copy of Pool
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? createdAt = null,Object? updatedAt = null,Object? description = null,Object? postIds = null,Object? postCount = null,Object? active = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? createdAt = null,Object? updatedAt = null,Object? description = null,Object? postIds = null,Object? postCount = null,Object? active = null,Object? category = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -75,7 +75,8 @@ as DateTime,description: null == description ? _self.description : description /
 as String,postIds: null == postIds ? _self.postIds : postIds // ignore: cast_nullable_to_non_nullable
 as List<int>,postCount: null == postCount ? _self.postCount : postCount // ignore: cast_nullable_to_non_nullable
 as int,active: null == active ? _self.active : active // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
+as PoolCategory,
   ));
 }
 
@@ -87,7 +88,7 @@ as bool,
 @JsonSerializable()
 
 class _Pool implements Pool {
-  const _Pool({required this.id, required this.name, required this.createdAt, required this.updatedAt, required this.description, required final  List<int> postIds, required this.postCount, required this.active}): _postIds = postIds;
+  const _Pool({required this.id, required this.name, required this.createdAt, required this.updatedAt, required this.description, required final  List<int> postIds, required this.postCount, required this.active, this.category = PoolCategory.series}): _postIds = postIds;
   factory _Pool.fromJson(Map<String, dynamic> json) => _$PoolFromJson(json);
 
 @override final  int id;
@@ -104,6 +105,7 @@ class _Pool implements Pool {
 
 @override final  int postCount;
 @override final  bool active;
+@override@JsonKey() final  PoolCategory category;
 
 /// Create a copy of Pool
 /// with the given fields replaced by the non-null parameter values.
@@ -118,16 +120,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Pool&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.description, description) || other.description == description)&&const DeepCollectionEquality().equals(other._postIds, _postIds)&&(identical(other.postCount, postCount) || other.postCount == postCount)&&(identical(other.active, active) || other.active == active));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Pool&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.description, description) || other.description == description)&&const DeepCollectionEquality().equals(other._postIds, _postIds)&&(identical(other.postCount, postCount) || other.postCount == postCount)&&(identical(other.active, active) || other.active == active)&&(identical(other.category, category) || other.category == category));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,createdAt,updatedAt,description,const DeepCollectionEquality().hash(_postIds),postCount,active);
+int get hashCode => Object.hash(runtimeType,id,name,createdAt,updatedAt,description,const DeepCollectionEquality().hash(_postIds),postCount,active,category);
 
 @override
 String toString() {
-  return 'Pool(id: $id, name: $name, createdAt: $createdAt, updatedAt: $updatedAt, description: $description, postIds: $postIds, postCount: $postCount, active: $active)';
+  return 'Pool(id: $id, name: $name, createdAt: $createdAt, updatedAt: $updatedAt, description: $description, postIds: $postIds, postCount: $postCount, active: $active, category: $category)';
 }
 
 
@@ -138,7 +140,7 @@ abstract mixin class _$PoolCopyWith<$Res> implements $PoolCopyWith<$Res> {
   factory _$PoolCopyWith(_Pool value, $Res Function(_Pool) _then) = __$PoolCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String name, DateTime createdAt, DateTime updatedAt, String description, List<int> postIds, int postCount, bool active
+ int id, String name, DateTime createdAt, DateTime updatedAt, String description, List<int> postIds, int postCount, bool active, PoolCategory category
 });
 
 
@@ -155,7 +157,7 @@ class __$PoolCopyWithImpl<$Res>
 
 /// Create a copy of Pool
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? createdAt = null,Object? updatedAt = null,Object? description = null,Object? postIds = null,Object? postCount = null,Object? active = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? createdAt = null,Object? updatedAt = null,Object? description = null,Object? postIds = null,Object? postCount = null,Object? active = null,Object? category = null,}) {
   return _then(_Pool(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -165,7 +167,8 @@ as DateTime,description: null == description ? _self.description : description /
 as String,postIds: null == postIds ? _self._postIds : postIds // ignore: cast_nullable_to_non_nullable
 as List<int>,postCount: null == postCount ? _self.postCount : postCount // ignore: cast_nullable_to_non_nullable
 as int,active: null == active ? _self.active : active // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
+as PoolCategory,
   ));
 }
 
