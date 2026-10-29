@@ -15,7 +15,7 @@ enum ShellTab {
   final IconData icon;
 
   Widget build(BuildContext context) => switch (this) {
-    ShellTab.browse => const HomePage(),
+    ShellTab.browse => const BrowsePage(),
     ShellTab.search => const PostsPage(),
     ShellTab.library => const LibraryPage(),
     ShellTab.you => const SettingsPage(),

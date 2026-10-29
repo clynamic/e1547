@@ -1,4 +1,5 @@
 export 'background.dart';
+export 'browse.dart';
 export 'capabilities.dart';
 export 'initialize.dart';
 export 'link.dart';

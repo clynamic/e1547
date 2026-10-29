@@ -31,6 +31,17 @@ class Settings extends NotifiedSettings {
     values: Handedness.values,
   );
 
+  late final ValueNotifier<BrowseFeed> browseFeed = createEnumSetting(
+    key: 'browseFeed',
+    initialValue: BrowseFeed.latest,
+    values: BrowseFeed.values,
+  );
+  late final ValueNotifier<PopularScale> popularScale = createEnumSetting(
+    key: 'popularScale',
+    initialValue: PopularScale.week,
+    values: PopularScale.values,
+  );
+
   late final ValueNotifier<int> tileSize = createSetting(
     key: 'tileSize',
     initialValue: 200,

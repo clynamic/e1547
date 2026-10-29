@@ -28,13 +28,7 @@ class LibraryPage extends StatelessWidget {
             LimitedWidthLayout.of(context).padding,
           ),
           children: [
-            entry('Hot', Icons.whatshot, (context) => const HotPage()),
             entry('Favorites', Icons.favorite, (context) => const FavPage()),
-            entry(
-              'Timeline',
-              Icons.feed,
-              (context) => const FollowsTimelinePage(),
-            ),
             entry(
               'Subscriptions',
               Icons.person_add,

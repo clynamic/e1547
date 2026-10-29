@@ -1,4 +1,5 @@
 export 'app.dart';
+export 'browse.dart';
 export 'bubbles.dart';
 export 'display.dart';
 export 'library.dart';
