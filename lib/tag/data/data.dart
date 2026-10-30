@@ -11,3 +11,4 @@ export 'preview.dart';
 export 'query.dart';
 export 'regex.dart';
 export 'tag.dart';
+export 'terms.dart';

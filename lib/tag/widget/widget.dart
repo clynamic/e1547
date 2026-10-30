@@ -6,5 +6,4 @@ export 'input.dart';
 export 'meta.dart';
 export 'preview.dart';
 export 'prompt.dart';
-export 'query.dart';
 export 'search.dart';

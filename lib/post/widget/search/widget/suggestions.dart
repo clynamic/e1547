@@ -111,7 +111,7 @@ class _PostSearchSuggestionsState extends State<PostSearchSuggestions> {
                   SuggestionRow(
                     label: '$prefix${tag.name}',
                     meta: NumberFormat.compact().format(tag.count),
-                    stripe: tagCategoryOf(
+                    stripe: TagCategory.byId(
                       tag.category,
                     )?.colorFor(Theme.of(context).brightness),
                     onTap: () => onPick('$prefix${tag.name}'),

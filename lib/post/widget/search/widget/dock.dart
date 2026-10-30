@@ -286,7 +286,7 @@ class QueryToken extends StatelessWidget {
           decoration: BoxDecoration(
             color: name.contains(':')
                 ? Colors.grey
-                : tagCategoryOf(
+                : TagCategory.byId(
                         preview?.category,
                       )?.colorFor(theme.brightness) ??
                       theme.colorScheme.onSurface.withValues(alpha: 0.38),

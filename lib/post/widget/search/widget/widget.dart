@@ -4,6 +4,7 @@ export 'dock.dart';
 export 'hidden.dart';
 export 'name.dart';
 export 'pools.dart';
+export 'query_field.dart';
 export 'selection.dart';
 export 'sheet.dart';
 export 'snackbar.dart';

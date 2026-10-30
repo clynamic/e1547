@@ -80,7 +80,8 @@ enum TagCategory {
 
   static List<String> get names => values.asNameMap().keys.toList();
 
-  static TagCategory byId(int id) => values.firstWhere((e) => e.id == id);
+  static TagCategory? byId(int? id) =>
+      values.where((e) => e.id == id).firstOrNull;
 
   static TagCategory? byName(String name) =>
       values.asNameMap()[name.toLowerCase()];

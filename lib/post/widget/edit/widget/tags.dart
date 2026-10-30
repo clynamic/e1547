@@ -252,11 +252,11 @@ class TagPreviewCard extends StatelessWidget {
     }
 
     return ColoredCard(
-      color: tag.category == null
-          ? Colors.grey
-          : TagCategory.byId(
-              tag.category!,
-            ).colorFor(Theme.of(context).brightness),
+      color:
+          TagCategory.byId(
+            tag.category,
+          )?.colorFor(Theme.of(context).brightness) ??
+          Colors.grey,
       onTap: () => showTagSearchPrompt(context: context, tag: tag.name),
       onLongPress: () => showTagSearchPrompt(context: context, tag: tag.name),
       onSecondaryTap: () =>

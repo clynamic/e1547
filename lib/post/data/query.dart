@@ -152,16 +152,6 @@ extension PostQuerying on PostClient {
     },
   );
 
-  Future<void> setFavorite(int postId, {required bool favorite}) =>
-      postCache.optimistic(
-        postId,
-        (post) => post.copyWith(
-          isFavorited: favorite,
-          favCount: post.favCount + (favorite ? 1 : -1),
-        ),
-        () => favorite ? addFavorite(postId) : removeFavorite(postId),
-      );
-
   Mutation<void, int> useAddFavorite() =>
       Mutation(mutationFn: (postId) => setFavorite(postId, favorite: true));
 

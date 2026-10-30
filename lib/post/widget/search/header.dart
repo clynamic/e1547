@@ -140,7 +140,7 @@ class PostTagPanel extends StatelessWidget {
       terms: [term],
       builder: (context, previews) {
         final TagPreview? preview = previews.of(term);
-        final TagCategory? category = tagCategoryOf(preview?.category);
+        final TagCategory? category = TagCategory.byId(preview?.category);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

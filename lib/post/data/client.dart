@@ -28,6 +28,16 @@ class PostClient {
     cached: (id) => postCache.get(id) != null,
   );
 
+  Future<void> setFavorite(int postId, {required bool favorite}) =>
+      postCache.optimistic(
+        postId,
+        (post) => post.copyWith(
+          isFavorited: favorite,
+          favCount: post.favCount + (favorite ? 1 : -1),
+        ),
+        () => favorite ? addFavorite(postId) : removeFavorite(postId),
+      );
+
   Future<Post> get({required int id, CancelToken? cancelToken}) => dio
       .get('/posts/$id.json', cancelToken: cancelToken)
       .then(unwrapRailsArray)

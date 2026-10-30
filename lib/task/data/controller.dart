@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:e1547/client/client.dart';
 import 'package:e1547/logs/logs.dart';
-import 'package:e1547/post/post.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/task/task.dart';
