@@ -363,6 +363,27 @@ void main() {
     expect(find.text('Show less'), findsOneWidget);
   });
 
+  testWidgets('a long description is at its preview height from the start', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: PostDescription(
+            post: samplePost().copyWith(
+              description: List.filled(12, 'A line').join('\n'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(
+      tester.getSize(find.byType(HeightLimit)).height,
+      PostDescription.previewHeight,
+    );
+  });
+
   displayTest('the comments line reads the newest comment its filter allows', (
     tester,
   ) async {

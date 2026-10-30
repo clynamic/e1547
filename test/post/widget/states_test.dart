@@ -321,6 +321,22 @@ void main() {
     await settle(tester, animating: true);
   }
 
+  displayTest('a refresh that ends after its page closed leaves quietly', (
+    tester,
+  ) async {
+    await show(tester, const PostsPage());
+
+    await tester.drag(
+      find.byType(CustomScrollView).first,
+      const Offset(0, 500),
+    );
+    await tester.pump();
+    await tester.pumpWidget(const SizedBox());
+    await settle(tester, animating: true);
+
+    expect(tester.takeException(), isNull);
+  });
+
   displayTest('a refresh that brings nothing new says so', (tester) async {
     await show(tester, const PostsPage());
     expect(find.byType(PostTile), findsWidgets);
