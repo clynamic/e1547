@@ -577,6 +577,28 @@ void main() {
     expect(find.byType(NavBar), findsOneWidget);
   });
 
+  testWidgets('Escape closes the page open in a tab', (tester) async {
+    final GlobalKey<NavigatorState> navigator = GlobalKey();
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorKey: navigator,
+        builder: (context, child) =>
+            WindowShortcuts(navigatorKey: navigator, child: child!),
+        home: ShellProvider(child: AppShell(root: root)),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('open Browse'));
+    await tester.pumpAndSettle();
+    expect(find.text('Browse detail'), findsOneWidget);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Browse detail'), findsNothing);
+    expect(find.text('Browse root'), findsOneWidget);
+  });
+
   testWidgets('a reset selects a tab and returns it to its root', (
     tester,
   ) async {
