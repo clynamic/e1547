@@ -180,14 +180,61 @@ void main() {
     bed.client.pools.poolCache.set(
       samplePool(id: 30, name: 'sample_pool', postIds: const [21, 10, 23]),
     );
+    bed.client.pools.poolCache.set(
+      samplePool(
+        id: 31,
+        name: 'sample_collection',
+        postIds: const [10, 22],
+      ).copyWith(category: PoolCategory.collection),
+    );
 
     await show(
       tester,
-      PostPoolsSection(post: samplePost(id: 10, pools: const [30])),
+      PostPoolsSection(post: samplePost(id: 10, pools: const [30, 31])),
     );
 
     expect(find.text('sample pool'), findsOneWidget);
     expect(find.text('Series · page 2 of 3'), findsOneWidget);
+    expect(find.text('Collection · page 1 of 2'), findsOneWidget);
+  });
+
+  displayTest('each artist name opens its own search', (tester) async {
+    await show(
+      tester,
+      PostDetailHeader(
+        post: samplePost(
+          tags: const {
+            'artist': ['first_artist', 'second_artist'],
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.textContaining('second artist'));
+    await settle(tester);
+
+    expect(
+      tester.widget<PostsPage>(find.byType(PostsPage)).params?.tags,
+      'second_artist',
+    );
+  });
+
+  displayTest('a post whose artist tags are all warnings reads no artist', (
+    tester,
+  ) async {
+    await show(
+      tester,
+      PostDetailHeader(
+        post: samplePost(
+          tags: const {
+            'artist': ['conditional_dnp', 'sound_warning'],
+          },
+        ),
+      ),
+    );
+
+    expect(find.text('no artist'), findsOneWidget);
+    expect(find.textContaining('conditional'), findsNothing);
   });
 
   displayTest('the pool strip shows the neighbours of this post and rings it', (
