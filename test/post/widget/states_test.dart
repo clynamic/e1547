@@ -443,4 +443,28 @@ void main() {
     );
     expect(find.text('1 post'), findsOneWidget);
   });
+
+  displayTest(
+    "a card cover takes its post's shape in a staggered grid and the tile's "
+    'shape in a square one',
+    (tester) async {
+      Future<Size> cover(GridQuilt stagger) async {
+        await show(
+          tester,
+          TileLayout(
+            tileSize: 200,
+            stagger: stagger,
+            child: const Align(
+              alignment: Alignment.topLeft,
+              child: SizedBox(width: 280, child: CardCover(id: 1042)),
+            ),
+          ),
+        );
+        return tester.getSize(find.byType(CardCover));
+      }
+
+      expect((await cover(GridQuilt.vertical)).height, closeTo(280 / 1.4, 1));
+      expect((await cover(GridQuilt.square)).height, closeTo(280 * 1.2, 1));
+    },
+  );
 }

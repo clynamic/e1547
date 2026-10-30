@@ -68,11 +68,7 @@ class PoolCard extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
-              child: PostCover(
-                id: pool.postIds.firstOrNull,
-                size: PostImageSize.sample,
-                adaptive: true,
-              ),
+              child: CardCover(id: pool.postIds.firstOrNull),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,7 +116,7 @@ class SliverPoolGrid extends StatelessWidget {
         size: TileLayout.of(context).tileSize * 2,
         child: PoolCard(pool: item, onTap: () => openPool(context, item)),
       ),
-      onLoading: const CoverCardSkeleton(),
+      onLoading: CoverCardSkeleton(coverRatio: cardCoverRatio(context)),
       onEmpty: const Text('No pools'),
       onError: const Text('Failed to load pools'),
     ),

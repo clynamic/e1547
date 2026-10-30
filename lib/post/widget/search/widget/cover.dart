@@ -135,9 +135,9 @@ int coverCardColumns(BuildContext context) =>
     (TileLayout.of(context).crossAxisCount * 0.5).round().clamp(2, 8);
 
 class CoverCardSkeleton extends StatelessWidget {
-  const CoverCardSkeleton({super.key, this.coverHeight});
+  const CoverCardSkeleton({super.key, this.coverRatio});
 
-  final double? coverHeight;
+  final double? coverRatio;
 
   @override
   Widget build(BuildContext context) {
@@ -199,10 +199,10 @@ class CoverCardSkeleton extends StatelessWidget {
                       child: Column(
                         children: [
                           for (final double cover
-                              in coverHeight != null
+                              in coverRatio != null
                                   ? List.filled(
-                                      (screen / coverHeight!).ceil(),
-                                      coverHeight!,
+                                      (screen / (width * coverRatio!)).ceil(),
+                                      width * coverRatio!,
                                     )
                                   : PostGridSkeleton.masonry(
                                       PostGridSkeleton.ratios[column %
@@ -222,4 +222,27 @@ class CoverCardSkeleton extends StatelessWidget {
       ),
     );
   }
+}
+
+class CardCover extends StatelessWidget {
+  const CardCover({super.key, required this.id});
+
+  final int? id;
+
+  @override
+  Widget build(BuildContext context) {
+    final TileLayoutData layout = TileLayout.of(context);
+    if (layout.stagger == GridQuilt.vertical) {
+      return PostCover(id: id, size: PostImageSize.sample, adaptive: true);
+    }
+    return AspectRatio(
+      aspectRatio: 1 / layout.tileHeightFactor,
+      child: PostCover(id: id, size: PostImageSize.sample),
+    );
+  }
+}
+
+double? cardCoverRatio(BuildContext context) {
+  final TileLayoutData layout = TileLayout.of(context);
+  return layout.stagger == GridQuilt.vertical ? null : layout.tileHeightFactor;
 }

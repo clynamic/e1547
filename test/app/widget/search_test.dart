@@ -164,16 +164,18 @@ void main() {
       await bed.settle(tester);
       expect(
         cover.height,
-        tester
-            .getSize(
-              find
-                  .descendant(
-                    of: find.byType(PostSetCard),
-                    matching: find.byType(PostCover),
-                  )
-                  .first,
-            )
-            .height,
+        moreOrLessEquals(
+          tester
+              .getSize(
+                find
+                    .descendant(
+                      of: find.byType(PostSetCard),
+                      matching: find.byType(PostCover),
+                    )
+                    .first,
+              )
+              .height,
+        ),
       );
     });
 
