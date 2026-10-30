@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:e1547/identity/identity.dart';
 import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
+import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/traits/traits.dart';
 import 'package:flutter/foundation.dart';
@@ -21,6 +22,11 @@ class PostClient {
   final PoolClient pools;
   final ValueNotifier<Traits> traits;
   final Identity identity;
+
+  late final QueryBatch<int> batch = QueryBatch(
+    (ids) async => postCache.savePage(await byIds(ids: ids)),
+    cached: (id) => postCache.get(id) != null,
+  );
 
   Future<Post> get({required int id, CancelToken? cancelToken}) => dio
       .get('/posts/$id.json', cancelToken: cancelToken)

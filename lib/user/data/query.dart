@@ -12,6 +12,16 @@ extension UserQuerying on UserClient {
   QueryBridge<User, int> get userCache =>
       queryCache.bridge(queryKey, fromJson: User.fromJson);
 
+  QueryBridge<User, int> get summaryCache =>
+      queryCache.bridge([...queryKey, 'summary'], fromJson: User.fromJson);
+
+  Query<User> useSummary({required int id}) => Query(
+    cache: queryCache,
+    key: [...queryKey, 'summary', id],
+    queryFn: () => throw StateError('user summaries load in batches'),
+    config: summaryCache.getConfig(vendored: true),
+  );
+
   Query<User> useGet({required int id, bool? vendored}) => Query(
     cache: queryCache,
     key: [...queryKey, id],

@@ -91,7 +91,6 @@ class RecentPoolChoices extends StatelessWidget {
       ),
       builder: (context, state) {
         final List<Pool> pools = state.data ?? const [];
-        prefetchCovers(client, pools.map((e) => e.postIds.firstOrNull));
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           spacing: 10,
@@ -251,7 +250,6 @@ class OwnSetChoices extends StatelessWidget {
       query: client.sets.useSearch(query: PostSetParams(creator: me).toQuery()),
       builder: (context, state) {
         final List<PostSet> sets = state.data ?? const [];
-        prefetchCovers(client, sets.map((e) => e.postIds.firstOrNull));
         if (sets.isEmpty && state.data != null) {
           return const MetaLabel('You have no sets');
         }

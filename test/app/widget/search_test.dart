@@ -363,6 +363,18 @@ void main() {
       ]);
     });
 
+    displayTest('each public set names who made it', (tester) async {
+      bed.fake.state.users.add({
+        ...bed.fake.state.users.first,
+        'id': 7,
+        'name': 'curator',
+      });
+
+      await showPage(tester, kind: SearchKind.sets);
+
+      expect(find.textContaining('by curator'), findsNWidgets(2));
+    });
+
     displayTest('Sets lists yours, then the public sets of others', (
       tester,
     ) async {

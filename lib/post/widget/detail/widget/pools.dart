@@ -71,7 +71,6 @@ class PostPoolEntry extends StatelessWidget {
         final int index = max(ids.indexOf(post.id), 0);
         final int start = max(0, min(index - strip ~/ 2, ids.length - strip));
         final List<int> shown = ids.skip(start).take(strip).toList();
-        prefetchCovers(client, shown);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           spacing: 8,

@@ -2,6 +2,15 @@ import 'package:deep_pick/deep_pick.dart';
 import 'package:e1547/user/user.dart';
 
 abstract final class E621User {
+  static User summaryFromJson(dynamic json) => User(
+    id: json['id'],
+    name: json['name'],
+    avatarId: json['avatar_id'],
+    hasCroppedAvatar: json['has_cropped_avatar'] == true,
+    about: null,
+    stats: null,
+  );
+
   static User fromJson(dynamic json) => pick(json).letOrThrow(
     (pick) => User(
       id: json['id'],

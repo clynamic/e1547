@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
 
@@ -7,8 +8,11 @@ class TagClient {
 
   final Dio dio;
 
-  Set<String> _batch = {};
-  Future<List<TagPreview>>? _batched;
+  late final QueryBatch<String> previews = QueryBatch(
+    (names) async =>
+        previewCache.savePage(await preview(tags: names.join(' '))),
+    cached: (name) => previewCache.get(name) != null,
+  );
 
   // Technically missing get()
   Future<List<Tag>> page({
@@ -42,16 +46,6 @@ class TagClient {
             )
             .toList(),
       );
-
-  Future<List<TagPreview>> previewBatched(Iterable<String> names) {
-    _batch.addAll(names);
-    return _batched ??= Future(() {
-      final String tags = _batch.join(' ');
-      _batch = {};
-      _batched = null;
-      return preview(tags: tags);
-    });
-  }
 
   Future<List<Tag>> autocomplete({
     String? search,

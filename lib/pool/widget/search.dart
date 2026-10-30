@@ -249,7 +249,6 @@ class PoolSuggestions extends StatelessWidget {
             .take(searchSheetEntries)
             .toList();
         if (pools.isEmpty) return const SizedBox.shrink();
-        prefetchCovers(client, pools.map((e) => e.postIds.firstOrNull));
         return Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
           child: Column(

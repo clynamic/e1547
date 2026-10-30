@@ -76,7 +76,7 @@ class FakeE621 {
       '/tag_aliases.json',
       (Request request) => _list(state.tagAliases, request),
     )
-    ..get('/users.json', (Request request) => _list(state.users, request))
+    ..get('/users.json', _listUsers)
     ..get('/users/<lookup>.json', _showUser)
     ..get('/wiki_pages.json', (Request request) => _list(state.wikis, request))
     ..get('/wiki_pages/<lookup>.json', _showWiki)
@@ -140,6 +140,15 @@ class FakeE621 {
         query,
       ),
     );
+  }
+
+  Response _listUsers(Request request) {
+    final String? ids = request.url.queryParameters['search[id]'];
+    final Set<int>? wanted = ids?.split(',').map(int.parse).toSet();
+    return _list([
+      for (final Map<String, Object?> user in state.users)
+        if (wanted == null || wanted.contains(user['id'])) user,
+    ], request);
   }
 
   Response _list(List<Map<String, Object?>> items, Request request) =>

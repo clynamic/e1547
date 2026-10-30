@@ -112,12 +112,6 @@ class SearchSets extends StatelessWidget {
         builder: (context, state) => QueryFilter<PostSet, int>(
           state: state,
           builder: (context, state) {
-            prefetchCovers(
-              client,
-              (state.data?.pages.expand((e) => e) ?? const <PostSet>[]).map(
-                (e) => e.postIds.firstOrNull,
-              ),
-            );
             return NavBarDock(
               builder: (_) => PostSetDock(
                 params: params,
@@ -187,10 +181,6 @@ class OwnPostSets extends StatelessWidget {
     builder: (context, state) {
       final List<PostSet> sets = state.data ?? const [];
       if (sets.isEmpty) return const SizedBox(height: 8);
-      prefetchCovers(
-        context.read<Client>(),
-        sets.map((e) => e.postIds.firstOrNull),
-      );
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

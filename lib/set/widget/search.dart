@@ -126,24 +126,28 @@ class PostSetByline extends StatelessWidget {
   final String? suffix;
 
   @override
-  Widget build(BuildContext context) => QueryBuilder(
-    query: context.watch<Client>().users.useGet(
-      id: set.creatorId,
-      vendored: true,
-    ),
-    builder: (context, state) {
-      final User? user = state.data;
-      return Text(
-        [
-          if (user != null) 'by ${user.name}',
-          postSetCountWords(set),
-          ?suffix,
-        ].join(' · '),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      );
-    },
-  );
+  Widget build(BuildContext context) {
+    final Client client = context.watch<Client>();
+    return QueryBatchRequest(
+      batch: client.users.summaryBatch,
+      keys: [set.creatorId],
+      child: QueryBuilder(
+        query: client.users.useSummary(id: set.creatorId),
+        builder: (context, state) {
+          final User? user = state.data;
+          return Text(
+            [
+              if (user != null) 'by ${user.name}',
+              postSetCountWords(set),
+              ?suffix,
+            ].join(' · '),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          );
+        },
+      ),
+    );
+  }
 }
 
 class SliverPostSetGrid extends StatelessWidget {
@@ -305,7 +309,6 @@ class PostSetSuggestions extends StatelessWidget {
     Widget list(List<PostSet> sets) {
       final List<PostSet> shown = sets.take(searchSheetEntries).toList();
       if (shown.isEmpty) return const SizedBox.shrink();
-      prefetchCovers(client, shown.map((e) => e.postIds.firstOrNull));
       return Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
         child: Column(

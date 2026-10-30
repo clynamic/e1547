@@ -21,13 +21,7 @@ extension TagQuerying on TagClient {
       final List<String> wanted = {
         for (final String name in names) name.toLowerCase(),
       }.toList();
-      final List<String> missing = [
-        for (final String name in wanted)
-          if (previewCache.get(name) == null) name,
-      ];
-      if (missing.isNotEmpty) {
-        previewCache.savePage(await previewBatched(missing));
-      }
+      await previews.request(wanted);
       return [
         for (final String name in wanted)
           if (previewCache.get(name) case final TagPreview preview) preview,

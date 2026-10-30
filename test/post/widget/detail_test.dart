@@ -126,6 +126,33 @@ void main() {
     expect(find.text('Child'), findsNWidgets(2));
   });
 
+  displayTest('a family thumbnail loads a post it has not seen', (
+    tester,
+  ) async {
+    await show(
+      tester,
+      PostFamilySection(
+        post: samplePost(
+          id: 10,
+          relationships: const Relationships(
+            parentId: 1000,
+            hasChildren: false,
+            hasActiveChildren: null,
+            children: [],
+          ),
+        ),
+      ),
+    );
+
+    expect(
+      find.descendant(
+        of: find.byType(PostThumbnail),
+        matching: find.byType(PostImageWidget),
+      ),
+      findsOneWidget,
+    );
+  });
+
   displayTest('the family drops children the server marked inactive', (
     tester,
   ) async {
