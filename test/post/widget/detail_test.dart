@@ -1,25 +1,15 @@
-import 'dart:io';
 
-import 'package:drift/native.dart';
-import 'package:e1547/app/app.dart';
-import 'package:e1547/client/client.dart';
-import 'package:e1547/identity/identity.dart';
 import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
-import 'package:e1547/query/query.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
-import 'package:e1547/traits/traits.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:notified_preferences/notified_preferences.dart';
 
-import '../../_support/fake_e621.dart';
+import '../../_support/bed.dart';
 import '../../_support/fixtures.dart';
 import '../../_support/harness.dart';
-import '../../_support/images.dart';
 import '../../_support/posts.dart';
 
 Pool samplePool({
@@ -38,85 +28,24 @@ Pool samplePool({
 );
 
 void main() {
-  late FakeE621 fake;
-  late Client client;
-  late ValueNotifier<Traits> traits;
-  late AppDatabase sqlite;
-  late Settings settings;
+  late TestBed bed;
 
-  setUpAll(() async {
-    await initializeTestApp();
-    sqlite = AppDatabase(NativeDatabase.memory());
-  });
+  setUpAll(initializeTestApp);
 
-  tearDownAll(() => sqlite.close());
+  setUp(() async => bed = await TestBed.start(signedIn: true));
 
-  setUp(() async {
-    SharedPreferences.setMockInitialValues({});
-    settings = Settings(await SharedPreferences.getInstance());
-    fake = await FakeE621.start();
-    traits = ValueNotifier(
-      const Traits(
-        id: 1,
-        userId: null,
-        denylist: [],
-        homeTags: '',
-        avatar: null,
-        perPage: null,
-      ),
-    );
-    client = Client(
-      identity: Identity(
-        id: 1,
-        host: fake.url,
-        username: 'tester',
-        headers: {
-          HttpHeaders.authorizationHeader: const Credentials(
-            username: 'tester',
-            password: 'key',
-          ).basicAuth,
-        },
-      ),
-      traits: traits,
-      storage: AppStorage(
-        preferences: await SharedPreferences.getInstance(),
-        temporaryFiles: '.',
-        queryCache: CachedQuery.asNewInstance()
-          ..config(
-            config: const GlobalQueryConfig(
-              cacheDuration: Duration(milliseconds: 1),
-            ),
-          ),
-        sqlite: sqlite,
-      ),
-    );
-  });
-
-  tearDown(() async {
-    traits.dispose();
-    await fake.stop();
-  });
+  tearDown(() => bed.dispose());
 
   Future<void> show(WidgetTester tester, Widget child) async {
     await tester.runAsync(() async {
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            Provider<Client>.value(value: client),
-            Provider<Settings>.value(value: settings),
-            Provider<BaseCacheManager>.value(
-              value: const NoImageCacheManager(),
-            ),
-          ],
-          child: MaterialApp(
-            localizationsDelegates: testLocalizations,
-            home: HandednessScope(
-              child: Scaffold(
-                body: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [child],
-                  ),
+        bed.app(
+          HandednessScope(
+            child: Scaffold(
+              body: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [child],
                 ),
               ),
             ),
@@ -125,11 +54,7 @@ void main() {
       );
       await Future<void>.delayed(const Duration(milliseconds: 100));
     });
-    await tester.pump();
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 100)),
-    );
-    await tester.pump();
+    await settle(tester, animating: true);
   }
 
   List<int> thumbnails(WidgetTester tester) => tester
@@ -226,7 +151,7 @@ void main() {
   displayTest('a pool names itself, its kind and the page of this post', (
     tester,
   ) async {
-    client.pools.poolCache.set(
+    bed.client.pools.poolCache.set(
       samplePool(id: 30, name: 'sample_pool', postIds: const [21, 10, 23]),
     );
 
@@ -242,10 +167,10 @@ void main() {
   displayTest('the pool strip shows the neighbours of this post and rings it', (
     tester,
   ) async {
-    client.pools.poolCache.set(
+    bed.client.pools.poolCache.set(
       samplePool(id: 30, postIds: List.generate(9, (i) => i + 1)),
     );
-    client.posts.postCache.savePage([
+    bed.client.posts.postCache.savePage([
       for (int id = 1; id <= 9; id++) samplePost(id: id),
     ]);
 
@@ -339,7 +264,7 @@ void main() {
       ),
     );
 
-    expect(settings.collapsedPostSections.value, ['tags']);
+    expect(bed.settings.collapsedPostSections.value, ['tags']);
     expect(find.byType(QueryChip), findsNothing);
     expect(find.text('duo'), findsOneWidget);
     expect(find.byIcon(Icons.expand_more), findsOneWidget);
@@ -415,7 +340,7 @@ void main() {
       (Handedness.right, false),
       (Handedness.left, true),
     ]) {
-      settings.handedness.value = hand;
+      bed.settings.handedness.value = hand;
       await show(tester, PostToolbar(post: samplePost()));
 
       final double favorite = tester.getCenter(find.byType(FavoriteButton)).dx;

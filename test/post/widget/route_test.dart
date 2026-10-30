@@ -1,91 +1,30 @@
-import 'package:drift/native.dart';
 import 'package:e1547/app/app.dart';
-import 'package:e1547/client/client.dart';
-import 'package:e1547/identity/identity.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
-import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
-import 'package:e1547/traits/traits.dart';
 import 'package:e1547/user/user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:notified_preferences/notified_preferences.dart';
 
-import '../../_support/fake_e621.dart';
+import '../../_support/bed.dart';
 import '../../_support/gestures.dart';
 import '../../_support/harness.dart';
 import '../../_support/images.dart';
 import '../../_support/posts.dart';
-import '../../_support/video.dart';
 
 void main() {
-  late FakeE621 fake;
-  late Client client;
-  late ValueNotifier<Traits> traits;
-  late AppDatabase sqlite;
-  late Settings settings;
-  late VideoService videos;
+  late TestBed bed;
 
-  setUpAll(() async {
-    await initializeTestApp();
-    sqlite = AppDatabase(NativeDatabase.memory());
-  });
+  setUpAll(initializeTestApp);
 
-  tearDownAll(() => sqlite.close());
+  setUp(() async => bed = await TestBed.start());
 
-  setUp(() async {
-    SharedPreferences.setMockInitialValues({});
-    fake = await FakeE621.start();
-    settings = Settings(await SharedPreferences.getInstance());
-    videos = fakeVideoService();
-    traits = ValueNotifier(
-      const Traits(
-        id: 1,
-        userId: null,
-        denylist: [],
-        homeTags: '',
-        avatar: null,
-        perPage: null,
-      ),
-    );
-    client = Client(
-      identity: Identity(id: 1, host: fake.url, username: null, headers: null),
-      traits: traits,
-      storage: AppStorage(
-        preferences: await SharedPreferences.getInstance(),
-        temporaryFiles: '.',
-        queryCache: CachedQuery.asNewInstance()
-          ..config(
-            config: const GlobalQueryConfig(
-              cacheDuration: Duration(milliseconds: 1),
-            ),
-          ),
-        sqlite: sqlite,
-      ),
-    );
-  });
-
-  tearDown(() async {
-    traits.dispose();
-    videos.dispose();
-    await fake.stop();
-  });
+  tearDown(() => bed.dispose());
 
   /// Opens a post detail route from a tree layered like the app, where the
   /// client sits above the [Navigator] and the post list below it, so the route
   /// sees only what it was handed.
-  Future<void> settle(WidgetTester tester) async {
-    await tester.runAsync(() async {
-      for (int i = 0; i < 6; i++) {
-        await tester.pump();
-        await Future<void>.delayed(const Duration(milliseconds: 50));
-      }
-    });
-    await tester.pump();
-  }
-
   Future<void> pushDetail(
     WidgetTester tester,
     PostFilter filter, {
@@ -93,40 +32,29 @@ void main() {
     BaseCacheManager images = const NoImageCacheManager(),
     WidgetBuilder? opener,
   }) async {
-    final routeObserver = AnyRouteObserver();
     await tester.runAsync(() async {
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            Provider<Client>.value(value: client),
-            Provider<BaseCacheManager>.value(value: images),
-            Provider<AnyRouteObserver>.value(value: routeObserver),
-            Provider<Settings>.value(value: settings),
-            ChangeNotifierProvider<VideoService>.value(value: videos),
-          ],
-          child: MaterialApp(
-            theme: AppTheme.dark.data,
-            localizationsDelegates: testLocalizations,
-            navigatorObservers: [routeObserver],
-            home: FilterControllerProvider<PostFilter, Post>.value(
-              value: filter,
-              child: ChangeNotifierProvider(
-                create: (_) => PostParamsController(),
-                child: ImageCacheSizeProvider(
-                  size: null,
-                  child: KeyedSubtree(
-                    key: const ValueKey('open'),
-                    child: Builder(
-                      builder: (context) =>
-                          opener?.call(context) ??
-                          TextButton(
-                            onPressed: () => defaultPushPostDetail(
-                              context,
-                              post ?? samplePost(),
-                            ),
-                            child: const Text('open'),
+        bed.app(
+          theme: AppTheme.dark.data,
+          providers: [Provider<BaseCacheManager>.value(value: images)],
+          FilterControllerProvider<PostFilter, Post>.value(
+            value: filter,
+            child: ChangeNotifierProvider(
+              create: (_) => PostParamsController(),
+              child: ImageCacheSizeProvider(
+                size: null,
+                child: KeyedSubtree(
+                  key: const ValueKey('open'),
+                  child: Builder(
+                    builder: (context) =>
+                        opener?.call(context) ??
+                        TextButton(
+                          onPressed: () => defaultPushPostDetail(
+                            context,
+                            post ?? samplePost(),
                           ),
-                    ),
+                          child: const Text('open'),
+                        ),
                   ),
                 ),
               ),
@@ -143,7 +71,7 @@ void main() {
       // the tree is torn down.
       await Future<void>.delayed(const Duration(milliseconds: 100));
     });
-    await settle(tester);
+    await settle(tester, animating: true);
   }
 
   Future<void> openFullscreen(WidgetTester tester) async {
@@ -159,7 +87,7 @@ void main() {
   }
 
   displayTest('a pushed gallery keeps the filter of its list', (tester) async {
-    final filter = PostFilter(client);
+    final filter = PostFilter(bed.client);
     addTearDown(filter.dispose);
 
     await pushDetail(tester, filter, post: samplePost(id: 1000));
@@ -171,8 +99,8 @@ void main() {
   displayTest('a pushed gallery drops the posts its list denies', (
     tester,
   ) async {
-    traits.value = traits.value.copyWith(denylist: ['tag_47']);
-    final filter = PostFilter(client);
+    bed.traits.value = bed.traits.value.copyWith(denylist: ['tag_47']);
+    final filter = PostFilter(bed.client);
     addTearDown(filter.dispose);
 
     await pushDetail(tester, filter, post: samplePost(id: 1000));
@@ -184,8 +112,8 @@ void main() {
   });
 
   void seedDeniedChild() {
-    traits.value = traits.value.copyWith(denylist: ['bad_tag']);
-    client.posts.postCache.set(
+    bed.traits.value = bed.traits.value.copyWith(denylist: ['bad_tag']);
+    bed.client.posts.postCache.set(
       samplePost(
         id: 1049,
         tags: const {
@@ -224,12 +152,12 @@ void main() {
 
   displayTest('an avatar opens its post under the blacklist', (tester) async {
     seedDeniedChild();
-    client.posts.postCache.set(
-      client.posts.postCache
+    bed.client.posts.postCache.set(
+      bed.client.posts.postCache
           .get(1049)!
           .copyWith(sample: 'http://example.invalid/1049.jpg'),
     );
-    final filter = PostFilter(client);
+    final filter = PostFilter(bed.client);
     addTearDown(filter.dispose);
 
     await pushDetail(
@@ -246,7 +174,7 @@ void main() {
 
   displayTest('a blacklisted post offers show', (tester) async {
     seedDeniedChild();
-    final filter = PostFilter(client);
+    final filter = PostFilter(bed.client);
     addTearDown(filter.dispose);
 
     await pushDetail(tester, filter, post: samplePost(id: 1042));
@@ -264,8 +192,8 @@ void main() {
   });
 
   displayTest('the hide button leaves with the blacklist off', (tester) async {
-    traits.value = traits.value.copyWith(denylist: ['tag_2']);
-    final filter = PostFilter(client)..denying = false;
+    bed.traits.value = bed.traits.value.copyWith(denylist: ['tag_2']);
+    final filter = PostFilter(bed.client)..denying = false;
     addTearDown(filter.dispose);
 
     await pushDetail(tester, filter, post: samplePost(id: 1000));
@@ -280,7 +208,7 @@ void main() {
     tester,
   ) async {
     seedDeniedChild();
-    final filter = PostFilter(client)..denying = false;
+    final filter = PostFilter(bed.client)..denying = false;
     addTearDown(filter.dispose);
 
     await pushDetail(tester, filter, post: samplePost(id: 1042));
@@ -300,7 +228,7 @@ void main() {
   displayTest('pulling a post detail down from its top closes it', (
     tester,
   ) async {
-    final filter = PostFilter(client);
+    final filter = PostFilter(bed.client);
     addTearDown(filter.dispose);
 
     await pushDetail(tester, filter, post: samplePost(id: 1000));
@@ -322,7 +250,7 @@ void main() {
   displayTest('dragging a fullscreen image down returns to its detail', (
     tester,
   ) async {
-    final filter = PostFilter(client);
+    final filter = PostFilter(bed.client);
     addTearDown(filter.dispose);
 
     await pushDetail(tester, filter, post: samplePost(id: 1000));
@@ -350,7 +278,7 @@ void main() {
   displayTest('a zoomed fullscreen image pans where it has room', (
     tester,
   ) async {
-    final filter = PostFilter(client);
+    final filter = PostFilter(bed.client);
     addTearDown(filter.dispose);
 
     await pushDetail(tester, filter, post: samplePost(id: 1000));
@@ -388,7 +316,7 @@ void main() {
   displayTest('a fullscreen swipe moves the detail beneath once it settles', (
     tester,
   ) async {
-    final filter = PostFilter(client);
+    final filter = PostFilter(bed.client);
     addTearDown(filter.dispose);
 
     await pushDetail(tester, filter, post: samplePost(id: 1000));
@@ -421,7 +349,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
     });
-    await settle(tester);
+    await settle(tester, animating: true);
 
     expect(details(), [1021]);
   });
@@ -434,7 +362,7 @@ void main() {
   displayTest('a loading fullscreen image has its bar follow the zoom', (
     tester,
   ) async {
-    final filter = PostFilter(client);
+    final filter = PostFilter(bed.client);
     addTearDown(filter.dispose);
 
     await pushDetail(
@@ -460,7 +388,7 @@ void main() {
   displayTest('a loading fullscreen image shows how far its download is', (
     tester,
   ) async {
-    final filter = PostFilter(client);
+    final filter = PostFilter(bed.client);
     addTearDown(filter.dispose);
 
     await pushDetail(
@@ -477,7 +405,7 @@ void main() {
   displayTest('a fullscreen image that failed to load has no bar', (
     tester,
   ) async {
-    final filter = PostFilter(client);
+    final filter = PostFilter(bed.client);
     addTearDown(filter.dispose);
 
     await pushDetail(
@@ -495,7 +423,7 @@ void main() {
   displayTest('a fullscreen drag the system cancels stays open', (
     tester,
   ) async {
-    final filter = PostFilter(client);
+    final filter = PostFilter(bed.client);
     addTearDown(filter.dispose);
 
     await pushDetail(tester, filter, post: samplePost(id: 1000));
@@ -517,7 +445,7 @@ void main() {
     tester,
   ) async {
     reserveBottomGestureArea(tester);
-    final filter = PostFilter(client);
+    final filter = PostFilter(bed.client);
     addTearDown(filter.dispose);
 
     await pushDetail(tester, filter, post: samplePost(id: 1000));
@@ -539,7 +467,7 @@ void main() {
   displayTest(
     'a drag that starts on the play button closes a fullscreen video',
     (tester) async {
-      final filter = PostFilter(client);
+      final filter = PostFilter(bed.client);
       addTearDown(filter.dispose);
 
       await pushDetail(tester, filter, post: samplePost(id: 1000));
@@ -553,7 +481,7 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(seconds: 1));
       });
-      await settle(tester);
+      await settle(tester, animating: true);
 
       await tester.timedDrag(
         find.byType(VideoButton),

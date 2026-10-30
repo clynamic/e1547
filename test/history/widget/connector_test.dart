@@ -1,97 +1,38 @@
-import 'package:drift/native.dart';
-import 'package:e1547/app/app.dart';
-import 'package:e1547/client/client.dart';
 import 'package:e1547/history/history.dart';
-import 'package:e1547/identity/identity.dart';
 import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
-import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
-import 'package:e1547/traits/traits.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:notified_preferences/notified_preferences.dart';
 
-import '../../_support/fake_e621.dart';
+import '../../_support/bed.dart';
 import '../../_support/harness.dart';
-import '../../_support/images.dart';
 
 void main() {
-  late FakeE621 fake;
-  late Client client;
-  late ValueNotifier<Traits> traits;
-  late AppDatabase sqlite;
+  late TestBed bed;
 
-  setUpAll(() async {
-    await initializeTestApp();
-    sqlite = AppDatabase(NativeDatabase.memory());
-  });
+  setUpAll(initializeTestApp);
 
-  tearDownAll(() => sqlite.close());
+  setUp(
+    () async =>
+        bed = await TestBed.start(username: 'tester', denylist: ['tag_114']),
+  );
 
-  setUp(() async {
-    SharedPreferences.setMockInitialValues({});
-    fake = await FakeE621.start();
-    traits = ValueNotifier(
-      const Traits(
-        id: 1,
-        userId: null,
-        denylist: ['tag_114'],
-        homeTags: '',
-        avatar: null,
-        perPage: null,
-      ),
-    );
-    final identity = await IdentityRepository(
-      sqlite,
-    ).add(IdentityRequest(host: fake.url, username: 'tester'));
-    client = Client(
-      identity: identity,
-      traits: traits,
-      storage: AppStorage(
-        preferences: await SharedPreferences.getInstance(),
-        temporaryFiles: '.',
-        queryCache: CachedQuery.asNewInstance()
-          ..config(
-            config: const GlobalQueryConfig(
-              cacheDuration: Duration(milliseconds: 1),
-            ),
-          ),
-        sqlite: sqlite,
-      ),
-    );
-  });
-
-  tearDown(() async {
-    traits.dispose();
-    await fake.stop();
-  });
+  tearDown(() => bed.dispose());
 
   Future<List<History>> open(WidgetTester tester, Widget home) async {
-    final settings = Settings(await SharedPreferences.getInstance());
     await tester.runAsync(() async {
-      await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            Provider<Client>.value(value: client),
-            Provider<Settings>.value(value: settings),
-            Provider<BaseCacheManager>.value(
-              value: const NoImageCacheManager(),
-            ),
-          ],
-          child: MaterialApp(home: home),
-        ),
-      );
+      await tester.pumpWidget(bed.app(home));
       await tester.pump();
       await Future<void>.delayed(const Duration(milliseconds: 200));
     });
     await tester.pump();
-    final entries = await tester.runAsync(() => client.histories.page());
+    final entries = await tester.runAsync(() => bed.client.histories.page());
     addTearDown(
       () => tester.runAsync(
-        () => client.histories.removeAll(entries!.map((e) => e.id).toList()),
+        () =>
+            bed.client.histories.removeAll(entries!.map((e) => e.id).toList()),
       ),
     );
     return entries!;
@@ -101,7 +42,7 @@ void main() {
     WidgetTester tester,
     Widget Function(Widget child) connector,
   ) {
-    final filter = PostFilter(client);
+    final filter = PostFilter(bed.client);
     addTearDown(filter.dispose);
     return open(
       tester,
@@ -121,14 +62,16 @@ void main() {
   }
 
   List<String> samplesOf(List<int> ids) =>
-      ids.map((id) => client.posts.postCache.get(id)!.sample!).toList();
+      ids.map((id) => bed.client.posts.postCache.get(id)!.sample!).toList();
 
   displayTest('a post entry takes its thumbnail from what it shows', (
     tester,
   ) async {
     final [allowed, denied] = (await tester.runAsync(
-      () =>
-          Future.wait([client.posts.get(id: 1021), client.posts.get(id: 1042)]),
+      () => Future.wait([
+        bed.client.posts.get(id: 1021),
+        bed.client.posts.get(id: 1042),
+      ]),
     ))!;
 
     final entries = await visit(
@@ -184,8 +127,8 @@ void main() {
   displayTest('a pools search entry takes thumbnails from pools it shows', (
     tester,
   ) async {
-    final template = fake.state.pools.first;
-    fake.state.pools
+    final template = bed.fake.state.pools.first;
+    bed.fake.state.pools
       ..clear()
       ..addAll([
         {
@@ -200,9 +143,9 @@ void main() {
         },
       ]);
     await tester.runAsync(
-      () => client.posts
+      () => bed.client.posts
           .page(query: const PostParams(tags: 'tag_1').toQuery())
-          .then(client.posts.postCache.savePage),
+          .then(bed.client.posts.postCache.savePage),
     );
 
     final [entry] = await open(tester, const PoolsPage());

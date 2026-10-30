@@ -1,108 +1,28 @@
-import 'dart:io';
 
-import 'package:drift/native.dart';
-import 'package:e1547/app/app.dart';
-import 'package:e1547/client/client.dart';
 import 'package:e1547/follow/follow.dart';
-import 'package:e1547/identity/identity.dart';
 import 'package:e1547/post/post.dart';
-import 'package:e1547/query/query.dart';
-import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
-import 'package:e1547/traits/traits.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:notified_preferences/notified_preferences.dart';
 
-import '../../_support/fake_e621.dart';
+import '../../_support/bed.dart';
 import '../../_support/fixtures.dart';
 import '../../_support/harness.dart';
-import '../../_support/images.dart';
 
 void main() {
-  late FakeE621 fake;
-  late Client client;
-  late ValueNotifier<Traits> traits;
-  late AppDatabase sqlite;
+  late TestBed bed;
 
   setUpAll(initializeTestApp);
 
-  setUp(() async {
-    SharedPreferences.setMockInitialValues({});
-    sqlite = AppDatabase(NativeDatabase.memory());
-    fake = await FakeE621.start();
-    traits = ValueNotifier(
-      const Traits(
-        id: 1,
-        userId: null,
-        denylist: ['tag_14'],
-        homeTags: '',
-        avatar: null,
-        perPage: null,
-      ),
-    );
-    client = Client(
-      identity: await IdentityRepository(sqlite).add(
-        IdentityRequest(
-          host: fake.url,
-          username: 'tester',
-          headers: {
-            HttpHeaders.authorizationHeader: const Credentials(
-              username: 'tester',
-              password: 'key',
-            ).basicAuth,
-          },
-        ),
-      ),
-      traits: traits,
-      storage: AppStorage(
-        preferences: await SharedPreferences.getInstance(),
-        temporaryFiles: '.',
-        queryCache: CachedQuery.asNewInstance()
-          ..config(
-            config: const GlobalQueryConfig(
-              cacheDuration: Duration(milliseconds: 1),
-            ),
-          ),
-        sqlite: sqlite,
-      ),
-    );
-  });
+  setUp(
+    () async => bed = await TestBed.start(signedIn: true, denylist: ['tag_14']),
+  );
 
-  tearDown(() async {
-    traits.dispose();
-    await fake.stop();
-    await sqlite.close();
-  });
-
-  Future<void> settle(WidgetTester tester) async {
-    await tester.runAsync(() async {
-      for (int i = 0; i < 6; i++) {
-        await tester.pump(const Duration(milliseconds: 50));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
-      }
-    });
-    await tester.pumpAndSettle();
-  }
+  tearDown(() => bed.dispose());
 
   Future<void> show(WidgetTester tester, String tags) async {
-    await tester.pumpWidget(
-      MultiProvider(
-        providers: [
-          Provider<Client>.value(value: client),
-          Provider<BaseCacheManager>.value(value: const NoImageCacheManager()),
-          Provider<Settings>.value(
-            value: Settings(await SharedPreferences.getInstance()),
-          ),
-        ],
-        child: MaterialApp(
-          localizationsDelegates: testLocalizations,
-          home: PostsPage(params: PostParams(tags: tags)),
-        ),
-      ),
-    );
+    await tester.pumpWidget(bed.app(PostsPage(params: PostParams(tags: tags))));
     await settle(tester);
   }
 
@@ -134,7 +54,7 @@ void main() {
   displayTest('a search saved as a follow takes its name and icon', (
     tester,
   ) async {
-    await client.follows.create(
+    await bed.client.follows.create(
       tags: 'tag_1 tag_22',
       type: FollowType.bookmark,
       title: 'Saved pair',
@@ -254,8 +174,8 @@ void main() {
     final List<int> ids = loadFixtureList(
       'posts.json',
     ).map((e) => e['id']! as int).toList();
-    fake.state.favorites.addAll([ids[0], ids[2]]);
-    traits.value = traits.value.copyWith(denylist: []);
+    bed.fake.state.favorites.addAll([ids[0], ids[2]]);
+    bed.traits.value = bed.traits.value.copyWith(denylist: []);
 
     await show(tester, 'fav:me');
 

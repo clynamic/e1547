@@ -1,26 +1,17 @@
-import 'package:drift/native.dart';
-import 'package:e1547/app/app.dart';
-import 'package:e1547/client/client.dart';
 import 'package:e1547/follow/follow.dart';
 import 'package:e1547/history/history.dart';
-import 'package:e1547/identity/identity.dart';
 import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
-import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
-import 'package:e1547/traits/traits.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:notified_preferences/notified_preferences.dart';
 import 'package:provider/provider.dart';
 
-import '../../_support/fake_e621.dart';
+import '../../_support/bed.dart';
 import '../../_support/harness.dart';
-import '../../_support/images.dart';
 import '../../_support/posts.dart';
 
 void main() {
@@ -51,23 +42,18 @@ void main() {
   });
 
   group('PostSearchSheet', () {
-    late FakeE621 fake;
-    late Client client;
-    late ValueNotifier<Traits> traits;
-    late AppDatabase sqlite;
+    late TestBed bed;
 
     setUpAll(initializeTestApp);
 
     setUp(() async {
+      bed = await TestBed.start();
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
             const MethodChannel('flutter_keyboard_visibility'),
             (call) async => null,
           );
-      SharedPreferences.setMockInitialValues({});
-      sqlite = AppDatabase(NativeDatabase.memory());
-      fake = await FakeE621.start();
-      fake.state.tags.addAll([
+      bed.fake.state.tags.addAll([
         for (final (int index, String name) in [
           'riolu',
           'solo',
@@ -80,51 +66,9 @@ void main() {
             'post_count': 9800,
           },
       ]);
-      traits = ValueNotifier(
-        const Traits(
-          id: 1,
-          userId: null,
-          denylist: [],
-          homeTags: '',
-          avatar: null,
-          perPage: null,
-        ),
-      );
-      final Identity identity = await IdentityRepository(
-        sqlite,
-      ).add(IdentityRequest(host: fake.url));
-      client = Client(
-        identity: identity,
-        traits: traits,
-        storage: AppStorage(
-          preferences: await SharedPreferences.getInstance(),
-          temporaryFiles: '.',
-          queryCache: CachedQuery.asNewInstance()
-            ..config(
-              config: const GlobalQueryConfig(
-                cacheDuration: Duration(milliseconds: 1),
-              ),
-            ),
-          sqlite: sqlite,
-        ),
-      );
     });
 
-    tearDown(() async {
-      traits.dispose();
-      await fake.stop();
-      await sqlite.close();
-    });
-
-    Future<void> settle(WidgetTester tester) async {
-      await tester.runAsync(() async {
-        for (int i = 0; i < 6; i++) {
-          await tester.pump(const Duration(milliseconds: 50));
-          await Future<void>.delayed(const Duration(milliseconds: 50));
-        }
-      });
-      await tester.pumpAndSettle();
-    }
+    tearDown(() => bed.dispose());
 
     Future<List<String>> openSheet(
       WidgetTester tester, {
@@ -133,31 +77,22 @@ void main() {
     }) async {
       final List<String> submitted = [];
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            Provider<Client>.value(value: client),
-            Provider<BaseCacheManager>.value(
-              value: const NoImageCacheManager(),
-            ),
-          ],
-          child: MaterialApp(
-            localizationsDelegates: testLocalizations,
-            home: Scaffold(
-              body: Builder(
-                builder: (context) => TextButton(
-                  onPressed: () => showModalBottomSheet<void>(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (context) => PostSearchSheet(
-                      query: 'riolu',
-                      posts: posts,
-                      onSubmit: submitted.add,
-                      onAllRecent: () {},
-                      onOpenPool: onOpenPool,
-                    ),
+        bed.app(
+          Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => showModalBottomSheet<void>(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (context) => PostSearchSheet(
+                    query: 'riolu',
+                    posts: posts,
+                    onSubmit: submitted.add,
+                    onAllRecent: () {},
+                    onOpenPool: onOpenPool,
                   ),
-                  child: const Text('open'),
                 ),
+                child: const Text('open'),
               ),
             ),
           ),
@@ -168,7 +103,7 @@ void main() {
       return submitted;
     }
 
-    Future<void> search(String tags, DateTime at) => client.histories.add(
+    Future<void> search(String tags, DateTime at) => bed.client.histories.add(
       HistoryRequest(
         visitedAt: at,
         link: Uri(path: '/posts', queryParameters: {'tags': tags}).toString(),
@@ -260,7 +195,7 @@ void main() {
       tester,
     ) async {
       await tester.runAsync(
-        () => client.follows.create(
+        () => bed.client.follows.create(
           tags: 'pool:21837',
           type: FollowType.bookmark,
           title: 'Duncan and Eddie',
@@ -494,28 +429,16 @@ void main() {
       );
       addTearDown(params.dispose);
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            Provider<Client>.value(value: client),
-            Provider<BaseCacheManager>.value(
-              value: const NoImageCacheManager(),
-            ),
-            Provider<Settings>.value(
-              value: Settings(await SharedPreferences.getInstance()),
-            ),
-          ],
-          child: MaterialApp(
-            localizationsDelegates: testLocalizations,
-            home: FilterControllerProvider(
-              create: (_) => PostFilter(client),
-              child: ChangeNotifierProvider.value(
-                value: params,
-                child: Builder(
-                  builder: (context) => Scaffold(
-                    body: TextButton(
-                      onPressed: () => showPostSearchSheet(context),
-                      child: const Text('open'),
-                    ),
+        bed.app(
+          FilterControllerProvider(
+            create: (_) => PostFilter(bed.client),
+            child: ChangeNotifierProvider.value(
+              value: params,
+              child: Builder(
+                builder: (context) => Scaffold(
+                  body: TextButton(
+                    onPressed: () => showPostSearchSheet(context),
+                    child: const Text('open'),
                   ),
                 ),
               ),
@@ -555,7 +478,7 @@ void main() {
       expect(find.text('open'), findsOneWidget);
     });
 
-    void addPools() => fake.state.pools
+    void addPools() => bed.fake.state.pools
       ..clear()
       ..addAll([
         for (final (int index, String name) in [
@@ -639,7 +562,7 @@ void main() {
     displayTest('signed in, the sets builder picks one of your sets', (
       tester,
     ) async {
-      fake.state.sets.add({
+      bed.fake.state.sets.add({
         'id': 5,
         'name': 'wallpapers',
         'shortname': 'wallpapers',
@@ -651,25 +574,7 @@ void main() {
         'created_at': '2026-09-01T12:00:00.000-04:00',
         'updated_at': '2026-10-23T12:00:00.000-04:00',
       });
-      await tester.runAsync(() async {
-        client = Client(
-          identity: await IdentityRepository(
-            sqlite,
-          ).add(IdentityRequest(host: fake.url, username: 'user_34')),
-          traits: traits,
-          storage: AppStorage(
-            preferences: await SharedPreferences.getInstance(),
-            temporaryFiles: '.',
-            queryCache: CachedQuery.asNewInstance()
-              ..config(
-                config: const GlobalQueryConfig(
-                  cacheDuration: Duration(milliseconds: 1),
-                ),
-              ),
-            sqlite: sqlite,
-          ),
-        );
-      });
+      await tester.runAsync(() => bed.signIn(username: 'user_34'));
       final List<String> submitted = await openSheet(tester);
       await tester.tap(find.text('Filters'));
       await settle(tester);

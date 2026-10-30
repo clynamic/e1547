@@ -1,18 +1,9 @@
-import 'package:drift/native.dart';
-import 'package:e1547/app/app.dart';
-import 'package:e1547/client/client.dart';
 import 'package:e1547/follow/follow.dart';
-import 'package:e1547/identity/identity.dart';
-import 'package:e1547/query/query.dart';
-import 'package:e1547/traits/traits.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:notified_preferences/notified_preferences.dart';
-import 'package:provider/provider.dart';
 
+import '../../_support/bed.dart';
 import '../../_support/harness.dart';
-import '../../_support/images.dart';
 
 Follow sampleFollow({String? thumbnail, int? latest}) => Follow(
   id: 1,
@@ -27,59 +18,19 @@ Follow sampleFollow({String? thumbnail, int? latest}) => Follow(
 );
 
 void main() {
-  late Client client;
-  late ValueNotifier<Traits> traits;
-  late AppDatabase sqlite;
+  late TestBed bed;
 
-  setUpAll(() async {
-    await initializeTestApp();
-    sqlite = AppDatabase(NativeDatabase.memory());
-  });
+  setUpAll(initializeTestApp);
 
-  tearDownAll(() => sqlite.close());
+  setUp(() async => bed = await TestBed.start());
 
-  setUp(() async {
-    SharedPreferences.setMockInitialValues({});
-    traits = ValueNotifier(
-      const Traits(
-        id: 1,
-        userId: null,
-        denylist: [],
-        homeTags: '',
-        avatar: null,
-        perPage: null,
-      ),
-    );
-    client = Client(
-      identity: const Identity(
-        id: 1,
-        host: 'e621.net',
-        username: null,
-        headers: null,
-      ),
-      traits: traits,
-      storage: AppStorage(
-        preferences: await SharedPreferences.getInstance(),
-        temporaryFiles: '.',
-        queryCache: CachedQuery.asNewInstance(),
-        sqlite: sqlite,
-      ),
-    );
-  });
-
-  tearDown(() => traits.dispose());
+  tearDown(() => bed.dispose());
 
   Future<void> show(WidgetTester tester, Follow follow) => tester.pumpWidget(
-    MultiProvider(
-      providers: [
-        Provider<Client>.value(value: client),
-        Provider<BaseCacheManager>.value(value: const NoImageCacheManager()),
-      ],
-      child: MaterialApp(
-        home: Scaffold(
-          body: Center(
-            child: SizedBox(width: 200, child: FollowTile(follow: follow)),
-          ),
+    bed.app(
+      Scaffold(
+        body: Center(
+          child: SizedBox(width: 200, child: FollowTile(follow: follow)),
         ),
       ),
     ),

@@ -1,55 +1,23 @@
-import 'package:drift/native.dart';
 import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
-import 'package:e1547/identity/identity.dart';
 import 'package:e1547/post/post.dart';
-import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
-import 'package:e1547/traits/traits.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:notified_preferences/notified_preferences.dart';
 
-import '../../_support/fake_e621.dart';
+import '../../_support/bed.dart';
 import '../../_support/harness.dart';
 import '../../_support/posts.dart';
 
 void main() {
-  late FakeE621 fake;
-  late Client client;
-  late ValueNotifier<Traits> traits;
-  late AppDatabase sqlite;
+  late TestBed bed;
   late PostFilter filter;
 
   setUpAll(initializeTestApp);
 
   setUp(() async {
-    SharedPreferences.setMockInitialValues({});
-    sqlite = AppDatabase(NativeDatabase.memory());
-    fake = await FakeE621.start();
-    traits = ValueNotifier(
-      const Traits(
-        id: 1,
-        userId: null,
-        denylist: ['spider', 'gore'],
-        homeTags: '',
-        avatar: null,
-        perPage: null,
-      ),
-    );
-    client = Client(
-      identity: await IdentityRepository(
-        sqlite,
-      ).add(IdentityRequest(host: fake.url)),
-      traits: traits,
-      storage: AppStorage(
-        preferences: await SharedPreferences.getInstance(),
-        temporaryFiles: '.',
-        queryCache: CachedQuery.asNewInstance(),
-        sqlite: sqlite,
-      ),
-    );
-    filter = PostFilter(client)
+    bed = await TestBed.start(denylist: ['spider', 'gore']);
+    filter = PostFilter(bed.client)
       ..track('page', [
         samplePost(
           tags: const {
@@ -73,9 +41,7 @@ void main() {
 
   tearDown(() async {
     filter.dispose();
-    traits.dispose();
-    await fake.stop();
-    await sqlite.close();
+    await bed.dispose();
   });
 
   int edits = 0;
@@ -115,7 +81,7 @@ void main() {
   testWidgets('many lines stop the sheet short of the top and scroll', (
     tester,
   ) async {
-    traits.value = traits.value.copyWith(
+    bed.traits.value = bed.traits.value.copyWith(
       denylist: [for (int i = 0; i < 30; i++) 'tag_$i'],
     );
     filter.track('many', [
@@ -203,7 +169,7 @@ void main() {
       addTearDown(params.dispose);
       await tester.pumpWidget(
         Provider<Client>.value(
-          value: client,
+          value: bed.client,
           child: MaterialApp(
             home: Scaffold(
               body: Align(

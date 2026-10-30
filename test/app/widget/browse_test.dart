@@ -1,23 +1,13 @@
-import 'package:drift/native.dart';
 import 'package:e1547/app/app.dart';
-import 'package:e1547/client/client.dart';
 import 'package:e1547/follow/follow.dart';
-import 'package:e1547/identity/identity.dart';
 import 'package:e1547/post/post.dart';
-import 'package:e1547/query/query.dart';
 import 'package:e1547/settings/settings.dart';
-import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
-import 'package:e1547/traits/traits.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:notified_preferences/notified_preferences.dart';
 
-import '../../_support/fake_e621.dart';
+import '../../_support/bed.dart';
 import '../../_support/harness.dart';
-import '../../_support/images.dart';
-import '../../_support/video.dart';
 
 void main() {
   test('each feed searches its own query', () {
@@ -30,51 +20,13 @@ void main() {
   });
 
   group('BrowseHeader', () {
-    late FakeE621 fake;
-    late Client client;
-    late ValueNotifier<Traits> traits;
-    late AppDatabase sqlite;
+    late TestBed bed;
 
     setUpAll(initializeTestApp);
 
-    setUp(() async {
-      SharedPreferences.setMockInitialValues({});
-      sqlite = AppDatabase(NativeDatabase.memory());
-      fake = await FakeE621.start();
-      traits = ValueNotifier(
-        const Traits(
-          id: 1,
-          userId: null,
-          denylist: [],
-          homeTags: '',
-          avatar: null,
-          perPage: null,
-        ),
-      );
-      client = Client(
-        identity: await IdentityRepository(
-          sqlite,
-        ).add(IdentityRequest(host: fake.url)),
-        traits: traits,
-        storage: AppStorage(
-          preferences: await SharedPreferences.getInstance(),
-          temporaryFiles: '.',
-          queryCache: CachedQuery.asNewInstance()
-            ..config(
-              config: const GlobalQueryConfig(
-                cacheDuration: Duration(milliseconds: 1),
-              ),
-            ),
-          sqlite: sqlite,
-        ),
-      );
-    });
+    setUp(() async => bed = await TestBed.start());
 
-    tearDown(() async {
-      traits.dispose();
-      await fake.stop();
-      await sqlite.close();
-    });
+    tearDown(() => bed.dispose());
 
     int toggles = 0;
 
@@ -86,27 +38,24 @@ void main() {
       final List<(BrowseFeed, PopularScale)> picked = [];
       toggles = 0;
       await tester.pumpWidget(
-        Provider<Client>.value(
-          value: client,
-          child: MaterialApp(
-            home: Scaffold(
-              body: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    BrowseHeader(
-                      feed: feed,
-                      scale: PopularScale.week,
-                      picking: picking,
-                      onToggle: () => toggles++,
-                    ),
-                    BrowseFeedPicker(
-                      feed: feed,
-                      scale: PopularScale.week,
-                      picking: picking,
-                      onPick: (feed, scale) => picked.add((feed, scale)),
-                    ),
-                  ],
-                ),
+        bed.app(
+          Scaffold(
+            body: SingleChildScrollView(
+              child: Column(
+                children: [
+                  BrowseHeader(
+                    feed: feed,
+                    scale: PopularScale.week,
+                    picking: picking,
+                    onToggle: () => toggles++,
+                  ),
+                  BrowseFeedPicker(
+                    feed: feed,
+                    scale: PopularScale.week,
+                    picking: picking,
+                    onPick: (feed, scale) => picked.add((feed, scale)),
+                  ),
+                ],
               ),
             ),
           ),
@@ -207,39 +156,12 @@ void main() {
       BrowseFeed? feed,
       bool settled = true,
     }) async {
-      final Settings settings = Settings(await SharedPreferences.getInstance());
-      if (feed != null) settings.browseFeed.value = feed;
-      final AnyRouteObserver routeObserver = AnyRouteObserver();
-      final VideoService videos = fakeVideoService();
-      addTearDown(videos.dispose);
+      if (feed != null) bed.settings.browseFeed.value = feed;
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            Provider<Client>.value(value: client),
-            Provider<Settings>.value(value: settings),
-            Provider<BaseCacheManager>.value(
-              value: const NoImageCacheManager(),
-            ),
-            Provider<AnyRouteObserver>.value(value: routeObserver),
-            ChangeNotifierProvider<VideoService>.value(value: videos),
-          ],
-          child: MaterialApp(
-            theme: AppTheme.dark.data,
-            navigatorObservers: [routeObserver],
-            localizationsDelegates: testLocalizations,
-            home: const BrowsePage(),
-          ),
-        ),
+        bed.app(const BrowsePage(), theme: AppTheme.dark.data),
       );
-      if (!settled) return settings;
-      await tester.runAsync(() async {
-        for (int i = 0; i < 6; i++) {
-          await tester.pump(const Duration(milliseconds: 50));
-          await Future<void>.delayed(const Duration(milliseconds: 50));
-        }
-      });
-      await tester.pumpAndSettle();
-      return settings;
+      if (settled) await settle(tester);
+      return bed.settings;
     }
 
     displayTest('tapping the dimmed feed folds the picker', (tester) async {
@@ -278,26 +200,23 @@ void main() {
     });
 
     displayTest('the timeline loads behind feed skeletons', (tester) async {
-      await client.follows.create(tags: 'tag_32', type: FollowType.update);
+      await bed.client.follows.create(tags: 'tag_32', type: FollowType.update);
 
       await showPage(tester, feed: BrowseFeed.timeline, settled: false);
       await tester.pump();
 
       expect(find.byType(PostFeedSkeleton), findsOneWidget);
       expect(find.byType(CircularProgressIndicator), findsNothing);
-      await tester.runAsync(() async {
-        for (int i = 0; i < 6; i++) {
-          await tester.pump(const Duration(milliseconds: 50));
-          await Future<void>.delayed(const Duration(milliseconds: 50));
-        }
-      });
-      await tester.pumpAndSettle();
+      await settle(tester);
     });
 
     displayTest(
       'a timeline post shows its artist in the artist hue, comments and description',
       (tester) async {
-        await client.follows.create(tags: 'tag_32', type: FollowType.update);
+        await bed.client.follows.create(
+          tags: 'tag_32',
+          type: FollowType.update,
+        );
 
         await showPage(tester, feed: BrowseFeed.timeline);
 
@@ -329,17 +248,11 @@ void main() {
     );
 
     displayTest('a timeline post opens on its own', (tester) async {
-      await client.follows.create(tags: 'tag_32', type: FollowType.update);
+      await bed.client.follows.create(tags: 'tag_32', type: FollowType.update);
       await showPage(tester, feed: BrowseFeed.timeline);
 
       await tester.tap(find.byType(PostImageTile).first);
-      await tester.runAsync(() async {
-        for (int i = 0; i < 6; i++) {
-          await tester.pump(const Duration(milliseconds: 50));
-          await Future<void>.delayed(const Duration(milliseconds: 50));
-        }
-      });
-      await tester.pump(const Duration(seconds: 1));
+      await settle(tester, animating: true);
 
       expect(find.byType(PostFullscreenGallery), findsNothing);
       expect(

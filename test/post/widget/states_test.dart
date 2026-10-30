@@ -1,87 +1,26 @@
 import 'dart:math';
 
 import 'package:dio/dio.dart';
-import 'package:drift/native.dart';
-import 'package:e1547/app/app.dart';
-import 'package:e1547/client/client.dart';
-import 'package:e1547/identity/identity.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
-import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
-import 'package:e1547/traits/traits.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:notified_preferences/notified_preferences.dart';
 
-import '../../_support/fake_e621.dart';
+import '../../_support/bed.dart';
 import '../../_support/harness.dart';
-import '../../_support/images.dart';
 import '../../_support/posts.dart';
 
 void main() {
-  late FakeE621 fake;
-  late Client client;
-  late ValueNotifier<Traits> traits;
-  late AppDatabase sqlite;
+  late TestBed bed;
 
   setUpAll(initializeTestApp);
 
-  setUp(() async {
-    SharedPreferences.setMockInitialValues({});
-    sqlite = AppDatabase(NativeDatabase.memory());
-    fake = await FakeE621.start();
-    traits = ValueNotifier(
-      const Traits(
-        id: 1,
-        userId: null,
-        denylist: ['spider', 'gore'],
-        homeTags: '',
-        avatar: null,
-        perPage: null,
-      ),
-    );
-    client = Client(
-      identity: await IdentityRepository(
-        sqlite,
-      ).add(IdentityRequest(host: fake.url)),
-      traits: traits,
-      storage: AppStorage(
-        preferences: await SharedPreferences.getInstance(),
-        temporaryFiles: '.',
-        queryCache: CachedQuery.asNewInstance()
-          ..config(
-            config: const GlobalQueryConfig(
-              cacheDuration: Duration(milliseconds: 1),
-            ),
-          ),
-        sqlite: sqlite,
-      ),
-    );
-  });
+  setUp(() async => bed = await TestBed.start(denylist: ['spider', 'gore']));
 
-  tearDown(() async {
-    traits.dispose();
-    await fake.stop();
-    await sqlite.close();
-  });
+  tearDown(() => bed.dispose());
 
   bool animating = false;
-
-  Future<void> settle(WidgetTester tester) async {
-    await tester.runAsync(() async {
-      for (int i = 0; i < 6; i++) {
-        await tester.pump(const Duration(milliseconds: 50));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
-      }
-    });
-    if (animating) {
-      await tester.pump(const Duration(milliseconds: 300));
-    } else {
-      await tester.pumpAndSettle();
-    }
-  }
 
   Future<void> show(
     WidgetTester tester,
@@ -89,33 +28,23 @@ void main() {
     PostFilter? filter,
     PostParamsController? params,
   }) async {
-    final PostFilter postFilter = filter ?? PostFilter(client);
+    final PostFilter postFilter = filter ?? PostFilter(bed.client);
     await tester.pumpWidget(
-      MultiProvider(
-        providers: [
-          Provider<Client>.value(value: client),
-          Provider<BaseCacheManager>.value(value: const NoImageCacheManager()),
-          Provider<Settings>.value(
-            value: Settings(await SharedPreferences.getInstance()),
-          ),
-        ],
-        child: MaterialApp(
-          localizationsDelegates: testLocalizations,
-          home: FilterControllerProvider<PostFilter, Post>.value(
-            value: postFilter,
-            child: ChangeNotifierProvider.value(
-              value: params ?? PostParamsController(),
-              child: Scaffold(body: child),
-            ),
+      bed.app(
+        FilterControllerProvider<PostFilter, Post>.value(
+          value: postFilter,
+          child: ChangeNotifierProvider.value(
+            value: params ?? PostParamsController(),
+            child: Scaffold(body: child),
           ),
         ),
       ),
     );
-    await settle(tester);
+    await settle(tester, animating: animating);
   }
 
   displayTest('a cover whose post has no image stays empty', (tester) async {
-    client.posts.postCache.savePage([samplePost(id: 9)]);
+    bed.client.posts.postCache.savePage([samplePost(id: 9)]);
     await show(
       tester,
       const SizedBox.square(dimension: 64, child: PostCover(id: 9)),
@@ -211,7 +140,7 @@ void main() {
 
     expect(find.text('No posts'), findsOneWidget);
     await tester.tap(find.text('Remove rating:s'));
-    await settle(tester);
+    await settle(tester, animating: animating);
 
     expect(
       tester.widget<PostsPage>(find.byType(PostsPage).last).params?.tags,
@@ -235,7 +164,7 @@ void main() {
   displayTest('a page the blacklist emptied names its lines and shows them', (
     tester,
   ) async {
-    final PostFilter filter = PostFilter(client)
+    final PostFilter filter = PostFilter(bed.client)
       ..track('page', [
         samplePost(
           tags: const {
@@ -278,7 +207,7 @@ void main() {
 
     expect(find.text('No connection'), findsOneWidget);
     expect(
-      find.text('${Uri.parse(fake.url).host} did not answer.'),
+      find.text('${Uri.parse(bed.fake.url).host} did not answer.'),
       findsOneWidget,
     );
     await tester.tap(find.text('Retry'));
@@ -308,7 +237,7 @@ void main() {
     PagingState<int, Post> state,
   ) async {
     fetches = 0;
-    final PostFilter filter = PostFilter(client)
+    final PostFilter filter = PostFilter(bed.client)
       ..track('page', [
         samplePost(
           id: 7,
@@ -389,13 +318,7 @@ void main() {
       const Offset(0, 500),
     );
     await tester.pump();
-    await tester.runAsync(() async {
-      for (int i = 0; i < 6; i++) {
-        await tester.pump(const Duration(milliseconds: 50));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
-      }
-    });
-    await tester.pump(const Duration(milliseconds: 300));
+    await settle(tester, animating: true);
   }
 
   displayTest('a refresh that brings nothing new says so', (tester) async {
@@ -415,8 +338,8 @@ void main() {
   ) async {
     await show(tester, const PostsPage());
     final int shown = find.byType(PostTile).evaluate().length;
-    final String host = Uri.parse(fake.url).host;
-    await tester.runAsync(fake.stop);
+    final String host = Uri.parse(bed.fake.url).host;
+    await tester.runAsync(bed.fake.stop);
 
     await pull(tester);
 

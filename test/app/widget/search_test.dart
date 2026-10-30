@@ -1,22 +1,14 @@
-import 'package:drift/native.dart';
 import 'package:e1547/app/app.dart';
-import 'package:e1547/client/client.dart';
-import 'package:e1547/identity/identity.dart';
 import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
-import 'package:e1547/query/query.dart';
 import 'package:e1547/set/set.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
-import 'package:e1547/traits/traits.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:notified_preferences/notified_preferences.dart';
 
-import '../../_support/fake_e621.dart';
+import '../../_support/bed.dart';
 import '../../_support/harness.dart';
-import '../../_support/images.dart';
 
 Pool samplePool({
   String name = 'river_story',
@@ -144,94 +136,32 @@ void main() {
   });
 
   group('Search', () {
-    late FakeE621 fake;
-    late Client client;
-    late ValueNotifier<Traits> traits;
-    late AppDatabase sqlite;
+    late TestBed bed;
 
     setUpAll(initializeTestApp);
 
     setUp(() async {
-      SharedPreferences.setMockInitialValues({});
-      sqlite = AppDatabase(NativeDatabase.memory());
-      fake = await FakeE621.start();
-      fake.state.pools
+      bed = await TestBed.start();
+      bed.fake.state.pools
         ..clear()
         ..addAll([
           poolJson(1, 'river_story', posts: [1, 2, 3]),
           poolJson(2, 'river_sketches', category: 'collection', posts: [4, 5]),
           poolJson(3, 'lake_notes', posts: [6]),
         ]);
-      fake.state.sets.addAll([
+      bed.fake.state.sets.addAll([
         setJson(1, 'reference', creator: 3044, public: false, count: 4),
         setJson(2, 'ref_sheets', creator: 7),
         setJson(3, 'den_archive', creator: 7),
         setJson(4, 'hidden_drafts', creator: 7, public: false),
       ]);
-      traits = ValueNotifier(
-        const Traits(
-          id: 1,
-          userId: null,
-          denylist: [],
-          homeTags: '',
-          avatar: null,
-          perPage: null,
-        ),
-      );
-      client = Client(
-        identity: await IdentityRepository(
-          sqlite,
-        ).add(IdentityRequest(host: fake.url)),
-        traits: traits,
-        storage: AppStorage(
-          preferences: await SharedPreferences.getInstance(),
-          temporaryFiles: '.',
-          queryCache: CachedQuery.asNewInstance()
-            ..config(
-              config: const GlobalQueryConfig(
-                cacheDuration: Duration(milliseconds: 1),
-              ),
-            ),
-          sqlite: sqlite,
-        ),
-      );
     });
 
-    tearDown(() async {
-      traits.dispose();
-      await fake.stop();
-      await sqlite.close();
-    });
+    tearDown(() => bed.dispose());
 
     Future<void> signIn() async {
-      traits.value = traits.value.copyWith(userId: 3044);
-      client = Client(
-        identity: await IdentityRepository(
-          sqlite,
-        ).add(IdentityRequest(host: fake.url, username: 'user_34')),
-        traits: traits,
-        storage: AppStorage(
-          preferences: await SharedPreferences.getInstance(),
-          temporaryFiles: '.',
-          queryCache: CachedQuery.asNewInstance()
-            ..config(
-              config: const GlobalQueryConfig(
-                cacheDuration: Duration(milliseconds: 1),
-              ),
-            ),
-          sqlite: sqlite,
-        ),
-      );
-    }
-
-    Future<void> settle(WidgetTester tester) async {
-      await tester.runAsync(() async {
-        for (int i = 0; i < 6; i++) {
-          await tester.pump(const Duration(milliseconds: 50));
-          await Future<void>.delayed(const Duration(milliseconds: 50));
-        }
-      });
-      await tester.pumpAndSettle();
+      bed.traits.value = bed.traits.value.copyWith(userId: 3044);
+      await bed.signIn(username: 'user_34');
     }
 
     late NavBarDocks docks;
@@ -242,42 +172,29 @@ void main() {
       bool settled = true,
     }) async {
       docks = NavBarDocks();
-      final Settings settings = Settings(await SharedPreferences.getInstance());
-      if (kind != null) settings.searchKind.value = kind;
+      if (kind != null) bed.settings.searchKind.value = kind;
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            Provider<Client>.value(value: client),
-            Provider<BaseCacheManager>.value(
-              value: const NoImageCacheManager(),
-            ),
-            Provider<Settings>.value(value: settings),
-          ],
-          child: MaterialApp(
-            home: Column(
-              children: [
-                Expanded(
-                  child: NavBarDockScope(
-                    docks: docks,
-                    child: const SearchPage(),
+        bed.app(
+          Column(
+            children: [
+              Expanded(
+                child: NavBarDockScope(docks: docks, child: const SearchPage()),
+              ),
+              ListenableBuilder(
+                listenable: docks,
+                builder: (context, child) => Material(
+                  child: SizedBox(
+                    height: navBarDockHeight,
+                    child: docks.current?.call(context),
                   ),
                 ),
-                ListenableBuilder(
-                  listenable: docks,
-                  builder: (context, child) => Material(
-                    child: SizedBox(
-                      height: navBarDockHeight,
-                      child: docks.current?.call(context),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       );
       if (settled) await settle(tester);
-      return settings;
+      return bed.settings;
     }
 
     Rect skeletonCover(WidgetTester tester) => tester.getRect(
@@ -383,31 +300,20 @@ void main() {
       final List<PoolParams> submitted = [];
       final List<Pool> opened = [];
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            Provider<Client>.value(value: client),
-            Provider<BaseCacheManager>.value(
-              value: const NoImageCacheManager(),
-            ),
-            Provider<Settings>.value(
-              value: Settings(await SharedPreferences.getInstance()),
-            ),
-          ],
-          child: MaterialApp(
-            home: Scaffold(
-              body: Builder(
-                builder: (context) => TextButton(
-                  onPressed: () => showModalBottomSheet<void>(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (context) => PoolSearchSheet(
-                      params: const PoolParams(),
-                      onSubmit: submitted.add,
-                      onOpen: opened.add,
-                    ),
+        bed.app(
+          Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => showModalBottomSheet<void>(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (context) => PoolSearchSheet(
+                    params: const PoolParams(),
+                    onSubmit: submitted.add,
+                    onOpen: opened.add,
                   ),
-                  child: const Text('open'),
                 ),
+                child: const Text('open'),
               ),
             ),
           ),
@@ -479,7 +385,7 @@ void main() {
     displayTest('each public set shows its first post as a cover', (
       tester,
     ) async {
-      fake.state.sets
+      bed.fake.state.sets
         ..clear()
         ..add({
           ...setJson(2, 'ref_sheets', creator: 7),
@@ -507,23 +413,12 @@ void main() {
       await tester.runAsync(signIn);
       final List<PostSet> opened = [];
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            Provider<Client>.value(value: client),
-            Provider<BaseCacheManager>.value(
-              value: const NoImageCacheManager(),
-            ),
-            Provider<Settings>.value(
-              value: Settings(await SharedPreferences.getInstance()),
-            ),
-          ],
-          child: MaterialApp(
-            home: Scaffold(
-              body: PostSetSearchSheet(
-                params: const PostSetParams(),
-                onSubmit: (_) {},
-                onOpen: opened.add,
-              ),
+        bed.app(
+          Scaffold(
+            body: PostSetSearchSheet(
+              params: const PostSetParams(),
+              onSubmit: (_) {},
+              onOpen: opened.add,
             ),
           ),
         ),
@@ -543,21 +438,10 @@ void main() {
     displayTest('the pools page lists the pools of the search it opens '
         'with', (tester) async {
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            Provider<Client>.value(value: client),
-            Provider<BaseCacheManager>.value(
-              value: const NoImageCacheManager(),
-            ),
-            Provider<Settings>.value(
-              value: Settings(await SharedPreferences.getInstance()),
-            ),
-          ],
-          child: MaterialApp(
-            home: NavBarDockScope(
-              docks: NavBarDocks(),
-              child: const PoolsPage(search: PoolParams(name: 'lake')),
-            ),
+        bed.app(
+          NavBarDockScope(
+            docks: NavBarDocks(),
+            child: const PoolsPage(search: PoolParams(name: 'lake')),
           ),
         ),
       );
