@@ -42,6 +42,8 @@ export 'refreshing.dart';
 export 'scaffold.dart';
 export 'scroll.dart';
 export 'selection.dart';
+export 'sheet_panel.dart';
+export 'size_reporter.dart';
 export 'snackbar.dart';
 export 'text_dialog.dart';
 export 'text_editor.dart';

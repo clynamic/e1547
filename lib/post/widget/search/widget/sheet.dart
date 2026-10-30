@@ -92,12 +92,17 @@ class FloatingSheet extends StatelessWidget {
 }
 
 class SheetGrip extends StatelessWidget {
-  const SheetGrip({super.key});
+  const SheetGrip({
+    super.key,
+    this.padding = const EdgeInsets.only(top: 8, bottom: 4),
+  });
+
+  final EdgeInsets padding;
 
   @override
   Widget build(BuildContext context) => Center(
     child: Padding(
-      padding: const EdgeInsets.only(top: 8, bottom: 4),
+      padding: padding,
       child: Container(
         width: 32,
         height: 3,
@@ -269,10 +274,7 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
     final ThemeData theme = Theme.of(context);
     final bool typing = MediaQuery.viewInsetsOf(context).bottom > 0;
     final bool left = Handedness.of(context) == Handedness.left;
-    final Color well = Color.alphaBlend(
-      theme.colorScheme.onSurface.withValues(alpha: 0.04),
-      theme.cardColor,
-    );
+    final Color well = wellColor(theme);
     return ListenableBuilder(
       listenable: controller,
       builder: (context, child) => QueryBuilder(
@@ -357,21 +359,7 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
                           },
                         ),
                         const Spacer(),
-                        SizedBox.square(
-                          dimension: typing ? 44 : 48,
-                          child: Material(
-                            color: theme.colorScheme.secondary,
-                            borderRadius: BorderRadius.circular(8),
-                            child: InkWell(
-                              onTap: submit,
-                              borderRadius: BorderRadius.circular(8),
-                              child: Icon(
-                                Icons.search,
-                                color: theme.colorScheme.onSecondary,
-                              ),
-                            ),
-                          ),
-                        ),
+                        SheetSearchButton(typing: typing, onTap: submit),
                       ],
                     );
                   },
@@ -542,11 +530,45 @@ class SearchSheetTab extends StatelessWidget {
   }
 }
 
+class SheetSearchButton extends StatelessWidget {
+  const SheetSearchButton({
+    super.key,
+    required this.typing,
+    required this.onTap,
+  });
+
+  final bool typing;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return SizedBox.square(
+      dimension: typing ? 44 : 48,
+      child: Material(
+        color: theme.colorScheme.secondary,
+        borderRadius: BorderRadius.circular(8),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: Icon(Icons.search, color: theme.colorScheme.onSecondary),
+        ),
+      ),
+    );
+  }
+}
+
 class SheetLink extends StatelessWidget {
-  const SheetLink({super.key, required this.label, required this.onTap});
+  const SheetLink({
+    super.key,
+    required this.label,
+    required this.onTap,
+    this.padding = const EdgeInsets.fromLTRB(14, 0, 8, 0),
+  });
 
   final String label;
   final VoidCallback onTap;
+  final EdgeInsets padding;
 
   @override
   Widget build(BuildContext context) {
@@ -556,7 +578,7 @@ class SheetLink extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 44),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 0, 8, 0),
+          padding: padding,
           child: Row(
             children: [
               Expanded(

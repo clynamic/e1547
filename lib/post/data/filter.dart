@@ -87,15 +87,10 @@ class PostFilter extends FilterController<Post>
 
   Map<String, int> get blockedCountsByEntry {
     if (!denying) return const {};
-    final counts = <String, int>{};
-    for (final post in tracked) {
-      if (allowedPosts.contains(post.id)) continue;
-      for (final entry in entriesFor(post)) {
-        if (allowedEntries.contains(entry)) continue;
-        counts[entry] = (counts[entry] ?? 0) + 1;
-      }
-    }
-    return counts;
+    return {
+      for (final MapEntry(:key, :value) in matchCountsByEntry.entries)
+        if (!allowedEntries.contains(key)) key: value,
+    };
   }
 
   Map<String, int> get matchCountsByEntry {

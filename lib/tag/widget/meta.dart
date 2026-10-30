@@ -2,11 +2,6 @@ import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
 import 'package:flutter/material.dart';
 
-Color metaWell(ThemeData theme) => Color.alphaBlend(
-  theme.colorScheme.onSurface.withValues(alpha: 0.05),
-  theme.cardColor,
-);
-
 class MetaPanel extends StatelessWidget {
   const MetaPanel({
     super.key,
@@ -35,102 +30,53 @@ class MetaPanel extends StatelessWidget {
         final String raw = kind == null
             ? ''
             : controller.terms.where((e) => metaKindOf(e) == kind).join(' ');
-        return Material(
-          color: Color.alphaBlend(
-            Colors.black.withValues(alpha: 0.15),
-            theme.cardColor,
+        return SheetPanel(
+          title: kind?.label ?? 'Add a filter',
+          icon: kind == null ? Icons.keyboard : Icons.arrow_back,
+          tooltip: kind == null ? 'Close' : 'All filters',
+          onClose: onBack,
+          trailing: Text(
+            raw,
+            textAlign: TextAlign.right,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontSize: 11,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+            ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                height: 44,
-                padding: const EdgeInsets.fromLTRB(4, 0, 8, 0),
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: theme.colorScheme.onSurface.withValues(
-                        alpha: 0.06,
-                      ),
-                    ),
-                  ),
-                ),
-                child: Row(
-                  spacing: 8,
-                  children: [
-                    IconButton(
-                      tooltip: kind == null ? 'Close' : 'All filters',
-                      onPressed: onBack,
-                      icon: Icon(
-                        kind == null ? Icons.keyboard : Icons.arrow_back,
-                        size: 20,
-                      ),
-                    ),
-                    Text(
-                      kind?.label ?? 'Add a filter',
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        raw,
-                        textAlign: TextAlign.right,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontFamily: 'monospace',
-                          fontSize: 11,
-                          color: theme.colorScheme.onSurface.withValues(
-                            alpha: 0.5,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                child: switch (kind) {
-                  null => MetaCatalog(onPick: onPick),
-                  MetaKind.date => DateBuilder(controller: controller),
-                  MetaKind.counts => CountsBuilder(controller: controller),
-                  MetaKind.order => OrderBuilder(controller: controller),
-                  MetaKind.rating => RatingBuilder(controller: controller),
-                  MetaKind.file => FileBuilder(controller: controller),
-                  MetaKind.size => SizeBuilder(controller: controller),
-                  MetaKind.people => PeopleBuilder(
-                    controller: controller,
-                    me: me,
-                  ),
-                  MetaKind.properties => PropertiesBuilder(
-                    controller: controller,
-                    properties: PostProperty.values,
-                    status: true,
-                  ),
-                  MetaKind.family => PropertiesBuilder(
-                    controller: controller,
-                    properties: const [
-                      PostProperty.hasParent,
-                      PostProperty.hasChildren,
-                    ],
-                  ),
-                  MetaKind.text => PropertiesBuilder(
-                    controller: controller,
-                    properties: const [
-                      PostProperty.hasSource,
-                      PostProperty.hasDescription,
-                    ],
-                  ),
-                  MetaKind.status => StatusBuilder(controller: controller),
-                  MetaKind.pools => pools ?? const SizedBox.shrink(),
-                },
-              ),
-            ],
-          ),
+          child: switch (kind) {
+            null => MetaCatalog(onPick: onPick),
+            MetaKind.date => DateBuilder(controller: controller),
+            MetaKind.counts => CountsBuilder(controller: controller),
+            MetaKind.order => OrderBuilder(controller: controller),
+            MetaKind.rating => RatingBuilder(controller: controller),
+            MetaKind.file => FileBuilder(controller: controller),
+            MetaKind.size => SizeBuilder(controller: controller),
+            MetaKind.people => PeopleBuilder(controller: controller, me: me),
+            MetaKind.properties => PropertiesBuilder(
+              controller: controller,
+              properties: PostProperty.values,
+              status: true,
+            ),
+            MetaKind.family => PropertiesBuilder(
+              controller: controller,
+              properties: const [
+                PostProperty.hasParent,
+                PostProperty.hasChildren,
+              ],
+            ),
+            MetaKind.text => PropertiesBuilder(
+              controller: controller,
+              properties: const [
+                PostProperty.hasSource,
+                PostProperty.hasDescription,
+              ],
+            ),
+            MetaKind.status => StatusBuilder(controller: controller),
+            MetaKind.pools => pools ?? const SizedBox.shrink(),
+          },
         );
       },
     );
@@ -156,7 +102,7 @@ class MetaCatalog extends StatelessWidget {
       children: [
         for (final MetaKind kind in MetaKind.values)
           Material(
-            color: metaWell(theme),
+            color: wellColor(theme),
             borderRadius: BorderRadius.circular(4),
             child: InkWell(
               onTap: () => onPick(kind),
@@ -210,7 +156,7 @@ class MetaOption extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final Color accent = theme.colorScheme.primary;
     return Material(
-      color: selected ? accent.withValues(alpha: 0.16) : metaWell(theme),
+      color: selected ? accent.withValues(alpha: 0.16) : wellColor(theme),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(4),
         side: BorderSide(color: selected ? accent : Colors.transparent),
@@ -265,7 +211,7 @@ class MetaSegments<T> extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: metaWell(theme),
+        color: wellColor(theme),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Row(
@@ -325,7 +271,7 @@ class MetaField extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final Color dim = theme.colorScheme.onSurface.withValues(alpha: 0.45);
     return Material(
-      color: metaWell(theme),
+      color: wellColor(theme),
       borderRadius: BorderRadius.circular(4),
       child: InkWell(
         onTap: onTap,

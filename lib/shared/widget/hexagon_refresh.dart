@@ -7,8 +7,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_sub/flutter_sub.dart';
 
 const ScrollPhysics refreshPhysics = AlwaysScrollableScrollPhysics(
   parent: BouncingScrollPhysics(),
@@ -404,89 +402,4 @@ class HexagonRefreshPainter extends CustomPainter {
       oldDelegate.phase != phase ||
       oldDelegate.accent != accent ||
       oldDelegate.ink != ink;
-}
-
-class RefreshShortcuts extends StatefulWidget {
-  const RefreshShortcuts({
-    super.key,
-    required this.onRefresh,
-    required this.child,
-  });
-
-  final Future<void> Function() onRefresh;
-  final Widget child;
-
-  @override
-  State<RefreshShortcuts> createState() => _RefreshShortcutsState();
-}
-
-class _RefreshShortcutsState extends State<RefreshShortcuts> {
-  Future<void> refresh() => widget.onRefresh();
-
-  bool onKey(KeyEvent event) {
-    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.f5) {
-      refresh();
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final NavBarReselectController? reselect = NavBarReselect.maybeOf(context);
-    final bool shown =
-        TickerMode.valuesOf(context).enabled &&
-        (ModalRoute.of(context)?.isCurrent ?? true);
-    return SubEffect(
-      effect: () {
-        if (reselect == null) return null;
-        reselect.handler = refresh;
-        return () {
-          if (reselect.handler == refresh) reselect.handler = null;
-        };
-      },
-      keys: [reselect],
-      child: SubEffect(
-        effect: () {
-          if (!shown) return null;
-          HardwareKeyboard.instance.addHandler(onKey);
-          return () => HardwareKeyboard.instance.removeHandler(onKey);
-        },
-        keys: [shown],
-        child: widget.child,
-      ),
-    );
-  }
-}
-
-class SizeReporter extends SingleChildRenderObjectWidget {
-  const SizeReporter({super.key, required this.onSize, super.child});
-
-  final ValueChanged<Size> onSize;
-
-  @override
-  RenderObject createRenderObject(BuildContext context) =>
-      RenderSizeReporter(onSize);
-
-  @override
-  void updateRenderObject(
-    BuildContext context,
-    covariant RenderSizeReporter renderObject,
-  ) => renderObject.onSize = onSize;
-}
-
-class RenderSizeReporter extends RenderProxyBox {
-  RenderSizeReporter(this.onSize);
-
-  ValueChanged<Size> onSize;
-  Size? _reported;
-
-  @override
-  void performLayout() {
-    super.performLayout();
-    if (size == _reported) return;
-    _reported = size;
-    final Size reported = size;
-    WidgetsBinding.instance.addPostFrameCallback((_) => onSize(reported));
-  }
 }

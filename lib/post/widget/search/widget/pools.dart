@@ -193,34 +193,13 @@ class PickedPool extends StatelessWidget {
             ),
             if (onOpen case final open?)
               Material(
-                color: metaWell(theme),
+                color: wellColor(theme),
                 borderRadius: BorderRadius.circular(4),
-                child: InkWell(
+                clipBehavior: Clip.antiAlias,
+                child: SheetLink(
+                  label: 'Open the pool as pages',
+                  padding: const EdgeInsets.fromLTRB(12, 0, 4, 0),
                   onTap: () => open(pool),
-                  borderRadius: BorderRadius.circular(4),
-                  child: SizedBox(
-                    height: 40,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 0, 4, 0),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Open the pool as pages',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: theme.colorScheme.primary,
-                              ),
-                            ),
-                          ),
-                          Icon(
-                            Icons.chevron_right,
-                            color: theme.colorScheme.primary,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
                 ),
               ),
           ],

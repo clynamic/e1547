@@ -59,21 +59,7 @@ class HiddenPostsSheet extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Container(
-                      width: 32,
-                      height: 3,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.onSurface.withValues(
-                          alpha: 0.6,
-                        ),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                ),
+                const SheetGrip(padding: EdgeInsets.all(12)),
                 Container(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                   decoration: BoxDecoration(border: Border(bottom: line)),
@@ -121,32 +107,10 @@ class HiddenPostsSheet extends StatelessWidget {
                   child: Column(
                     spacing: 8,
                     children: [
-                      InkWell(
+                      SheetLink(
+                        label: 'Edit blacklist',
+                        padding: EdgeInsets.zero,
                         onTap: onEditBlacklist,
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(minHeight: 48),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  'Edit blacklist',
-                                  style: TextStyle(
-                                    color: theme.colorScheme.primary,
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                              Transform.translate(
-                                offset: const Offset(4, 0),
-                                child: Icon(
-                                  Icons.chevron_right,
-                                  color: theme.colorScheme.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
                       ),
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,

@@ -72,10 +72,7 @@ class _NameSearchSheetState<P> extends State<NameSearchSheet<P>> {
     final ThemeData theme = Theme.of(context);
     final bool typing = MediaQuery.viewInsetsOf(context).bottom > 0;
     final bool left = Handedness.of(context) == Handedness.left;
-    final Color well = Color.alphaBlend(
-      theme.colorScheme.onSurface.withValues(alpha: 0.04),
-      theme.cardColor,
-    );
+    final Color well = wellColor(theme);
     return ListenableBuilder(
       listenable: Listenable.merge([text, focus]),
       builder: (context, child) {
@@ -104,21 +101,7 @@ class _NameSearchSheetState<P> extends State<NameSearchSheet<P>> {
                     tooltip: 'Filters',
                   ),
                   const Spacer(),
-                  SizedBox.square(
-                    dimension: typing ? 44 : 48,
-                    child: Material(
-                      color: theme.colorScheme.secondary,
-                      borderRadius: BorderRadius.circular(8),
-                      child: InkWell(
-                        onTap: submit,
-                        borderRadius: BorderRadius.circular(8),
-                        child: Icon(
-                          Icons.search,
-                          color: theme.colorScheme.onSecondary,
-                        ),
-                      ),
-                    ),
-                  ),
+                  SheetSearchButton(typing: typing, onTap: submit),
                 ],
               ),
             ),
@@ -198,68 +181,6 @@ class SheetTextField extends StatelessWidget {
           theme.colorScheme.onSurface.withValues(alpha: 0.12),
         ),
         focusedBorder: border(theme.colorScheme.primary.withValues(alpha: 0.6)),
-      ),
-    );
-  }
-}
-
-class SheetPanel extends StatelessWidget {
-  const SheetPanel({
-    super.key,
-    required this.title,
-    required this.onClose,
-    required this.child,
-  });
-
-  final String title;
-  final VoidCallback onClose;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return Material(
-      color: Color.alphaBlend(
-        Colors.black.withValues(alpha: 0.15),
-        theme.cardColor,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            height: 44,
-            padding: const EdgeInsets.fromLTRB(4, 0, 8, 0),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.06),
-                ),
-              ),
-            ),
-            child: Row(
-              spacing: 8,
-              children: [
-                IconButton(
-                  tooltip: 'Close',
-                  onPressed: onClose,
-                  icon: const Icon(Icons.keyboard, size: 20),
-                ),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-            child: child,
-          ),
-        ],
       ),
     );
   }

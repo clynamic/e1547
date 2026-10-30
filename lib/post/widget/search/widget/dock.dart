@@ -159,20 +159,11 @@ class SearchDock extends StatelessWidget {
                 ),
               ],
             ),
-            Positioned(
+            const Positioned(
               top: 4,
               left: 0,
               right: 0,
-              child: Center(
-                child: Container(
-                  width: 32,
-                  height: 3,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
+              child: SheetGrip(padding: EdgeInsets.zero),
             ),
           ],
         ),
