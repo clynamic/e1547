@@ -123,11 +123,20 @@ void main() {
         BrowseFeed.timeline,
       ]);
       expect(
-        find.descendant(
-          of: find.widgetWithText(BrowseFeedCard, 'Popular'),
-          matching: find.byIcon(Icons.check),
-        ),
-        findsOneWidget,
+        [
+          for (final BrowseFeedCard card in tester.widgetList<BrowseFeedCard>(
+            cards,
+          ))
+            if (find
+                .descendant(
+                  of: find.byWidget(card),
+                  matching: find.byIcon(Icons.check),
+                )
+                .evaluate()
+                .isNotEmpty)
+              card.feed,
+        ],
+        [BrowseFeed.popular],
       );
     });
 
@@ -160,7 +169,7 @@ void main() {
       await tester.pumpWidget(
         bed.app(const BrowsePage(), theme: AppTheme.dark.data),
       );
-      if (settled) await settle(tester);
+      if (settled) await bed.settle(tester);
       return bed.settings;
     }
 
@@ -207,7 +216,7 @@ void main() {
 
       expect(find.byType(PostFeedSkeleton), findsOneWidget);
       expect(find.byType(CircularProgressIndicator), findsNothing);
-      await settle(tester);
+      await bed.settle(tester);
     });
 
     displayTest(
@@ -252,7 +261,7 @@ void main() {
       await showPage(tester, feed: BrowseFeed.timeline);
 
       await tester.tap(find.byType(PostImageTile).first);
-      await settle(tester, animating: true);
+      await bed.settle(tester, animating: true);
 
       expect(find.byType(PostFullscreenGallery), findsNothing);
       expect(

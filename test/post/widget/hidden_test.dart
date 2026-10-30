@@ -1,7 +1,5 @@
 import 'package:e1547/app/app.dart';
-import 'package:e1547/client/client.dart';
 import 'package:e1547/post/post.dart';
-import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -98,6 +96,13 @@ void main() {
     final double screen =
         tester.view.physicalSize.height / tester.view.devicePixelRatio;
     expect(tester.getSize(find.byType(HiddenPostsSheet)).height, screen - 120);
+    final Finder last = find.text('tag 29');
+    expect(last.hitTestable(), findsNothing);
+
+    await tester.drag(find.byType(HiddenPostsSheet), const Offset(0, -2000));
+    await tester.pumpAndSettle();
+
+    expect(last.hitTestable(), findsOneWidget);
     expect(find.text('Use blacklist in this search'), findsOneWidget);
   });
 
@@ -168,20 +173,17 @@ void main() {
       final PostParamsController params = PostParamsController();
       addTearDown(params.dispose);
       await tester.pumpWidget(
-        Provider<Client>.value(
-          value: bed.client,
-          child: MaterialApp(
-            home: Scaffold(
-              body: Align(
-                alignment: Alignment.bottomCenter,
-                child: SizedBox(
-                  height: navBarDockHeight,
-                  child: PostDock(
-                    params: params,
-                    filter: filter,
-                    onOpen: (_) async {},
-                    onHidden: () => hidden++,
-                  ),
+        bed.app(
+          Scaffold(
+            body: Align(
+              alignment: Alignment.bottomCenter,
+              child: SizedBox(
+                height: navBarDockHeight,
+                child: PostDock(
+                  params: params,
+                  filter: filter,
+                  onOpen: (_) async {},
+                  onHidden: () => hidden++,
                 ),
               ),
             ),

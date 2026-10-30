@@ -9,74 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../_support/bed.dart';
 import '../../_support/harness.dart';
-
-Pool samplePool({
-  String name = 'river_story',
-  PoolCategory category = PoolCategory.series,
-  bool active = true,
-  int count = 3,
-}) => Pool(
-  id: 1,
-  name: name,
-  createdAt: DateTime(2026, 9, 2),
-  updatedAt: DateTime(2026, 10, 23),
-  description: '',
-  postIds: List.generate(count, (i) => i + 1),
-  postCount: count,
-  active: active,
-  category: category,
-);
-
-Map<String, Object?> poolJson(
-  int id,
-  String name, {
-  String category = 'series',
-  List<int> posts = const [],
-}) => {
-  'id': id,
-  'name': name,
-  'created_at': '2026-09-01T12:00:00.000-04:00',
-  'updated_at': '2026-10-23T12:00:00.000-04:00',
-  'creator_id': 1,
-  'description': '',
-  'is_active': true,
-  'category': category,
-  'post_ids': posts,
-  'post_count': posts.length,
-};
-
-Map<String, Object?> setJson(
-  int id,
-  String name, {
-  required int creator,
-  bool public = true,
-  int count = 2,
-}) => {
-  'id': id,
-  'name': name,
-  'shortname': name,
-  'description': '',
-  'is_public': public,
-  'creator_id': creator,
-  'post_ids': List.generate(count, (i) => i + 1),
-  'post_count': count,
-  'created_at': '2026-09-01T12:00:00.000-04:00',
-  'updated_at': '2026-10-23T12:00:00.000-04:00',
-};
-
-PostSet sampleSet({bool public = true, int creator = 7, int count = 2310}) =>
-    PostSet(
-      id: 1,
-      name: 'reference',
-      shortname: 'reference',
-      description: '',
-      public: public,
-      creatorId: creator,
-      postIds: const [],
-      postCount: count,
-      createdAt: DateTime(2026, 9, 2),
-      updatedAt: DateTime(2026, 10, 23),
-    );
+import '../../_support/pools.dart';
 
 void main() {
   group('pool words', () {
@@ -150,10 +83,10 @@ void main() {
           poolJson(3, 'lake_notes', posts: [6]),
         ]);
       bed.fake.state.sets.addAll([
-        setJson(1, 'reference', creator: 3044, public: false, count: 4),
         setJson(2, 'ref_sheets', creator: 7),
         setJson(3, 'den_archive', creator: 7),
         setJson(4, 'hidden_drafts', creator: 7, public: false),
+        setJson(1, 'reference', creator: 3044, public: false, count: 4),
       ]);
     });
 
@@ -193,7 +126,7 @@ void main() {
           ),
         ),
       );
-      if (settled) await settle(tester);
+      if (settled) await bed.settle(tester);
       return bed.settings;
     }
 
@@ -215,7 +148,7 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsNothing);
       final Rect cover = skeletonCover(tester);
 
-      await settle(tester);
+      await bed.settle(tester);
       expect(cover.width, tester.getSize(find.byType(PoolCard).first).width);
     });
 
@@ -226,8 +159,22 @@ void main() {
       await tester.pump();
 
       expect(find.byType(CircularProgressIndicator), findsNothing);
-      expect(skeletonCover(tester).height, 170);
-      await settle(tester);
+      final Rect cover = skeletonCover(tester);
+
+      await bed.settle(tester);
+      expect(
+        cover.height,
+        tester
+            .getSize(
+              find
+                  .descendant(
+                    of: find.byType(PostSetCard),
+                    matching: find.byType(PostCover),
+                  )
+                  .first,
+            )
+            .height,
+      );
     });
 
     displayTest('the header unfolds every kind in order, the current checked', (
@@ -236,7 +183,7 @@ void main() {
       await showPage(tester, kind: SearchKind.pools);
 
       await tester.tap(find.text('Pools'));
-      await settle(tester);
+      await bed.settle(tester);
 
       final Finder cards = find.byType(PickerCard);
       expect(tester.widgetList<PickerCard>(cards).map((e) => e.title), [
@@ -245,18 +192,25 @@ void main() {
         'Sets',
       ]);
       expect(
-        find.descendant(
-          of: find.widgetWithText(PickerCard, 'Pools'),
-          matching: find.byIcon(Icons.check),
-        ),
-        findsOneWidget,
+        [
+          for (final PickerCard card in tester.widgetList<PickerCard>(cards))
+            if (find
+                .descendant(
+                  of: find.byWidget(card),
+                  matching: find.byIcon(Icons.check),
+                )
+                .evaluate()
+                .isNotEmpty)
+              card.title,
+        ],
+        ['Pools'],
       );
     });
 
     displayTest('each kind card shows the icon of its kind', (tester) async {
       await showPage(tester);
       await tester.tap(find.text('Posts'));
-      await settle(tester);
+      await bed.settle(tester);
 
       for (final SearchKind kind in SearchKind.values) {
         expect(
@@ -276,9 +230,9 @@ void main() {
       expect(find.byType(PoolDock), findsNothing);
 
       await tester.tap(find.text('Posts'));
-      await settle(tester);
+      await bed.settle(tester);
       await tester.tap(find.text('Pools'));
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(settings.searchKind.value, SearchKind.pools);
       expect(find.byType(PickerCard), findsNothing);
@@ -299,28 +253,14 @@ void main() {
     ) async {
       final List<PoolParams> submitted = [];
       final List<Pool> opened = [];
-      await tester.pumpWidget(
-        bed.app(
-          Scaffold(
-            body: Builder(
-              builder: (context) => TextButton(
-                onPressed: () => showModalBottomSheet<void>(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (context) => PoolSearchSheet(
-                    params: const PoolParams(),
-                    onSubmit: submitted.add,
-                    onOpen: opened.add,
-                  ),
-                ),
-                child: const Text('open'),
-              ),
-            ),
-          ),
+      await bed.showSheet(
+        tester,
+        (context) => PoolSearchSheet(
+          params: const PoolParams(),
+          onSubmit: submitted.add,
+          onOpen: opened.add,
         ),
       );
-      await tester.tap(find.text('open'));
-      await settle(tester);
       return (submitted: submitted, opened: opened);
     }
 
@@ -328,7 +268,7 @@ void main() {
       await openSheet(tester);
 
       await tester.enterText(find.byType(TextField), 'river');
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(find.text('river story'), findsOneWidget);
       expect(find.text('river sketches'), findsOneWidget);
@@ -338,7 +278,7 @@ void main() {
     displayTest('a suggested pool opens it', (tester) async {
       final result = await openSheet(tester);
       await tester.enterText(find.byType(TextField), 'river');
-      await settle(tester);
+      await bed.settle(tester);
 
       await tester.tap(find.text('river sketches'));
 
@@ -351,12 +291,12 @@ void main() {
       final result = await openSheet(tester);
       await tester.enterText(find.byType(TextField), 'river');
       await tester.tap(find.byTooltip('Filters'));
-      await settle(tester);
+      await bed.settle(tester);
 
       await tester.tap(find.text('Collections'));
       await tester.pump();
       await tester.tap(find.byIcon(Icons.search));
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(result.submitted, [
         const PoolParams(name: 'river', category: PoolCategory.collection),
@@ -436,7 +376,7 @@ void main() {
         ),
       );
       await tester.enterText(find.byType(TextField), 'ref');
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(find.text('den archive'), findsNothing);
       expect(
@@ -457,7 +397,7 @@ void main() {
           ),
         ),
       );
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(find.text('lake notes'), findsOneWidget);
       expect(find.text('river story'), findsNothing);

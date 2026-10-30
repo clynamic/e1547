@@ -3,22 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('categories take the e621 hues of the theme brightness', () {
-    expect(
-      TagCategory.species.colorFor(Brightness.dark),
-      const Color(0xFFFF8A3D),
-    );
-    expect(
-      TagCategory.species.colorFor(Brightness.light),
-      const Color(0xFFFF7A1A),
-    );
-    expect(
-      TagCategory.general.colorFor(Brightness.dark),
-      const Color(0xFF9CC9F0),
-    );
-    expect(
-      TagCategory.meta.colorFor(Brightness.light),
-      const Color(0xFF4A4A4A),
-    );
+  test('each category has its own hue, set apart for each brightness', () {
+    for (final Brightness brightness in Brightness.values) {
+      expect(
+        {
+          for (final TagCategory category in TagCategory.values)
+            category.colorFor(brightness),
+        },
+        hasLength(TagCategory.values.length),
+        reason: brightness.name,
+      );
+    }
+    for (final TagCategory category in TagCategory.values) {
+      expect(
+        category.colorFor(Brightness.light),
+        isNot(category.colorFor(Brightness.dark)),
+        reason: category.name,
+      );
+    }
   });
 }

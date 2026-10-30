@@ -71,7 +71,7 @@ void main() {
       // the tree is torn down.
       await Future<void>.delayed(const Duration(milliseconds: 100));
     });
-    await settle(tester, animating: true);
+    await bed.settle(tester, animating: true);
   }
 
   Future<void> openFullscreen(WidgetTester tester) async {
@@ -349,7 +349,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
     });
-    await settle(tester, animating: true);
+    await bed.settle(tester, animating: true);
 
     expect(details(), [1021]);
   });
@@ -481,7 +481,7 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(seconds: 1));
       });
-      await settle(tester, animating: true);
+      await bed.settle(tester, animating: true);
 
       await tester.timedDrag(
         find.byType(VideoButton),

@@ -35,13 +35,11 @@ void main() {
       ),
     );
 
-    expect(find.text('Order'), findsOneWidget);
-    expect(find.text('Status'), findsOneWidget);
-    expect(find.text('Pools & sets'), findsOneWidget);
-
-    await tester.tap(find.text('Pools & sets'));
-
-    expect(picked, MetaKind.pools);
+    for (final MetaKind kind in MetaKind.values) {
+      await tester.ensureVisible(find.text(kind.label));
+      await tester.tap(find.text(kind.label));
+      expect(picked, kind);
+    }
   });
 
   testWidgets('a date preset sets the date and a second tap clears it', (

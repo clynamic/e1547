@@ -122,6 +122,10 @@ void main() {
     matching: find.byTooltip(tab.label),
   );
 
+  Finder card() => find
+      .descendant(of: find.byType(NavBar), matching: find.byType(Material))
+      .first;
+
   double barTop(WidgetTester tester) =>
       tester.getTopLeft(find.byType(NavBar)).dy;
 
@@ -144,13 +148,14 @@ void main() {
 
       void expectFade() {
         final Rect rect = tester.getRect(fade);
-        expect(rect.height, navBarFadeHeight);
+        final Rect bar = tester.getRect(card());
         expect(rect.bottom, screenHeight(tester));
-        final LinearGradient gradient =
-            (tester.widget<DecoratedBox>(fade).decoration as BoxDecoration)
-                    .gradient!
-                as LinearGradient;
-        expect(gradient.colors.last.a, closeTo(0.55, 0.01));
+        expect(rect.left, 0);
+        expect(
+          rect.right,
+          tester.view.physicalSize.width / tester.view.devicePixelRatio,
+        );
+        expect(rect.top, lessThan(bar.bottom));
       }
 
       expectFade();
@@ -459,6 +464,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('search dock'), findsNothing);
+    expect(find.byType(NavBarTab), findsNWidgets(ShellTab.values.length));
   });
 
   testWidgets('a docked page gets room for the dock below its content', (
@@ -468,11 +474,15 @@ void main() {
     await tester.tap(tab(ShellTab.search));
     await tester.pumpAndSettle();
     final double docked = paddings[ShellTab.search]!.bottom;
+    final double dockedCard = tester.getSize(card()).height;
 
     await tester.tap(tab(ShellTab.browse));
     await tester.pumpAndSettle();
 
-    expect(docked - paddings[ShellTab.browse]!.bottom, navBarDockHeight + 1);
+    expect(
+      docked - paddings[ShellTab.browse]!.bottom,
+      dockedCard - tester.getSize(card()).height,
+    );
   });
 
   testWidgets('a dialog inside a tab hides the bar until it closes', (

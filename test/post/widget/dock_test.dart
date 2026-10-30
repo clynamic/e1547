@@ -13,6 +13,7 @@ import 'package:provider/provider.dart';
 import '../../_support/bed.dart';
 import '../../_support/fake_e621.dart';
 import '../../_support/harness.dart';
+import '../../_support/pools.dart';
 import '../../_support/posts.dart';
 
 void main() {
@@ -77,30 +78,16 @@ void main() {
       ValueChanged<Pool>? onOpenPool,
     }) async {
       final List<String> submitted = [];
-      await tester.pumpWidget(
-        bed.app(
-          Scaffold(
-            body: Builder(
-              builder: (context) => TextButton(
-                onPressed: () => showModalBottomSheet<void>(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (context) => PostSearchSheet(
-                    query: 'riolu',
-                    posts: posts,
-                    onSubmit: submitted.add,
-                    onAllRecent: () {},
-                    onOpenPool: onOpenPool,
-                  ),
-                ),
-                child: const Text('open'),
-              ),
-            ),
-          ),
+      await bed.showSheet(
+        tester,
+        (context) => PostSearchSheet(
+          query: 'riolu',
+          posts: posts,
+          onSubmit: submitted.add,
+          onAllRecent: () {},
+          onOpenPool: onOpenPool,
         ),
       );
-      await tester.tap(find.text('open'));
-      await settle(tester);
       return submitted;
     }
 
@@ -119,7 +106,7 @@ void main() {
       final List<String> submitted = await openSheet(tester);
 
       await tester.tap(find.byIcon(Icons.search));
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(submitted, ['riolu']);
       expect(find.byType(PostSearchSheet), findsNothing);
@@ -132,7 +119,7 @@ void main() {
 
       await tester.enterText(find.byType(TextField), 'solo');
       await tester.testTextInput.receiveAction(TextInputAction.search);
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(submitted, ['riolu solo']);
     });
@@ -187,7 +174,7 @@ void main() {
       final List<String> submitted = await openSheet(tester);
 
       await tester.tap(find.text('lucario', findRichText: true));
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(submitted, ['lucario']);
     });
@@ -205,9 +192,9 @@ void main() {
       final List<String> submitted = await openSheet(tester);
 
       await tester.tap(find.text('Saved'));
-      await settle(tester);
+      await bed.settle(tester);
       await tester.tap(find.text('Saved pool'));
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(submitted, ['pool:30']);
     });
@@ -233,13 +220,13 @@ void main() {
       );
 
       await tester.tap(find.text('In results'));
-      await settle(tester);
+      await bed.settle(tester);
       await tester.tap(find.text('solo'));
-      await settle(tester);
+      await bed.settle(tester);
       await tester.longPress(find.text('aura'));
-      await settle(tester);
+      await bed.settle(tester);
       await tester.tap(find.byIcon(Icons.search));
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(submitted, ['riolu solo -aura']);
     });
@@ -253,7 +240,7 @@ void main() {
         await tester.enterText(find.byType(TextField), typed);
         await tester.pump(const Duration(milliseconds: 50));
       }
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(
         [
@@ -271,7 +258,7 @@ void main() {
       await openSheet(tester);
 
       await tester.enterText(find.byType(TextField), 'tag_3');
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(find.text('tag 37', findRichText: true), findsOneWidget);
       expect(find.text('Recent'), findsNothing);
@@ -281,11 +268,11 @@ void main() {
       final List<String> submitted = await openSheet(tester);
 
       await tester.enterText(find.byType(TextField), '-tag_3');
-      await settle(tester);
+      await bed.settle(tester);
       await tester.tap(find.text('-tag 37', findRichText: true));
-      await settle(tester);
+      await bed.settle(tester);
       await tester.tap(find.byIcon(Icons.search));
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(submitted, ['riolu -tag_37']);
     });
@@ -294,7 +281,7 @@ void main() {
       await openSheet(tester);
 
       await tester.enterText(find.byType(TextField), 'rating:');
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(find.text('Safe'), findsOneWidget);
       expect(find.text('Questionable'), findsOneWidget);
@@ -307,14 +294,14 @@ void main() {
       final List<String> submitted = await openSheet(tester);
 
       await tester.tap(find.widgetWithText(QueryChip, 'riolu'));
-      await settle(tester);
+      await bed.settle(tester);
       await tester.tap(find.text('Exclude'));
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(find.text('Include'), findsOneWidget);
 
       await tester.tap(find.byIcon(Icons.search));
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(submitted, ['-riolu']);
     });
@@ -323,11 +310,11 @@ void main() {
       final List<String> submitted = await openSheet(tester);
 
       await tester.tap(find.widgetWithText(QueryChip, 'riolu'));
-      await settle(tester);
+      await bed.settle(tester);
       await tester.tap(find.text('Remove'));
-      await settle(tester);
+      await bed.settle(tester);
       await tester.tap(find.byIcon(Icons.search));
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(submitted, ['']);
     });
@@ -338,7 +325,7 @@ void main() {
       final List<String> submitted = await openSheet(tester);
 
       await tester.enterText(find.byType(TextField), 'tag_3 ');
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(
         find.text('tag 3 has no posts. Did you mean one of these?'),
@@ -346,9 +333,9 @@ void main() {
       );
 
       await tester.tap(find.text('tag 37', findRichText: true));
-      await settle(tester);
+      await bed.settle(tester);
       await tester.tap(find.byIcon(Icons.search));
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(submitted, ['riolu tag_37']);
     });
@@ -361,7 +348,7 @@ void main() {
       expect(find.text('lucario', findRichText: true), findsOneWidget);
 
       await tester.tap(find.text('Filters'));
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(find.byType(MetaCatalog), findsOneWidget);
       expect(find.text('lucario', findRichText: true), findsNothing);
@@ -382,10 +369,10 @@ void main() {
     displayTest('a metatag chip opens its builder', (tester) async {
       await openSheet(tester);
       await tester.enterText(find.byType(TextField), 'order:score ');
-      await settle(tester);
+      await bed.settle(tester);
 
       await tester.tap(find.widgetWithText(QueryChip, 'by score'));
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(find.byType(OrderBuilder), findsOneWidget);
       expect(find.byType(QueryChipActions), findsNothing);
@@ -394,10 +381,10 @@ void main() {
     displayTest('focusing the field closes the filters', (tester) async {
       await openSheet(tester);
       await tester.tap(find.text('Filters'));
-      await settle(tester);
+      await bed.settle(tester);
 
       await tester.tap(find.byType(TextField));
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(find.byType(MetaPanel), findsNothing);
       expect(tester.testTextInput.isVisible, isTrue);
@@ -406,10 +393,10 @@ void main() {
     displayTest('a chip takes the colour of its tag category', (tester) async {
       await openSheet(tester);
       await tester.tap(find.text('In results'));
-      await settle(tester);
+      await bed.settle(tester);
 
       await tester.enterText(find.byType(TextField), 'tag_37 ');
-      await settle(tester);
+      await bed.settle(tester);
 
       final Container stripe = tester.widget<Container>(
         find.descendant(
@@ -469,7 +456,7 @@ void main() {
         ),
       );
       await tester.tap(find.text('open'));
-      await settle(tester);
+      await bed.settle(tester);
       return params;
     }
 
@@ -479,9 +466,9 @@ void main() {
       final PostParamsController params = await openFromPage(tester);
 
       await tester.enterText(find.byType(TextField), 'solo ');
-      await settle(tester);
+      await bed.settle(tester);
       await tester.tap(find.byIcon(Icons.search).last);
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(
         tester.widget<PostsPage>(find.byType(PostsPage).last).params?.tags,
@@ -494,7 +481,7 @@ void main() {
       await openFromPage(tester);
 
       await tester.tap(find.byIcon(Icons.search).last);
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(find.byType(PostsPage), findsNothing);
       expect(find.text('open'), findsOneWidget);
@@ -503,22 +490,8 @@ void main() {
     void addPools() => bed.fake.state.pools
       ..clear()
       ..addAll([
-        for (final (int index, String name) in [
-          'river_story',
-          'river_sketches',
-        ].indexed)
-          {
-            'id': 40 + index,
-            'name': name,
-            'created_at': '2026-09-01T12:00:00.000-04:00',
-            'updated_at': '2026-10-23T12:00:00.000-04:00',
-            'creator_id': 1,
-            'description': '',
-            'is_active': true,
-            'category': 'series',
-            'post_ids': [1, 2, 3],
-            'post_count': 3,
-          },
+        poolJson(40, 'river_story', posts: [1, 2, 3]),
+        poolJson(41, 'river_sketches', posts: [1, 2, 3]),
       ]);
 
     displayTest('a pool chip names its pool', (tester) async {
@@ -526,7 +499,7 @@ void main() {
       await openSheet(tester);
 
       await tester.enterText(find.byType(TextField), 'pool:41 ');
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(find.widgetWithText(QueryChip, 'river sketches'), findsOneWidget);
     });
@@ -538,29 +511,27 @@ void main() {
       final List<String> submitted = await openSheet(tester);
 
       await tester.enterText(find.byType(TextField), 'pool:sketch');
-      await settle(tester);
+      await bed.settle(tester);
       expect(find.text('river story'), findsNothing);
       await tester.tap(find.text('river sketches'));
-      await settle(tester);
+      await bed.settle(tester);
       await tester.tap(find.byIcon(Icons.search).last);
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(submitted, ['riolu pool:41']);
     });
 
-    displayTest('the pools builder picks a recently updated pool', (
-      tester,
-    ) async {
+    displayTest('the pools builder picks a pool from its list', (tester) async {
       addPools();
       final List<Pool> opened = [];
       await openSheet(tester, onOpenPool: opened.add);
       await tester.tap(find.text('Filters'));
-      await settle(tester);
+      await bed.settle(tester);
       await tester.tap(find.text('Pools & sets'));
-      await settle(tester);
+      await bed.settle(tester);
 
       await tester.tap(find.text('river story'));
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(find.widgetWithText(QueryChip, 'river story'), findsOneWidget);
       await tester.tap(find.text('Open the pool as pages'));
@@ -570,7 +541,7 @@ void main() {
     displayTest('the Filters button counts the filters in use', (tester) async {
       await openSheet(tester);
       await tester.enterText(find.byType(TextField), 'order:score rating:s ');
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(
         find.descendant(
@@ -584,31 +555,22 @@ void main() {
     displayTest('signed in, the sets builder picks one of your sets', (
       tester,
     ) async {
-      bed.fake.state.sets.add({
-        'id': 5,
-        'name': 'wallpapers',
-        'shortname': 'wallpapers',
-        'description': '',
-        'is_public': false,
-        'creator_id': 3044,
-        'post_ids': [1],
-        'post_count': 1,
-        'created_at': '2026-09-01T12:00:00.000-04:00',
-        'updated_at': '2026-10-23T12:00:00.000-04:00',
-      });
+      bed.fake.state.sets.add(
+        setJson(5, 'wallpapers', creator: 3044, public: false, count: 1),
+      );
       await tester.runAsync(() => bed.signIn(username: 'user_34'));
       final List<String> submitted = await openSheet(tester);
       await tester.tap(find.text('Filters'));
-      await settle(tester);
+      await bed.settle(tester);
       await tester.tap(find.text('Pools & sets'));
-      await settle(tester);
+      await bed.settle(tester);
 
       await tester.tap(find.text('Sets'));
-      await settle(tester);
+      await bed.settle(tester);
       await tester.tap(find.text('wallpapers'));
-      await settle(tester);
+      await bed.settle(tester);
       await tester.tap(find.byIcon(Icons.search).last);
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(submitted, ['riolu set:wallpapers']);
     });

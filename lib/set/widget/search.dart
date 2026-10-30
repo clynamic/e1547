@@ -66,6 +66,8 @@ class PostSetRow extends StatelessWidget {
   );
 }
 
+const double postSetCoverHeight = 170;
+
 class PostSetCard extends StatelessWidget {
   const PostSetCard({super.key, required this.set, required this.onTap});
 
@@ -85,7 +87,7 @@ class PostSetCard extends StatelessWidget {
           spacing: 6,
           children: [
             SizedBox(
-              height: 170,
+              height: postSetCoverHeight,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(4),
                 child: PostCover(
@@ -179,7 +181,7 @@ class SliverPostSetGrid extends StatelessWidget {
               onTap: () => openPostSet(context, item),
             ),
           ),
-          onLoading: const CoverCardSkeleton(coverHeight: 170),
+          onLoading: const CoverCardSkeleton(coverHeight: postSetCoverHeight),
           onEmpty: const Text('No sets'),
           onError: const Text('Failed to load sets'),
         ),

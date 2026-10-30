@@ -44,7 +44,7 @@ class FakeE621 {
     ..post('/forum_posts.json', _createReply)
     ..get('/forum_posts/<id|[0-9]+>.json', _showReply)
     ..patch('/forum_posts/<id|[0-9]+>.json', _updateReply)
-    ..get('/comments.json', (Request request) => _list(state.comments, request))
+    ..get('/comments.json', _listComments)
     ..post('/comments.json', _createComment)
     ..get(
       '/comments/<id|[0-9]+>.json',
@@ -140,6 +140,14 @@ class FakeE621 {
         query,
       ),
     );
+  }
+
+  Response _listComments(Request request) {
+    final bool oldest =
+        request.url.queryParameters['search[order]'] == 'id_asc';
+    final List<Map<String, Object?>> sorted = [...state.comments]
+      ..sort((a, b) => (a['id']! as int).compareTo(b['id']! as int));
+    return _list(oldest ? sorted : sorted.reversed.toList(), request);
   }
 
   Response _listUsers(Request request) {

@@ -1,6 +1,5 @@
 import 'package:e1547/follow/follow.dart';
 import 'package:e1547/post/post.dart';
-import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,7 +21,7 @@ void main() {
 
   Future<void> show(WidgetTester tester, String tags) async {
     await tester.pumpWidget(bed.app(PostsPage(params: PostParams(tags: tags))));
-    await settle(tester);
+    await bed.settle(tester);
   }
 
   Finder title() => find.descendant(
@@ -99,7 +98,7 @@ void main() {
       await show(tester, 'tag_1 tag_22');
 
       await tester.tap(find.byType(QueryChip).first);
-      await settle(tester);
+      await bed.settle(tester);
 
       expect(
         tester.widget<PostTagPanel>(find.byType(PostTagPanel)).term,
@@ -113,7 +112,12 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(tester.widget<SliverDim>(find.byType(SliverDim)).dimmed, isTrue);
+
+      await tester.tap(find.byType(PostTile).first, warnIfMissed: false);
+      await bed.settle(tester);
+
+      expect(find.byType(PostTagPanel), findsNothing);
+      expect(find.byType(PostDetailGallery), findsNothing);
     },
   );
 
@@ -122,10 +126,10 @@ void main() {
   ) async {
     await show(tester, 'tag_1 tag_22');
     await tester.tap(find.byType(QueryChip).first);
-    await settle(tester);
+    await bed.settle(tester);
 
     await tester.tap(find.text('Remove'));
-    await settle(tester);
+    await bed.settle(tester);
 
     expect(pages(tester), ['tag_1 tag_22', 'tag_22']);
   });
@@ -135,10 +139,10 @@ void main() {
   ) async {
     await show(tester, 'tag_1 tag_22');
     await tester.tap(find.byType(QueryChip).last);
-    await settle(tester);
+    await bed.settle(tester);
 
     await tester.tap(find.text('Exclude'));
-    await settle(tester);
+    await bed.settle(tester);
 
     expect(pages(tester), ['tag_1 tag_22', 'tag_1 -tag_22']);
   });
@@ -146,12 +150,12 @@ void main() {
   displayTest('tapping below the unfolded actions folds them', (tester) async {
     await show(tester, 'tag_1 tag_22');
     await tester.tap(find.byType(QueryChip).first);
-    await settle(tester);
+    await bed.settle(tester);
 
     await tester.tapAt(
       tester.getBottomLeft(find.byType(Scaffold).first) - const Offset(-20, 20),
     );
-    await settle(tester);
+    await bed.settle(tester);
 
     expect(find.byType(PostTagPanel), findsNothing);
     expect(pages(tester), ['tag_1 tag_22']);
@@ -160,10 +164,10 @@ void main() {
   displayTest('back folds the unfolded actions before leaving', (tester) async {
     await show(tester, 'tag_1 tag_22');
     await tester.tap(find.byType(QueryChip).first);
-    await settle(tester);
+    await bed.settle(tester);
 
     await tester.binding.handlePopRoute();
-    await settle(tester);
+    await bed.settle(tester);
 
     expect(find.byType(PostTagPanel), findsNothing);
     expect(pages(tester), ['tag_1 tag_22']);

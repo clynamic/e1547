@@ -198,7 +198,7 @@ void main() {
     expect(posts.map((e) => e.id), [id]);
   });
 
-  test('sends a vote the way the server expects', () async {
+  test('a replacing upvote posts a score of 1 that does not unvote', () async {
     final id = loadFixtureList('posts.json').first['id']! as int;
 
     await client.vote(id: id, upvote: true, replace: true);

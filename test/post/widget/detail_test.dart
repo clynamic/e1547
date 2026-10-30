@@ -10,22 +10,8 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../_support/bed.dart';
 import '../../_support/fixtures.dart';
 import '../../_support/harness.dart';
+import '../../_support/pools.dart';
 import '../../_support/posts.dart';
-
-Pool samplePool({
-  required int id,
-  String name = 'a_pool',
-  List<int> postIds = const [],
-}) => Pool(
-  id: id,
-  name: name,
-  createdAt: DateTime.utc(2020),
-  updatedAt: DateTime.utc(2020),
-  description: '',
-  postIds: postIds,
-  postCount: postIds.length,
-  active: true,
-);
 
 void main() {
   late TestBed bed;
@@ -54,7 +40,7 @@ void main() {
       );
       await Future<void>.delayed(const Duration(milliseconds: 100));
     });
-    await settle(tester, animating: true);
+    await bed.settle(tester, animating: true);
   }
 
   List<int> thumbnails(WidgetTester tester) => tester
@@ -212,7 +198,7 @@ void main() {
     );
 
     await tester.tap(find.textContaining('second artist'));
-    await settle(tester);
+    await bed.settle(tester);
 
     expect(
       tester.widget<PostsPage>(find.byType(PostsPage)).params?.tags,
@@ -285,7 +271,7 @@ void main() {
     }
   });
 
-  displayTest('tags group by category in the order of the site', (
+  displayTest('tags group by category with artists first and general last', (
     tester,
   ) async {
     await show(
@@ -387,9 +373,8 @@ void main() {
   displayTest('the comments line reads the newest comment its filter allows', (
     tester,
   ) async {
-    final List<Map<String, Object?>> comments = loadFixtureList(
-      'comments.json',
-    );
+    final List<Map<String, Object?>> comments = loadFixtureList('comments.json')
+      ..sort((a, b) => (b['id']! as int).compareTo(a['id']! as int));
     bed.traits.value = bed.traits.value.copyWith(
       denylist: ['user:${comments.first['creator_id']}'],
     );

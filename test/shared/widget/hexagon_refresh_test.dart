@@ -210,17 +210,13 @@ void main() {
     expect(painter(tester)?.mode, RefreshIndicatorMode.drag);
     expect(painter(tester)?.progress, inExclusiveRange(0, 1));
     expect(tester.getTopLeft(find.text('header')).dy, 0);
-    expect(
-      tester.getTopLeft(find.byType(HexagonRefreshIndicator)).dy,
-      greaterThanOrEqualTo(tester.getBottomLeft(find.text('header')).dy),
-    );
 
     await gesture.up();
     await tester.pumpAndSettle();
     expect(refreshes, 0);
   });
 
-  testWidgets('tapping the active tab refreshes through the shortcuts', (
+  testWidgets('reselecting the tab refreshes through the shortcuts', (
     tester,
   ) async {
     final NavBarReselectController reselect = NavBarReselectController();

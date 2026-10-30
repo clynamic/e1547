@@ -40,19 +40,40 @@ void main() {
         ),
       ),
     );
-    await settle(tester, animating: animating);
+    await bed.settle(tester, animating: animating);
   }
 
-  displayTest('a cover whose post has no image stays empty', (tester) async {
-    bed.client.posts.postCache.savePage([samplePost(id: 9)]);
-    await show(
-      tester,
-      const SizedBox.square(dimension: 64, child: PostCover(id: 9)),
-    );
+  displayTest(
+    'a cover shows the image of its post and stays empty without one',
+    (tester) async {
+      bed.client.posts.postCache.savePage([
+        samplePost(id: 8, file: 'http://example.invalid/8.jpg'),
+        samplePost(id: 9),
+      ]);
+      await show(
+        tester,
+        const Row(
+          children: [
+            SizedBox.square(dimension: 64, child: PostCover(id: 8)),
+            SizedBox.square(dimension: 64, child: PostCover(id: 9)),
+          ],
+        ),
+      );
 
-    expect(tester.takeException(), isNull);
-    expect(find.byType(PostImageWidget), findsNothing);
-  });
+      expect(tester.takeException(), isNull);
+      expect(
+        tester
+            .widgetList<PostCover>(
+              find.ancestor(
+                of: find.byType(PostImageWidget),
+                matching: find.byType(PostCover),
+              ),
+            )
+            .map((e) => e.id),
+        [8],
+      );
+    },
+  );
 
   Future<List<Rect>> showSkeleton(
     WidgetTester tester,
@@ -84,14 +105,43 @@ void main() {
         .toList();
   }
 
-  testWidgets('a square grid loads behind tiles of its exact size', (
+  testWidgets('a square grid loads behind tiles the size of its posts', (
     tester,
   ) async {
     final List<Rect> tiles = await showSkeleton(tester, GridQuilt.square);
+    animating = true;
+    addTearDown(() => animating = false);
+    await show(
+      tester,
+      TileLayout(
+        tileSize: 200,
+        child: CustomScrollView(
+          slivers: [
+            PostGridSliver(
+              state: PagingState<int, Post>(
+                pages: [
+                  [samplePost(), samplePost(id: 2)],
+                ],
+                keys: const [1],
+              ),
+              fetchNextPage: () {},
+            ),
+          ],
+        ),
+      ),
+    );
+    final Size post = tester.getSize(
+      find
+          .descendant(
+            of: find.byType(PostTile).first,
+            matching: find.byType(Material),
+          )
+          .first,
+    );
 
     expect(tiles, isNotEmpty);
     for (final Rect tile in tiles) {
-      expect(tile.size, const Size(192, 232));
+      expect(tile.size, post);
     }
   });
 
@@ -140,7 +190,7 @@ void main() {
 
     expect(find.text('No posts'), findsOneWidget);
     await tester.tap(find.text('Remove rating:s'));
-    await settle(tester, animating: animating);
+    await bed.settle(tester, animating: animating);
 
     expect(
       tester.widget<PostsPage>(find.byType(PostsPage).last).params?.tags,
@@ -318,7 +368,7 @@ void main() {
       const Offset(0, 500),
     );
     await tester.pump();
-    await settle(tester, animating: true);
+    await bed.settle(tester, animating: true);
   }
 
   displayTest('a refresh that ends after its page closed leaves quietly', (
@@ -332,7 +382,7 @@ void main() {
     );
     await tester.pump();
     await tester.pumpWidget(const SizedBox());
-    await settle(tester, animating: true);
+    await bed.settle(tester, animating: true);
 
     expect(tester.takeException(), isNull);
   });

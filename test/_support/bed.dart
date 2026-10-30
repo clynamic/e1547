@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:dio/dio.dart';
+
 import 'package:drift/native.dart';
 import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
@@ -26,6 +28,8 @@ class TestBed {
     required this.traits,
     required this.settings,
   });
+
+  int _inFlight = 0;
 
   final AnyRouteObserver routeObserver = AnyRouteObserver();
   final VideoService videos = fakeVideoService();
@@ -95,6 +99,37 @@ class TestBed {
         sqlite: sqlite,
       ),
     );
+    client.dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          _inFlight++;
+          handler.next(options);
+        },
+        onResponse: (response, handler) {
+          _inFlight--;
+          handler.next(response);
+        },
+        onError: (error, handler) {
+          _inFlight--;
+          handler.next(error);
+        },
+      ),
+    );
+  }
+
+  Future<void> settle(WidgetTester tester, {bool animating = false}) async {
+    await tester.runAsync(() async {
+      for (int round = 0; round < 100; round++) {
+        await tester.pump(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        if (round >= 5 && _inFlight == 0) break;
+      }
+    });
+    if (animating) {
+      await tester.pump(const Duration(milliseconds: 300));
+    } else {
+      await tester.pumpAndSettle();
+    }
   }
 
   Widget app(
@@ -118,24 +153,31 @@ class TestBed {
     ),
   );
 
+  Future<void> showSheet(WidgetTester tester, WidgetBuilder sheet) async {
+    await tester.pumpWidget(
+      app(
+        Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => showModalBottomSheet<void>(
+                context: context,
+                isScrollControlled: true,
+                builder: sheet,
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await settle(tester);
+  }
+
   Future<void> dispose() async {
     videos.dispose();
     traits.dispose();
     await fake.stop();
     await sqlite.close();
-  }
-}
-
-Future<void> settle(WidgetTester tester, {bool animating = false}) async {
-  await tester.runAsync(() async {
-    for (int i = 0; i < 6; i++) {
-      await tester.pump(const Duration(milliseconds: 50));
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-    }
-  });
-  if (animating) {
-    await tester.pump(const Duration(milliseconds: 300));
-  } else {
-    await tester.pumpAndSettle();
   }
 }

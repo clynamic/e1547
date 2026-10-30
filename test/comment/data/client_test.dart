@@ -21,9 +21,10 @@ void main() {
   tearDown(() => fake.stop());
 
   test('maps a recorded comment onto the model', () async {
-    final recorded = loadFixtureList('comments.json').first;
-
     final comment = (await client.page()).first;
+    final recorded = loadFixtureList(
+      'comments.json',
+    ).firstWhere((e) => e['id'] == comment.id);
 
     expect(comment.id, recorded['id']);
     expect(comment.body, recorded['body']);
