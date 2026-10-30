@@ -38,6 +38,8 @@ void main() {
   for (final (String tags, String expected) in [
     ('', 'All posts'),
     ('fav:me', 'Favorites'),
+    ('fav:Me', 'Favorites'),
+    ('fav:Tester', 'Favorites'),
     ('fav:tester', 'Favorites'),
     ('fav:tester tag_1', 'Search'),
     ('fav:someone', 'Search'),
@@ -167,20 +169,22 @@ void main() {
     expect(pages(tester), ['tag_1 tag_22']);
   });
 
-  displayTest('your own favorites list the posts you favorited', (
-    tester,
-  ) async {
-    final List<int> ids = loadFixtureList(
-      'posts.json',
-    ).map((e) => e['id']! as int).toList();
-    bed.fake.state.favorites.addAll([ids[0], ids[2]]);
-    bed.traits.value = bed.traits.value.copyWith(denylist: []);
+  for (final String tags in ['fav:me', 'fav:Me', 'fav:TESTER']) {
+    displayTest('"$tags" lists the posts you favorited', (tester) async {
+      final List<int> ids = loadFixtureList(
+        'posts.json',
+      ).map((e) => e['id']! as int).toList();
+      bed.fake.state.favorites.addAll([ids[0], ids[2]]);
+      bed.traits.value = bed.traits.value.copyWith(denylist: []);
 
-    await show(tester, 'fav:me');
+      await show(tester, tags);
 
-    expect(
-      tester.widgetList<PostTile>(find.byType(PostTile)).map((e) => e.post.id),
-      [ids[0], ids[2]],
-    );
-  });
+      expect(
+        tester
+            .widgetList<PostTile>(find.byType(PostTile))
+            .map((e) => e.post.id),
+        [ids[0], ids[2]],
+      );
+    });
+  }
 }
