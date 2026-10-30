@@ -17,7 +17,6 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:notified_preferences/notified_preferences.dart';
 import 'package:provider/provider.dart';
-import 'package:relative_time/relative_time.dart';
 
 import '../../_support/fake_e621.dart';
 import '../../_support/harness.dart';
@@ -142,11 +141,7 @@ void main() {
             ),
           ],
           child: MaterialApp(
-            localizationsDelegates: const [
-              DefaultMaterialLocalizations.delegate,
-              DefaultWidgetsLocalizations.delegate,
-              RelativeTimeLocalizations.delegate,
-            ],
+            localizationsDelegates: testLocalizations,
             home: Scaffold(
               body: Builder(
                 builder: (context) => TextButton(
@@ -510,11 +505,7 @@ void main() {
             ),
           ],
           child: MaterialApp(
-            localizationsDelegates: const [
-              DefaultMaterialLocalizations.delegate,
-              DefaultWidgetsLocalizations.delegate,
-              RelativeTimeLocalizations.delegate,
-            ],
+            localizationsDelegates: testLocalizations,
             home: FilterControllerProvider(
               create: (_) => PostFilter(client),
               child: ChangeNotifierProvider.value(

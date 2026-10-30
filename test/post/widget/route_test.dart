@@ -12,7 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:notified_preferences/notified_preferences.dart';
-import 'package:relative_time/relative_time.dart';
 
 import '../../_support/fake_e621.dart';
 import '../../_support/gestures.dart';
@@ -107,11 +106,7 @@ void main() {
           ],
           child: MaterialApp(
             theme: AppTheme.dark.data,
-            localizationsDelegates: const [
-              DefaultMaterialLocalizations.delegate,
-              DefaultWidgetsLocalizations.delegate,
-              RelativeTimeLocalizations.delegate,
-            ],
+            localizationsDelegates: testLocalizations,
             navigatorObservers: [routeObserver],
             home: FilterControllerProvider<PostFilter, Post>.value(
               value: filter,

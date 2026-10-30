@@ -1,9 +1,10 @@
 import 'dart:io';
 
 import 'package:e1547/settings/settings.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:relative_time/relative_time.dart';
 
 /// Establishes the globals that `AppInit` sets up in production, and restores
 /// real networking so tests can reach a local server.
@@ -28,6 +29,12 @@ Future<void> initializeTestApp() async {
     forumTopicId: null,
   );
 }
+
+const List<LocalizationsDelegate<Object>> testLocalizations = [
+  DefaultMaterialLocalizations.delegate,
+  DefaultWidgetsLocalizations.delegate,
+  RelativeTimeLocalizations.delegate,
+];
 
 /// Query builders schedule their cache entry for deletion as they unmount, and
 /// that timer has to run out while the test still owns the clock.
