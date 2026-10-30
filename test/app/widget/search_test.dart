@@ -181,7 +181,7 @@ void main() {
                 child: NavBarDockScope(docks: docks, child: const SearchPage()),
               ),
               ListenableBuilder(
-                listenable: docks,
+                listenable: Listenable.merge([docks, docks.content]),
                 builder: (context, child) => Material(
                   child: SizedBox(
                     height: navBarDockHeight,
