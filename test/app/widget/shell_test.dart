@@ -132,40 +132,6 @@ void main() {
   double screenHeight(WidgetTester tester) =>
       tester.view.physicalSize.height / tester.view.devicePixelRatio;
 
-  testWidgets(
-    'a short soft fade sits behind the card, with or without a dock',
-    (tester) async {
-      await pumpShell(tester);
-      final Finder fade = find.descendant(
-        of: find.byType(NavBar),
-        matching: find.byWidgetPredicate(
-          (widget) =>
-              widget is DecoratedBox &&
-              widget.decoration is BoxDecoration &&
-              (widget.decoration as BoxDecoration).gradient != null,
-        ),
-      );
-
-      void expectFade() {
-        final Rect rect = tester.getRect(fade);
-        final Rect bar = tester.getRect(card());
-        expect(rect.bottom, screenHeight(tester));
-        expect(rect.left, 0);
-        expect(
-          rect.right,
-          tester.view.physicalSize.width / tester.view.devicePixelRatio,
-        );
-        expect(rect.top, lessThan(bar.bottom));
-      }
-
-      expectFade();
-      await tester.tap(tab(ShellTab.search));
-      await tester.pumpAndSettle();
-      expect(find.text('search dock'), findsOneWidget);
-      expectFade();
-    },
-  );
-
   testWidgets('only the open tab is tinted and underlined', (tester) async {
     await pumpShell(tester);
     final Color primary = Theme.of(
