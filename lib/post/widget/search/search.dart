@@ -1,4 +1,4 @@
-export 'favs.dart';
+export 'favorites.dart';
 export 'header.dart';
 export 'list.dart';
 export 'page.dart';

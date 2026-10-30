@@ -1,35 +1,6 @@
-import 'package:e1547/post/post.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
 import 'package:flutter/material.dart';
-
-class TagCard extends StatelessWidget {
-  const TagCard({super.key, required this.tag, this.category});
-
-  final String tag;
-  final String? category;
-
-  @override
-  Widget build(BuildContext context) {
-    return ColoredCard(
-      color:
-          (category != null
-              ? TagCategory.byName(
-                  category!,
-                )?.colorFor(Theme.of(context).brightness)
-              : null) ??
-          Colors.grey,
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => PostsPage(params: PostParams(tags: tag)),
-        ),
-      ),
-      onLongPress: () => showTagSearchPrompt(context: context, tag: tag),
-      onSecondaryTap: () => showTagSearchPrompt(context: context, tag: tag),
-      child: Text(tagToTitle(tag), overflow: TextOverflow.ellipsis),
-    );
-  }
-}
 
 class TagCounterCard extends StatelessWidget {
   const TagCounterCard({

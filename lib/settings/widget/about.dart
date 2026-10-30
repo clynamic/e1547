@@ -432,8 +432,8 @@ class AboutDonations extends StatelessWidget {
   }
 }
 
-class DrawerUpdateIcon extends StatelessWidget {
-  const DrawerUpdateIcon({super.key});
+class AboutUpdateIcon extends StatelessWidget {
+  const AboutUpdateIcon({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -427,7 +427,7 @@ class SettingsPage extends StatelessWidget {
               const Divider(),
               ListTile(
                 title: const Text('About'),
-                leading: const DrawerUpdateIcon(),
+                leading: const AboutUpdateIcon(),
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(builder: (context) => const AboutPage()),
                 ),

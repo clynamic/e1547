@@ -28,7 +28,11 @@ class LibraryPage extends StatelessWidget {
             LimitedWidthLayout.of(context).padding,
           ),
           children: [
-            entry('Favorites', Icons.favorite, (context) => const FavPage()),
+            entry(
+              'Favorites',
+              Icons.favorite,
+              (context) => const FavoritesPage(),
+            ),
             entry(
               'Subscriptions',
               Icons.person_add,
