@@ -213,9 +213,10 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
 
   int? unknownIn(List<String> terms) {
     for (int i = terms.length - 1; i >= 0; i--) {
-      final String name = tagWithoutPrefix(terms[i]);
-      if (name.contains(':')) continue;
-      if (previews[name]?.postCount == 0) return i;
+      if (!tagPreviewNames([terms[i]]).contains(tagPreviewKey(terms[i]))) {
+        continue;
+      }
+      if (previews[tagPreviewKey(terms[i])]?.postCount == 0) return i;
     }
     return null;
   }
@@ -276,10 +277,7 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
       listenable: controller,
       builder: (context, child) => QueryBuilder(
         query: context.watch<Client>().tags.usePreview(
-          names: controller.terms
-              .map(tagWithoutPrefix)
-              .where((e) => !e.contains(':'))
-              .toList(),
+          names: tagPreviewNames(controller.terms),
         ),
         builder: (context, state) {
           for (final TagPreview preview in state.data ?? const <TagPreview>[]) {

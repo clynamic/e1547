@@ -201,7 +201,7 @@ class QueryField extends StatelessWidget {
                         in controller.terms.indexed)
                       QueryChip(
                         term: term,
-                        preview: previews[tagWithoutPrefix(term)],
+                        preview: previews[tagPreviewKey(term)],
                         selected: controller.selected == index,
                         onTap: () => onChipTap != null
                             ? onChipTap!(index)

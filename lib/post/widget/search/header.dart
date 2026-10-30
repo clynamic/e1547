@@ -25,22 +25,12 @@ class PostSearchHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Client client = context.watch<Client>();
     final PostParamsController params = context.watch<PostParamsController>();
     final PostFilter filter = context.watch<PostFilter>();
     final List<String> terms = postSearchTerms(params.value.tags);
-    return QueryBuilder(
-      query: client.tags.usePreview(
-        names: terms
-            .map(tagWithoutPrefix)
-            .where((e) => !e.contains(':'))
-            .toList(),
-      ),
-      builder: (context, state) {
-        final Map<String, TagPreview> previews = {
-          for (final TagPreview preview in state.data ?? const <TagPreview>[])
-            preview.name: preview,
-        };
+    return TagPreviewBuilder(
+      terms: terms,
+      builder: (context, previews) {
         return Padding(
           padding: EdgeInsets.fromLTRB(
             16,
@@ -64,7 +54,7 @@ class PostSearchHeader extends StatelessWidget {
                         term: term,
                         dense: true,
                         selected: index == selected,
-                        preview: previews[tagWithoutPrefix(term)],
+                        preview: previews.of(term),
                         onTap: () => onChip(index),
                       ),
                     if (filter.denying && filter.blockedCount > 0)
@@ -146,12 +136,10 @@ class PostTagPanel extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final String name = tagWithoutPrefix(term);
     final bool meta = name.contains(':');
-    return QueryBuilder(
-      query: context.watch<Client>().tags.usePreview(
-        names: meta ? const [] : [name],
-      ),
-      builder: (context, state) {
-        final TagPreview? preview = state.data?.firstOrNull;
+    return TagPreviewBuilder(
+      terms: [term],
+      builder: (context, previews) {
+        final TagPreview? preview = previews.of(term);
         final TagCategory? category = tagCategoryOf(preview?.category);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

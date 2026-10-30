@@ -1,6 +1,4 @@
-import 'package:e1547/client/client.dart';
 import 'package:e1547/post/post.dart';
-import 'package:e1547/query/query.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
@@ -201,17 +199,9 @@ class QueryChipRow extends StatelessWidget {
         ),
       );
     }
-    final List<String> names = terms
-        .map(tagWithoutPrefix)
-        .where((e) => !e.contains(':'))
-        .toList();
-    return QueryBuilder(
-      query: context.watch<Client>().tags.usePreview(names: names),
-      builder: (context, state) {
-        final Map<String, TagPreview> previews = {
-          for (final TagPreview preview in state.data ?? const <TagPreview>[])
-            preview.name: preview,
-        };
+    return TagPreviewBuilder(
+      terms: terms,
+      builder: (context, previews) {
         return ClipRect(
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -223,7 +213,7 @@ class QueryChipRow extends StatelessWidget {
                   QueryChip(
                     term: term,
                     dense: true,
-                    preview: previews[tagWithoutPrefix(term)],
+                    preview: previews.of(term),
                     selected: false,
                   ),
               ],
@@ -253,32 +243,21 @@ class QueryLine extends StatelessWidget {
         ),
       );
     }
-    Widget line(Map<String, TagPreview> previews) => ClipRect(
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const NeverScrollableScrollPhysics(),
-        child: Row(
-          spacing: 12,
-          children: [
-            for (final String token in tokens)
-              QueryToken(token, preview: previews[tagWithoutPrefix(token)]),
-          ],
+    return TagPreviewBuilder(
+      terms: tokens,
+      builder: (context, previews) => ClipRect(
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const NeverScrollableScrollPhysics(),
+          child: Row(
+            spacing: 12,
+            children: [
+              for (final String token in tokens)
+                QueryToken(token, preview: previews.of(token)),
+            ],
+          ),
         ),
       ),
-    );
-    final Client? client = context.watch<Client?>();
-    if (client == null) return line(const {});
-    return QueryBuilder(
-      query: client.tags.usePreview(
-        names: tokens
-            .map(tagWithoutPrefix)
-            .where((e) => !e.contains(':'))
-            .toList(),
-      ),
-      builder: (context, state) => line({
-        for (final TagPreview preview in state.data ?? const <TagPreview>[])
-          preview.name: preview,
-      }),
     );
   }
 }
