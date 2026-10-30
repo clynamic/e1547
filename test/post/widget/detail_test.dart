@@ -1,4 +1,3 @@
-
 import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/settings/settings.dart';
@@ -317,6 +316,31 @@ void main() {
     );
 
     expect(find.text('PNG · 2480 × 3508 · 2.4 MB'), findsOneWidget);
+  });
+
+  displayTest('More opens its menu above the tab navigator', (tester) async {
+    await show(
+      tester,
+      SizedBox(
+        height: 400,
+        child: Navigator(
+          onGenerateRoute: (_) => MaterialPageRoute(
+            builder: (context) => Align(
+              alignment: Alignment.bottomCenter,
+              child: PostToolbar(post: samplePost()),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byIcon(Icons.more_horiz));
+    await tester.pumpAndSettle();
+
+    final NavigatorState root = tester.state<NavigatorState>(
+      find.byType(Navigator).first,
+    );
+    expect(Navigator.of(tester.element(find.text('Edit'))), same(root));
   });
 
   displayTest('More offers edit, report, flag and browse', (tester) async {
