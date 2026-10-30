@@ -1,3 +1,4 @@
+import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
 import 'package:flutter/material.dart';
 
@@ -507,32 +508,15 @@ class _CountsBuilderState extends State<CountsBuilder> {
 
   Future<void> edit({required bool lower}) async {
     final bounds = this.bounds();
-    final TextEditingController text = TextEditingController(
-      text: '${(lower ? bounds.min : bounds.max) ?? ''}',
-    );
     final String? result = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(lower ? 'At least' : 'At most'),
-        content: TextField(
-          controller: text,
-          autofocus: true,
-          keyboardType: TextInputType.number,
-          onSubmitted: (value) => Navigator.of(context).pop(value),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(''),
-            child: const Text('No limit'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(text.text),
-            child: const Text('Set'),
-          ),
-        ],
+      builder: (context) => TextInputDialog(
+        title: lower ? 'At least' : 'At most',
+        initial: '${(lower ? bounds.min : bounds.max) ?? ''}',
+        keyboardType: TextInputType.number,
+        actions: const [('No limit', '')],
       ),
     );
-    text.dispose();
     if (result == null) return;
     final int? value = int.tryParse(result);
     if (lower) {
@@ -895,28 +879,14 @@ class PeopleBuilder extends StatelessWidget {
     );
 
     Future<void> someone() async {
-      final TextEditingController text = TextEditingController(
-        text: isMe ? '' : who ?? '',
-      );
       final String? name = await showDialog<String>(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Someone else'),
-          content: TextField(
-            controller: text,
-            autofocus: true,
-            decoration: const InputDecoration(labelText: 'Username'),
-            onSubmitted: (value) => Navigator.of(context).pop(value),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(text.text),
-              child: const Text('Set'),
-            ),
-          ],
+        builder: (context) => TextInputDialog(
+          title: 'Someone else',
+          initial: isMe ? '' : who ?? '',
+          label: 'Username',
         ),
       );
-      text.dispose();
       if (name == null) return;
       write(relation, name.trim().replaceAll(' ', '_'));
     }
