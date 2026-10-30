@@ -251,11 +251,13 @@ class QueryFieldInput extends StatelessWidget {
         text: controller.typed.isEmpty ? hint : controller.typed,
         style: style,
       ),
-      textDirection: TextDirection.ltr,
+      textDirection: Directionality.of(context),
       maxLines: 1,
     )..layout();
+    final double textWidth = painter.width;
+    painter.dispose();
     return SizedBox(
-      width: min(maxWidth, max(64, painter.width + 24)),
+      width: min(maxWidth, max(64, textWidth + 24)),
       height: 28,
       child: Stack(
         alignment: Alignment.centerLeft,
