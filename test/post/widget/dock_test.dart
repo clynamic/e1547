@@ -11,6 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
 import '../../_support/bed.dart';
+import '../../_support/fake_e621.dart';
 import '../../_support/harness.dart';
 import '../../_support/posts.dart';
 
@@ -241,6 +242,27 @@ void main() {
       await settle(tester);
 
       expect(submitted, ['riolu solo -aura']);
+    });
+
+    displayTest('typing asks for tag suggestions once it pauses', (
+      tester,
+    ) async {
+      await openSheet(tester);
+
+      for (final String typed in ['t', 'ta', 'tag', 'tag_', 'tag_3']) {
+        await tester.enterText(find.byType(TextField), typed);
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      await settle(tester);
+
+      expect(
+        [
+          for (final FakeRequest request in bed.fake.requests)
+            if (request.path == '/tags/autocomplete.json')
+              request.query['search[name_matches]'],
+        ],
+        ['tag_3'],
+      );
     });
 
     displayTest('typing shows matching tags in place of the tabs', (

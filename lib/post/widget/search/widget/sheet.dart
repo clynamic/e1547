@@ -229,7 +229,11 @@ class _PostSearchSheetState extends State<PostSearchSheet> {
       );
     }
     if (controller.typed.isNotEmpty) {
-      return PostSearchSuggestions(typed: controller.typed, onPick: append);
+      return Debounced(
+        value: controller.typed,
+        builder: (context, typed) =>
+            PostSearchSuggestions(typed: typed, onPick: append),
+      );
     }
     if (unknown != null) {
       final String term = controller.terms[unknown];
