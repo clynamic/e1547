@@ -1,6 +1,5 @@
 import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
-import 'package:e1547/comment/comment.dart';
 import 'package:e1547/flag/flag.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/shared/shared.dart';
@@ -24,13 +23,16 @@ List<PopupMenuItem<VoidCallback>> postMenuPostActions(
         title: 'Download',
         icon: Icons.file_download,
       ),
+    postBrowseAction(context, post),
+  ];
+}
+
+PopupMenuItem<VoidCallback> postBrowseAction(BuildContext context, Post post) =>
     PopupMenuTile(
       value: () async => launch(context.read<Client>().withHost(post.link)),
       title: 'Browse',
       icon: Icons.open_in_browser,
-    ),
-  ];
-}
+    );
 
 List<PopupMenuItem<VoidCallback>> postMenuUserActions(
   BuildContext context,
@@ -52,15 +54,6 @@ List<PopupMenuItem<VoidCallback>> postMenuUserActions(
           ),
         ),
         error: 'You must be logged in to edit posts!',
-      ),
-    ),
-    PopupMenuTile(
-      title: 'Comment',
-      icon: Icons.comment,
-      value: () => guardWithLogin(
-        context: context,
-        callback: () => writeComment(context: context, postId: post.id),
-        error: 'You must be logged in to comment!',
       ),
     ),
     PopupMenuTile(

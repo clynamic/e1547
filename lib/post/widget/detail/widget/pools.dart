@@ -1,4 +1,5 @@
-import 'package:collection/collection.dart';
+import 'dart:math';
+
 import 'package:e1547/client/client.dart';
 import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
@@ -7,8 +8,19 @@ import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
 import 'package:flutter/material.dart';
 
-class PoolDisplay extends StatelessWidget {
-  const PoolDisplay({super.key, required this.post});
+String poolPlaceWords(Pool pool, int postId) {
+  final int index = pool.postIds.indexOf(postId);
+  return [
+    poolKindWords(pool.category),
+    if (index >= 0)
+      'page ${index + 1} of ${pool.postIds.length}'
+    else
+      poolCountWords(pool),
+  ].join(' · ');
+}
+
+class PostPoolsSection extends StatelessWidget {
+  const PostPoolsSection({super.key, required this.post});
 
   final Post post;
 
@@ -16,80 +28,104 @@ class PoolDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     final List<int> pools = post.pools ?? const [];
     if (pools.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const RelationHeader(title: 'Pools'),
-        ...pools.map((id) => PoolRelationTile(id: id)),
-        const Divider(),
-      ],
+    return QueryBuilder(
+      query: context.watch<Client>().pools.useGet(id: pools.first),
+      builder: (context, state) => PostDetailSection(
+        section: PostSection.pools,
+        label: 'Pools',
+        count: pools.length,
+        summary: state.data == null
+            ? '#${pools.first}'
+            : '${tagToName(state.data!.name)} · '
+                  '${poolPlaceWords(state.data!, post.id)}',
+        child: Column(
+          spacing: 8,
+          children: [
+            for (final int id in pools) PostPoolEntry(post: post, id: id),
+          ],
+        ),
+      ),
     );
   }
 }
 
-/// Pool shown with its name and size, previewed by its first post.
-class PoolRelationTile extends StatelessWidget {
-  const PoolRelationTile({super.key, required this.id});
+class PostPoolEntry extends StatelessWidget {
+  const PostPoolEntry({super.key, required this.post, required this.id});
 
+  final Post post;
   final int id;
 
-  static const double previewSize = 56;
+  static const int strip = 5;
 
   @override
   Widget build(BuildContext context) {
     final Client client = context.watch<Client>();
-    void open() => Navigator.of(
+    final Color dim = Theme.of(
       context,
-    ).push(MaterialPageRoute(builder: (context) => PoolLoadingPage(id)));
-
+    ).colorScheme.onSurface.withValues(alpha: 0.55);
     return QueryBuilder(
       query: client.pools.useGet(id: id),
       builder: (context, state) {
         final Pool? pool = state.data;
-        final int? preview = pool?.postIds.firstOrNull;
-        return InkWell(
-          onTap: open,
-          child: Row(
-            children: [
-              if (preview != null)
-                PostRelationPreview(id: preview, size: previewSize, onTap: open)
-              else
-                RelationPreviewCard(
-                  size: previewSize,
-                  onTap: open,
-                  child: RelationPreviewIcon(
-                    icon: state.error != null
-                        ? Icons.warning_amber_outlined
-                        : null,
-                  ),
-                ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
+        final List<int> ids = pool?.postIds ?? const [];
+        final int index = max(ids.indexOf(post.id), 0);
+        final int start = max(0, min(index - strip ~/ 2, ids.length - strip));
+        final List<int> shown = ids.skip(start).take(strip).toList();
+        prefetchCovers(client, shown);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 8,
+          children: [
+            InkWell(
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => PoolLoadingPage(id)),
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48),
+                child: Row(
+                  spacing: 12,
                   children: [
-                    Text(
-                      pool == null ? '#$id' : tagToName(pool.name),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
-                    CrossFade(
-                      showChild: pool != null,
-                      child: pool == null
-                          ? const SizedBox.shrink()
-                          : Text(
-                              '${pool.postCount} ${pool.postCount == 1 ? 'post' : 'posts'}',
-                              style: TextStyle(color: dimTextColor(context)),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            pool == null ? '#$id' : tagToName(pool.name),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 15),
+                          ),
+                          if (pool != null)
+                            Text(
+                              poolPlaceWords(pool, post.id),
+                              style: TextStyle(fontSize: 12, color: dim),
                             ),
+                        ],
+                      ),
                     ),
+                    Icon(Icons.chevron_right, color: dim),
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_right),
-            ],
-          ),
+            ),
+            if (shown.isNotEmpty)
+              Row(
+                spacing: 4,
+                children: [
+                  for (int slot = 0; slot < strip; slot++)
+                    Expanded(
+                      child: slot < shown.length
+                          ? PostThumbnail(
+                              id: shown[slot],
+                              height: 72,
+                              current: shown[slot] == post.id,
+                            )
+                          : const SizedBox(),
+                    ),
+                ],
+              ),
+          ],
         );
       },
     );

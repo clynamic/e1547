@@ -66,6 +66,11 @@ class Settings extends NotifiedSettings {
     key: 'showPostInfo',
     initialValue: false,
   );
+  late final ValueNotifier<List<String>> collapsedPostSections =
+      createSetting<List<String>>(
+        key: 'collapsedPostSections',
+        initialValue: const [],
+      );
   late final ValueNotifier<bool> upvoteFavs = createSetting<bool>(
     key: 'upvoteFavs',
     initialValue: false,

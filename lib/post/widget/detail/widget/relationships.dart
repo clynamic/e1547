@@ -1,9 +1,8 @@
 import 'package:e1547/post/post.dart';
-import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
-class RelationshipDisplay extends StatelessWidget {
-  const RelationshipDisplay({super.key, required this.post});
+class PostFamilySection extends StatelessWidget {
+  const PostFamilySection({super.key, required this.post});
 
   final Post post;
 
@@ -14,31 +13,42 @@ class RelationshipDisplay extends StatelessWidget {
         ? post.relationships.children
         : const [];
     if (parentId == null && children.isEmpty) return const SizedBox.shrink();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (parentId != null) ...[
-          const RelationHeader(title: 'Parent'),
-          PostRelationTile(id: parentId),
-          const Divider(),
-        ],
-        if (children.isNotEmpty) ...[
-          RelationHeader(title: 'Children', count: children.length),
-          SizedBox(
-            height: postRelationPreviewSize,
-            child: ScrollEdgeFade(
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: children.length,
-                itemBuilder: (context, index) =>
-                    PostRelationPreview(id: children[index]),
+    final List<(int, String)> family = [
+      if (parentId != null) (parentId, 'Parent'),
+      for (final int child in children) (child, 'Child'),
+    ];
+    final Color dim = Theme.of(
+      context,
+    ).colorScheme.onSurface.withValues(alpha: 0.6);
+    return PostDetailSection(
+      section: PostSection.family,
+      label: 'Parent & children',
+      summary: [
+        if (parentId != null) 'Parent',
+        if (children.isNotEmpty)
+          '${children.length} ${children.length == 1 ? 'child' : 'children'}',
+      ].join(' · '),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 8,
+          children: [
+            for (final (int id, String label) in family)
+              SizedBox(
+                width: 88,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 4,
+                  children: [
+                    PostThumbnail(id: id, height: 88),
+                    Text(label, style: TextStyle(fontSize: 12, color: dim)),
+                  ],
+                ),
               ),
-            ),
-          ),
-          const Divider(),
-        ],
-      ],
+          ],
+        ),
+      ),
     );
   }
 }

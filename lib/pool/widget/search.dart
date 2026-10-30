@@ -14,11 +14,13 @@ String poolCountWords(Pool pool) => switch (pool.category) {
   PoolCategory.collection => '${pool.postCount} posts',
 };
 
+String poolKindWords(PoolCategory category) => switch (category) {
+  PoolCategory.series => 'Series',
+  PoolCategory.collection => 'Collection',
+};
+
 String poolSubtitle(Pool pool, {bool detailed = false}) => [
-  switch (pool.category) {
-    PoolCategory.series => 'Series',
-    PoolCategory.collection => 'Collection',
-  },
+  poolKindWords(pool.category),
   poolCountWords(pool),
   if (detailed && pool.category == PoolCategory.series)
     if (pool.active)

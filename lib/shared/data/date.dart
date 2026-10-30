@@ -14,6 +14,8 @@ abstract final class DateFormatting {
       DateFormat.yMd(Platform.localeName).add_jm().format(dateTime);
   static String date(DateTime date) =>
       DateFormat.yMd(Platform.localeName).format(date);
+  static String day(DateTime date) =>
+      DateFormat.yMMMd(Platform.localeName).format(date);
   static String time(DateTime time) =>
       DateFormat.jm(Platform.localeName).format(time);
 

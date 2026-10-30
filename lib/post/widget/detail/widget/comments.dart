@@ -5,100 +5,66 @@ import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
-class CommentDisplay extends StatelessWidget {
-  const CommentDisplay({super.key, required this.post});
+const int commentPreviewCount = 5;
+
+String commentPreviewText(String body) => body
+    .replaceAll(RegExp(r'\[quote\][\s\S]*?\[/quote\]'), '')
+    .replaceAll(RegExp(r'\s+'), ' ')
+    .trim();
+
+void openPostComments(BuildContext context, Post post) =>
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => PostCommentsPage(postId: post.id),
+      ),
+    );
+
+class PostCommentsLine extends StatelessWidget {
+  const PostCommentsLine({super.key, required this.post});
 
   final Post post;
 
   @override
   Widget build(BuildContext context) {
-    if (post.commentCount <= 0) return const SizedBox();
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => PostCommentsPage(postId: post.id),
-                  ),
-                ),
-                style: ButtonStyle(
-                  foregroundColor: WidgetStateProperty.all(
-                    Theme.of(context).textTheme.bodyMedium!.color,
-                  ),
-                  overlayColor: WidgetStateProperty.all(
-                    Theme.of(context).splashColor,
-                  ),
-                ),
-                child: Text(
-                  'COMMENTS'
-                  ' (${post.commentCount})',
-                ),
-              ),
-            ),
-          ],
-        ),
-        const Divider(),
-      ],
-    );
-  }
-}
-
-class SliverPostCommentSection extends StatelessWidget {
-  const SliverPostCommentSection({super.key, required this.postId});
-
-  final int postId;
-
-  @override
-  Widget build(BuildContext context) {
-    final client = context.watch<Client>();
-    return FilterControllerProvider(
+    if (post.commentCount <= 0) return const SizedBox.shrink();
+    final Client client = context.watch<Client>();
+    return FilterControllerProvider<CommentFilter, Comment>(
       create: (_) => CommentFilter(client),
       keys: (_) => [client],
-      child: ChangeNotifierProvider(
-        create: (_) => CommentParamsController(
-          CommentParams(
-            postId: postId,
-            groupBy: CommentGroupBy.comment,
-            order: CommentOrder.oldest,
-          ),
-        ),
-        builder: (context, _) => SliverMainAxisGroup(
-          slivers: [
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Comments',
-                              style: TextStyle(fontSize: 16),
-                            ),
-                          ),
-                          CommentListDropdown(),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                  ],
-                ),
-              ),
+      child: Builder(
+        builder: (context) {
+          final CommentFilter filter = context.watch<CommentFilter>();
+          return QueryBuilder(
+            query: client.comments.usePage(
+              query: {
+                ...CommentParams(
+                  postId: post.id,
+                  groupBy: CommentGroupBy.comment,
+                ).toQuery(),
+                'limit': '$commentPreviewCount',
+              },
             ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-              ).add(const EdgeInsets.only(bottom: 30)),
-              sliver: const SliverCommentList(),
-            ),
-          ],
-        ),
+            builder: (context, state) {
+              final Comment? comment = [
+                for (final int id in state.data?.pages.firstOrNull ?? const [])
+                  ?client.comments.commentCache.get(id),
+              ].where(filter.filter).firstOrNull;
+              return PostSectionLine(
+                label: 'Comments',
+                count: post.commentCount,
+                summary: comment == null
+                    ? ''
+                    : [
+                        comment.creatorName,
+                        commentPreviewText(comment.body),
+                        DateFormatting.age(comment.createdAt),
+                      ].join(' · '),
+                icon: Icons.chevron_right,
+                onTap: () => openPostComments(context, post),
+              );
+            },
+          );
+        },
       ),
     );
   }

@@ -17,6 +17,7 @@ export 'expandable.dart';
 export 'gallery.dart';
 export 'grouped.dart';
 export 'header.dart';
+export 'height_limit.dart';
 export 'hero.dart';
 export 'hexagon_refresh.dart';
 export 'image_load.dart';

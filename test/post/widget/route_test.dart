@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:notified_preferences/notified_preferences.dart';
+import 'package:relative_time/relative_time.dart';
 
 import '../../_support/fake_e621.dart';
 import '../../_support/gestures.dart';
@@ -76,6 +77,16 @@ void main() {
   /// Opens a post detail route from a tree layered like the app, where the
   /// client sits above the [Navigator] and the post list below it, so the route
   /// sees only what it was handed.
+  Future<void> settle(WidgetTester tester) async {
+    await tester.runAsync(() async {
+      for (int i = 0; i < 6; i++) {
+        await tester.pump();
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+      }
+    });
+    await tester.pump();
+  }
+
   Future<void> pushDetail(
     WidgetTester tester,
     PostFilter filter, {
@@ -96,6 +107,11 @@ void main() {
           ],
           child: MaterialApp(
             theme: AppTheme.dark.data,
+            localizationsDelegates: const [
+              DefaultMaterialLocalizations.delegate,
+              DefaultWidgetsLocalizations.delegate,
+              RelativeTimeLocalizations.delegate,
+            ],
             navigatorObservers: [routeObserver],
             home: FilterControllerProvider<PostFilter, Post>.value(
               value: filter,
@@ -132,7 +148,7 @@ void main() {
       // the tree is torn down.
       await Future<void>.delayed(const Duration(milliseconds: 100));
     });
-    await tester.pump();
+    await settle(tester);
   }
 
   Future<void> openFullscreen(WidgetTester tester) async {
@@ -151,7 +167,7 @@ void main() {
     final filter = PostFilter(client);
     addTearDown(filter.dispose);
 
-    await pushDetail(tester, filter);
+    await pushDetail(tester, filter, post: samplePost(id: 1000));
 
     final gallery = tester.element(find.byType(PostDetailGallery));
     expect(gallery.read<FilterController<Post>?>(), same(filter));
@@ -188,7 +204,7 @@ void main() {
 
   Future<void> openFirstRelation(WidgetTester tester) async {
     await tester.scrollUntilVisible(
-      find.byType(RelationshipDisplay),
+      find.byType(PostFamilySection),
       200,
       scrollable: find
           .descendant(
@@ -198,13 +214,13 @@ void main() {
           .first,
     );
     await Scrollable.ensureVisible(
-      tester.element(find.byType(PostRelationPreview).first),
+      tester.element(find.byType(PostThumbnail).first),
       alignment: 0.5,
     );
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
     await tester.runAsync(() async {
-      await tester.tap(find.byType(PostRelationPreview).first);
+      await tester.tap(find.byType(PostThumbnail).first);
       await tester.pump();
       await Future<void>.delayed(const Duration(milliseconds: 100));
     });
@@ -397,15 +413,20 @@ void main() {
     final TestGesture finger = await tester.startGesture(
       const Offset(700, 300),
     );
-    for (int step = 0; step < 60; step++) {
-      await finger.moveBy(const Offset(-10, 0));
-      await tester.pump(const Duration(milliseconds: 16));
-    }
+    await tester.runAsync(() async {
+      for (int step = 0; step < 60; step++) {
+        await finger.moveBy(const Offset(-10, 0));
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+    });
     expect(details(), [1000]);
 
-    await finger.up();
-    await tester.pump();
-    await tester.pump(const Duration(seconds: 1));
+    await tester.runAsync(() async {
+      await finger.up();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+    });
+    await settle(tester);
 
     expect(details(), [1021]);
   });
@@ -528,13 +549,16 @@ void main() {
 
       await pushDetail(tester, filter, post: samplePost(id: 1000));
       await openFullscreen(tester);
-      await tester.timedDrag(
-        find.byType(PostFullscreen),
-        const Offset(-500, 0),
-        const Duration(milliseconds: 500),
-      );
-      await tester.pump();
-      await tester.pump(const Duration(seconds: 1));
+      await tester.runAsync(() async {
+        await tester.timedDrag(
+          find.byType(PostFullscreen),
+          const Offset(-500, 0),
+          const Duration(milliseconds: 500),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 1));
+      });
+      await settle(tester);
 
       await tester.timedDrag(
         find.byType(VideoButton),

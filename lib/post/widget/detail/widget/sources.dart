@@ -4,44 +4,105 @@ import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-class SourceDisplay extends StatelessWidget {
-  const SourceDisplay({super.key, required this.post});
+bool isSourceFile(Uri uri) => RegExp(
+  r'\.(jpe?g|png|gif|webp|webm|mp4|swf)$',
+  caseSensitive: false,
+).hasMatch(uri.path);
+
+class PostSourcesSection extends StatelessWidget {
+  const PostSourcesSection({super.key, required this.post});
 
   final Post post;
 
   @override
   Widget build(BuildContext context) {
-    return HiddenWidget(
-      show: post.sources.isNotEmpty,
+    final List<String> links = post.sources
+        .where((e) => RegExp(r'^-?https?://\S+').hasMatch(e))
+        .toList();
+    if (links.isEmpty) return const SizedBox.shrink();
+    final Map<String, List<String>> hosts = {};
+    for (final String link in links) {
+      final String host =
+          Uri.tryParse(link.replaceFirst(RegExp('^-'), ''))?.host ?? link;
+      hosts
+          .putIfAbsent(host.replaceFirst(RegExp(r'^www\.'), ''), () => [])
+          .add(link);
+    }
+    return PostDetailSection(
+      section: PostSection.sources,
+      label: 'Sources',
+      count: links.length,
+      summary: hosts.keys.join(' · '),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-            child: Text('Sources', style: TextStyle(fontSize: 16)),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-            child: post.sources.join('\n').trim().isNotEmpty
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: post.sources
-                        .map((e) => SourceCard(url: e))
-                        .toList(),
-                  )
-                : Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Text(
-                      'no sources',
-                      style: TextStyle(
-                        color: dimTextColor(context),
-                        fontStyle: FontStyle.italic,
+        children: [for (final String link in links) PostSourceRow(link: link)],
+      ),
+    );
+  }
+}
+
+class PostSourceRow extends StatelessWidget {
+  const PostSourceRow({super.key, required this.link});
+
+  final String link;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool enabled = !link.startsWith('-');
+    final String url = enabled ? link : link.substring(1);
+    final Uri? uri = Uri.tryParse(url);
+    final Color onSurface = Theme.of(context).colorScheme.onSurface;
+    final FaIconData? icon = getHostIcon(url);
+    return InkWell(
+      onTap: enabled ? () => launch(url) : null,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 48),
+        child: Row(
+          spacing: 12,
+          children: [
+            SizedBox.square(
+              dimension: 20,
+              child: Center(
+                child: icon != null
+                    ? FaIcon(
+                        icon,
+                        size: 16,
+                        color: onSurface.withValues(alpha: 0.7),
+                      )
+                    : Icon(
+                        Icons.link,
+                        size: 16,
+                        color: onSurface.withValues(alpha: 0.7),
                       ),
+              ),
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    uri != null && isSourceFile(uri) ? 'Original file' : 'Post',
+                    style: enabled
+                        ? null
+                        : TextStyle(
+                            color: onSurface.withValues(alpha: 0.5),
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                  ),
+                  Text(
+                    linkToDisplay(url),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: onSurface.withValues(alpha: 0.5),
                     ),
                   ),
-          ),
-          const Divider(),
-        ],
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

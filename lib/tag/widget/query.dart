@@ -292,11 +292,13 @@ class QueryChip extends StatelessWidget {
     required this.selected,
     this.onTap,
     this.preview,
+    this.category,
     this.dense = false,
   });
 
   final String term;
   final TagPreview? preview;
+  final TagCategory? category;
   final bool selected;
   final VoidCallback? onTap;
   final bool dense;
@@ -344,7 +346,9 @@ class QueryChip extends StatelessWidget {
     );
     final Color stripe = meta || unknown
         ? Colors.grey
-        : tagCategoryOf(preview?.category)?.colorFor(theme.brightness) ??
+        : (tagCategoryOf(preview?.category) ?? category)?.colorFor(
+                theme.brightness,
+              ) ??
               theme.colorScheme.onSurface.withValues(alpha: 0.38);
     return Material(
       color: selected

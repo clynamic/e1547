@@ -2,46 +2,81 @@ import 'package:e1547/post/post.dart';
 import 'package:e1547/tag/tag.dart';
 import 'package:flutter/material.dart';
 
-class TagDisplay extends StatelessWidget {
-  const TagDisplay({super.key, required this.post});
+const List<TagCategory> postTagOrder = [
+  TagCategory.artist,
+  TagCategory.contributor,
+  TagCategory.copyright,
+  TagCategory.character,
+  TagCategory.species,
+  TagCategory.general,
+  TagCategory.meta,
+  TagCategory.lore,
+  TagCategory.invalid,
+];
+
+class PostTagsSection extends StatelessWidget {
+  const PostTagsSection({super.key, required this.post});
 
   final Post post;
 
   @override
   Widget build(BuildContext context) {
-    Widget tagCategory(String category) {
-      return Wrap(
-        children: [
-          ...post.tags[category]!.map(
-            (tag) => TagCard(tag: tag, category: category),
-          ),
-        ],
-      );
-    }
-
-    Widget categoryTile(String category) {
-      return Column(
+    final List<(TagCategory, List<String>)> groups = [
+      for (final TagCategory category in postTagOrder)
+        if (post.tags[category.name] case final tags? when tags.isNotEmpty)
+          (category, tags),
+    ];
+    if (groups.isEmpty) return const SizedBox.shrink();
+    return PostDetailSection(
+      section: PostSection.tags,
+      label: 'Tags',
+      count: groups.fold<int>(0, (sum, group) => sum + group.$2.length),
+      summary: groups.take(3).map((e) => tagToName(e.$2.first)).join(' · '),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 14,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-            child: Text(
-              '${category[0].toUpperCase()}${category.substring(1)}',
-              style: const TextStyle(fontSize: 16),
+          for (final (TagCategory category, List<String> tags) in groups)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 6,
+              children: [
+                PostSectionTitle(label: category.name, count: tags.length),
+                Wrap(
+                  spacing: 4,
+                  runSpacing: 4,
+                  children: [
+                    for (final String tag in tags)
+                      PostTagChip(tag: tag, category: category),
+                  ],
+                ),
+              ],
             ),
-          ),
-          Row(children: [Expanded(child: tagCategory(category))]),
-          const Divider(),
         ],
-      );
-    }
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: post.tags.keys
-          .where((category) => post.tags[category]?.isNotEmpty ?? false)
-          .map((category) => categoryTile(category))
-          .toList(),
+      ),
     );
   }
+}
+
+class PostTagChip extends StatelessWidget {
+  const PostTagChip({super.key, required this.tag, required this.category});
+
+  final String tag;
+  final TagCategory category;
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onLongPress: () => showTagSearchPrompt(context: context, tag: tag),
+    onSecondaryTap: () => showTagSearchPrompt(context: context, tag: tag),
+    child: QueryChip(
+      term: tag,
+      category: category,
+      selected: false,
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => PostsPage(params: PostParams(tags: tag)),
+        ),
+      ),
+    ),
+  );
 }

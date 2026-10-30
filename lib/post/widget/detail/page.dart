@@ -1,8 +1,6 @@
 import 'dart:math';
 
-import 'package:e1547/client/client.dart';
 import 'package:e1547/post/post.dart';
-import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
@@ -42,34 +40,49 @@ class PostDetail extends StatelessWidget {
     ),
   );
 
-  Widget upperBody(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 20),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ArtistDisplay(post: post),
-        DeletionDisplay(post: post),
-        LikeDisplay(post: post),
-        DescriptionDisplay(post: post),
-      ],
+  Widget grip(BuildContext context) => IgnorePointer(
+    child: Center(
+      child: Container(
+        width: 32,
+        height: 4,
+        margin: const EdgeInsets.only(top: 10),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.7),
+          borderRadius: BorderRadius.circular(2),
+          boxShadow: const [BoxShadow(color: Color(0x99000000), blurRadius: 4)],
+        ),
+      ),
     ),
   );
 
-  Widget middleBody(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 20),
-    child: Column(children: [CommentDisplay(post: post)]),
-  );
-
-  Widget lowerBody(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 20),
+  Widget body(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
     child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        RelationshipDisplay(post: post),
-        PoolDisplay(post: post),
-        DenylistTagDisplay(post: post),
-        TagDisplay(post: post),
-        FileDisplay(post: post),
-        SourceDisplay(post: post),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: 20,
+            children: [
+              PostDetailHeader(post: post),
+              if (post.description.trim().isNotEmpty)
+                PostDescription(post: post),
+              if (post.isDeleted) DeletionDisplay(post: post),
+              if (context.watch<PostFilter?>()?.entriesFor(post).isNotEmpty ??
+                  false)
+                DenylistTagDisplay(post: post),
+            ],
+          ),
+        ),
+        PostPoolsSection(post: post),
+        PostFamilySection(post: post),
+        PostTagsSection(post: post),
+        PostCommentsLine(post: post),
+        PostArtistSection(post: post),
+        PostSourcesSection(post: post),
+        PostDetailsSection(post: post),
       ],
     ),
   );
@@ -77,107 +90,90 @@ class PostDetail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return NavBarCovered(
-      child: PostVideoRoute(
-        post: post,
-        child: PostHistoryConnector(
-          post: post,
-          child: ScrollToDismiss(
-            child: Scaffold(
-              backgroundColor: Colors.transparent,
-              extendBodyBehindAppBar: true,
-              appBar: PostDetailAppBar(post: post),
-              floatingActionButtonLocation: Handedness.of(
-                context,
-              ).floatingActionButtonLocation,
-              floatingActionButton: context.read<Client>().hasLogin
-                  ? DismissFade(child: PostDetailFab(post: post))
-                  : null,
-              body: MediaQuery.removeViewInsets(
-                context: context,
-                removeTop: true,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    DismissFade(
-                      child: ColoredBox(
-                        color: Theme.of(context).scaffoldBackgroundColor,
-                      ),
-                    ),
-                    Builder(
-                      builder: (context) {
-                        final size = MediaQuery.sizeOf(context);
-                        if (size.width < 1000) {
-                          return ListView(
-                            primary: true,
-                            padding: EdgeInsets.only(
-                              top: MediaQuery.of(context).padding.top,
-                              bottom: kBottomNavigationBarHeight + 24,
+      child: Builder(
+        builder: (context) {
+          final double bottom = MediaQuery.paddingOf(context).bottom;
+          return PostVideoRoute(
+            post: post,
+            child: PostHistoryConnector(
+              post: post,
+              child: ScrollToDismiss(
+                child: Scaffold(
+                  backgroundColor: Colors.transparent,
+                  body: MediaQuery.removeViewInsets(
+                    context: context,
+                    removeTop: true,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        DismissFade(
+                          child: ColoredBox(
+                            color: Theme.of(context).scaffoldBackgroundColor,
+                          ),
+                        ),
+                        LimitedWidthLayout(
+                          child: Builder(
+                            builder: (context) => ListView(
+                              primary: true,
+                              padding: EdgeInsets.only(
+                                top: MediaQuery.paddingOf(context).top,
+                                bottom: postToolbarClearance + bottom,
+                              ),
+                              children: [
+                                Stack(
+                                  children: [
+                                    image(context, MediaQuery.sizeOf(context)),
+                                    Positioned(
+                                      top: 0,
+                                      left: 0,
+                                      right: 0,
+                                      child: DismissFade(child: grip(context)),
+                                    ),
+                                  ],
+                                ),
+                                DismissFade(child: body(context)),
+                              ],
                             ),
-                            children: [
-                              image(context, size),
-                              DismissFade(child: upperBody(context)),
-                              DismissFade(child: middleBody(context)),
-                              DismissFade(child: lowerBody(context)),
-                            ],
-                          );
-                        } else {
-                          double sideBarWidth;
-                          if (size.width > 1400) {
-                            sideBarWidth = 404;
-                          } else {
-                            sideBarWidth = 304;
-                          }
-                          return CustomScrollView(
-                            primary: true,
-                            slivers: [
-                              SliverCrossAxisGroup(
-                                slivers: [
-                                  SliverMainAxisGroup(
-                                    slivers: [
-                                      SliverToBoxAdapter(
-                                        child: Column(
-                                          children: [
-                                            image(context, size),
-                                            DismissFade(
-                                              child: upperBody(context),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      DismissSliverFade(
-                                        sliver: SliverPostCommentSection(
-                                          postId: post.id,
-                                        ),
-                                      ),
+                          ),
+                        ),
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          height: postToolbarFadeHeight + bottom,
+                          child: IgnorePointer(
+                            child: DismissFade(
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Theme.of(context).scaffoldBackgroundColor
+                                          .withValues(alpha: 0),
+                                      Theme.of(context).scaffoldBackgroundColor
+                                          .withValues(alpha: 0.55),
                                     ],
                                   ),
-                                  SliverConstrainedCrossAxis(
-                                    maxExtent: sideBarWidth,
-                                    sliver: SliverToBoxAdapter(
-                                      child: DismissFade(
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            const SizedBox(height: 56),
-                                            lowerBody(context),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
-                            ],
-                          );
-                        }
-                      },
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          child: DismissFade(child: PostToolbar(post: post)),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

@@ -5,7 +5,6 @@ import 'package:e1547/markup/markup.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
-import 'package:e1547/tag/tag.dart';
 import 'package:flutter/material.dart';
 
 class PostImageTile extends StatelessWidget {
@@ -299,7 +298,6 @@ class PostFeedTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final Color onSurface = theme.colorScheme.onSurface;
-    final List<String> artists = filterArtists(post.tags['artist'] ?? const []);
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Column(
@@ -326,34 +324,15 @@ class PostFeedTile extends StatelessWidget {
                     child: Row(
                       spacing: 10,
                       children: [
-                        if (artists.isNotEmpty)
-                          Flexible(
-                            child: TagGesture(
-                              tag: artists.first,
-                              child: Container(
-                                padding: const EdgeInsets.only(left: 6),
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    left: BorderSide(
-                                      color: TagCategory.artist.colorFor(
-                                        theme.brightness,
-                                      ),
-                                      width: 2,
-                                    ),
-                                  ),
-                                ),
-                                child: Text(
-                                  artists.map(tagToName).join(', '),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    height: 18 / 15,
-                                  ),
-                                ),
-                              ),
+                        Flexible(
+                          child: PostArtistNames(
+                            post: post,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              height: 18 / 15,
                             ),
                           ),
+                        ),
                         Text(
                           DateFormatting.age(post.createdAt),
                           style: TextStyle(
