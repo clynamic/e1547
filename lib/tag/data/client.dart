@@ -7,6 +7,9 @@ class TagClient {
 
   final Dio dio;
 
+  Set<String> _batch = {};
+  Future<List<TagPreview>>? _batched;
+
   // Technically missing get()
   Future<List<Tag>> page({
     int? page,
@@ -39,6 +42,16 @@ class TagClient {
             )
             .toList(),
       );
+
+  Future<List<TagPreview>> previewBatched(Iterable<String> names) {
+    _batch.addAll(names);
+    return _batched ??= Future(() {
+      final String tags = _batch.join(' ');
+      _batch = {};
+      _batched = null;
+      return preview(tags: tags);
+    });
+  }
 
   Future<List<Tag>> autocomplete({
     String? search,

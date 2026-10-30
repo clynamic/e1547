@@ -9,12 +9,30 @@ extension TagQuerying on TagClient {
 
   CachedQuery get queryCache => dio.queryCache!;
 
+  QueryBridge<TagPreview, String> get previewCache => queryCache.bridge([
+    ...queryKey,
+    'preview',
+  ], getId: (preview) => preview.name);
+
   Query<List<TagPreview>> usePreview({required List<String> names}) => Query(
     cache: queryCache,
-    key: [...queryKey, 'preview', names.join(' ')],
-    queryFn: () => names.isEmpty
-        ? Future.value(const <TagPreview>[])
-        : preview(tags: names.join(' ')),
+    key: [...queryKey, 'previews', names.join(' ')],
+    queryFn: () async {
+      final List<String> wanted = {
+        for (final String name in names) name.toLowerCase(),
+      }.toList();
+      final List<String> missing = [
+        for (final String name in wanted)
+          if (previewCache.get(name) == null) name,
+      ];
+      if (missing.isNotEmpty) {
+        previewCache.savePage(await previewBatched(missing));
+      }
+      return [
+        for (final String name in wanted)
+          if (previewCache.get(name) case final TagPreview preview) preview,
+      ];
+    },
   );
 
   Query<List<Tag>> useAutocomplete({required String search}) => Query(
