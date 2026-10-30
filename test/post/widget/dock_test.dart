@@ -197,19 +197,19 @@ void main() {
     ) async {
       await tester.runAsync(
         () => bed.client.follows.create(
-          tags: 'pool:21837',
+          tags: 'pool:30',
           type: FollowType.bookmark,
-          title: 'Duncan and Eddie',
+          title: 'Saved pool',
         ),
       );
       final List<String> submitted = await openSheet(tester);
 
       await tester.tap(find.text('Saved'));
       await settle(tester);
-      await tester.tap(find.text('Duncan and Eddie'));
+      await tester.tap(find.text('Saved pool'));
       await settle(tester);
 
-      expect(submitted, ['pool:21837']);
+      expect(submitted, ['pool:30']);
     });
 
     displayTest('In results adds a tapped tag and excludes a held one', (

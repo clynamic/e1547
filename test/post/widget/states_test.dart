@@ -16,7 +16,7 @@ void main() {
 
   setUpAll(initializeTestApp);
 
-  setUp(() async => bed = await TestBed.start(denylist: ['spider', 'gore']));
+  setUp(() async => bed = await TestBed.start(denylist: ['gore', 'spider']));
 
   tearDown(() => bed.dispose());
 

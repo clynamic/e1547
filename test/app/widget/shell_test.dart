@@ -161,31 +161,26 @@ void main() {
     },
   );
 
-  testWidgets('the open tab has a larger icon over a short line', (
-    tester,
-  ) async {
+  testWidgets('only the open tab is tinted and underlined', (tester) async {
     await pumpShell(tester);
+    final Color primary = Theme.of(
+      tester.element(find.byType(NavBar)),
+    ).colorScheme.primary;
 
-    final Finder open = find.descendant(
-      of: find.byType(NavBar),
-      matching: find.byWidgetPredicate(
-        (widget) => widget is NavBarTab && widget.chosen,
-      ),
-    );
-    expect(
-      tester.getSize(find.descendant(of: open, matching: find.byType(Icon))),
-      const Size.square(26),
-    );
-    final Finder line = find.descendant(
-      of: open,
-      matching: find.byType(Container),
-    );
-    expect(tester.getSize(line), const Size(20, 3));
-    expect(
-      tester.getRect(find.byType(NavBarTab).first).bottom -
-          tester.getRect(line).bottom,
-      4,
-    );
+    for (final NavBarTab tab in tester.widgetList<NavBarTab>(
+      find.byType(NavBarTab),
+    )) {
+      final Finder self = find.byWidget(tab);
+      final Icon icon = tester.widget<Icon>(
+        find.descendant(of: self, matching: find.byType(Icon)),
+      );
+      final Finder line = find.descendant(
+        of: self,
+        matching: find.byType(Container),
+      );
+      expect(icon.color == primary, tab.chosen, reason: tab.tab.label);
+      expect(line.evaluate().isNotEmpty, tab.chosen, reason: tab.tab.label);
+    }
   });
 
   testWidgets('a full dock takes the whole card and stays while scrolling', (
