@@ -46,7 +46,7 @@ void main() {
     expect(find.text('2 of 3 favorited'), findsOneWidget);
     expect(
       tester.widget<Icon>(find.byIcon(Icons.favorite_border)).color,
-      Colors.pinkAccent,
+      isNull,
     );
   });
 
@@ -57,7 +57,10 @@ void main() {
 
     expect(find.text('2 posts'), findsOneWidget);
     expect(find.text('All favorited'), findsOneWidget);
-    expect(find.byIcon(Icons.favorite), findsOneWidget);
+    expect(
+      tester.widget<Icon>(find.byIcon(Icons.favorite)).color,
+      Colors.pinkAccent,
+    );
   });
 
   testWidgets('a selection without favorites names only its size', (

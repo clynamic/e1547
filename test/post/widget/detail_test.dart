@@ -495,6 +495,32 @@ void main() {
     );
   });
 
+  displayTest('the favorite button is pink only for a favorite', (
+    tester,
+  ) async {
+    for (final (bool favorited, IconData icon, Color? color) in [
+      (true, Icons.favorite, Colors.pinkAccent),
+      (false, Icons.favorite_border, null),
+    ]) {
+      await show(
+        tester,
+        PostToolbar(
+          key: ValueKey(favorited),
+          post: samplePost(isFavorited: favorited),
+        ),
+      );
+
+      final Icon heart = tester.widget<Icon>(
+        find.descendant(
+          of: find.byType(FavoriteButton),
+          matching: find.byType(Icon),
+        ),
+      );
+      expect(heart.icon, icon);
+      expect(heart.color == Colors.pinkAccent, color == Colors.pinkAccent);
+    }
+  });
+
   displayTest('the favorite button is at the edge of the holding hand', (
     tester,
   ) async {

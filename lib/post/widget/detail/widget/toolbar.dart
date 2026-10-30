@@ -82,12 +82,7 @@ class PostToolbar extends StatelessWidget {
             decoration: raised,
             child: SizedBox.square(
               dimension: 56,
-              child: Center(
-                child: IconTheme.merge(
-                  data: const IconThemeData(color: Colors.pinkAccent),
-                  child: FavoriteButton(post: post, size: 24),
-                ),
-              ),
+              child: Center(child: FavoriteButton(post: post, size: 24)),
             ),
           ),
         ),

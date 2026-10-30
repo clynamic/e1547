@@ -375,7 +375,7 @@ class PostFeedTile extends StatelessWidget {
                     data: IconThemeData(
                       color: onSurface.withValues(alpha: 0.75),
                     ),
-                    child: FavoriteButton(post: post, size: 22, outlined: true),
+                    child: FavoriteButton(post: post, size: 22),
                   ),
                 ],
               ),

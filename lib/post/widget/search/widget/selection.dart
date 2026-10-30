@@ -127,7 +127,7 @@ class PostSelectionBar extends StatelessWidget {
                 postFavoritingNotification(context, Set.of(posts), all),
             icon: Icon(
               all ? Icons.favorite : Icons.favorite_border,
-              color: favorited > 0 ? Colors.pinkAccent : null,
+              color: all ? Colors.pinkAccent : null,
             ),
           ),
         ],

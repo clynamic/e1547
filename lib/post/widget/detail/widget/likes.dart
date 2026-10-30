@@ -7,16 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:like_button/like_button.dart';
 
 class FavoriteButton extends StatelessWidget {
-  const FavoriteButton({
-    super.key,
-    required this.post,
-    this.size = 30,
-    this.outlined = false,
-  });
+  const FavoriteButton({super.key, required this.post, this.size = 30});
 
   final Post post;
   final double size;
-  final bool outlined;
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +34,7 @@ class FavoriteButton extends StatelessWidget {
               dotSecondaryColor: Colors.red,
             ),
             likeBuilder: (isLiked) => Icon(
-              isLiked || !outlined ? Icons.favorite : Icons.favorite_border,
+              isLiked ? Icons.favorite : Icons.favorite_border,
               color: isLiked ? Colors.pinkAccent : IconTheme.of(context).color,
             ),
             onTap: (isLiked) async {
