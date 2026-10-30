@@ -89,9 +89,19 @@ class LoadMorePainter extends CustomPainter {
       case LoadMoreState.failed:
         final metric = shape.computeMetrics().first;
         final double unit = metric.length / 126;
-        final Paint paint = stroke(error.withValues(alpha: 0.8));
+        final double s = size.width / 48;
+        final Paint paint = stroke(error.withValues(alpha: 0.9))
+          ..strokeCap = StrokeCap.round;
         canvas.drawPath(metric.extractPath(0, 70 * unit), paint);
         canvas.drawPath(metric.extractPath(84 * unit, 126 * unit), paint);
+        canvas.drawPath(
+          Path()
+            ..moveTo(17.6 * s, 41.3 * s)
+            ..lineTo(19.4 * s, 36.2 * s)
+            ..lineTo(16.2 * s, 33.4 * s)
+            ..lineTo(20.6 * s, 28.2 * s),
+          paint..strokeWidth = 2.5 * s,
+        );
       case LoadMoreState.end:
         canvas.drawPath(shape, Paint()..color = ink.withValues(alpha: 0.14));
         canvas.drawPath(shape, stroke(ink.withValues(alpha: 0.2)));
