@@ -224,6 +224,100 @@ class CoverCardSkeleton extends StatelessWidget {
   }
 }
 
+class CoverCard extends StatelessWidget {
+  const CoverCard({
+    super.key,
+    required this.cover,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.onLongPress,
+  });
+
+  final Widget cover;
+  final String title;
+  final Widget subtitle;
+  final VoidCallback onTap;
+  final VoidCallback? onLongPress;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 14),
+    child: InkWell(
+      onTap: onTap,
+      onLongPress: onLongPress,
+      borderRadius: BorderRadius.circular(4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 6,
+        children: [
+          ClipRRect(borderRadius: BorderRadius.circular(4), child: cover),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 14),
+              ),
+              DefaultTextStyle.merge(
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+                child: subtitle,
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+class SliverCoverCardGrid<T> extends StatelessWidget {
+  const SliverCoverCardGrid({
+    super.key,
+    required this.state,
+    required this.query,
+    required this.itemBuilder,
+    required this.skeleton,
+    required this.empty,
+    required this.error,
+  });
+
+  final InfiniteQueryStatus<List<T>, int> state;
+  final InfiniteQuery<List<int>, int> query;
+  final Widget Function(BuildContext context, T item) itemBuilder;
+  final Widget skeleton;
+  final String empty;
+  final String error;
+
+  @override
+  Widget build(BuildContext context) => PagedSliverMasonryGrid<int, T>.count(
+    showNewPageProgressIndicatorAsGridChild: false,
+    showNewPageErrorIndicatorAsGridChild: false,
+    showNoMoreItemsIndicatorAsGridChild: false,
+    state: state.paging,
+    fetchNextPage: query.getNextPage,
+    crossAxisCount: coverCardColumns(context),
+    crossAxisSpacing: 8,
+    builderDelegate: defaultPagedChildBuilderDelegate<T>(
+      onRetry: query.getNextPage,
+      itemBuilder: (context, item, index) => ImageCacheSizeProvider(
+        size: TileLayout.of(context).tileSize * 2,
+        child: itemBuilder(context, item),
+      ),
+      onLoading: skeleton,
+      onEmpty: Text(empty),
+      onError: Text(error),
+    ),
+  );
+}
+
 class CardCover extends StatelessWidget {
   const CardCover({super.key, required this.id});
 

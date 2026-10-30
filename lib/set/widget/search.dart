@@ -73,44 +73,12 @@ class PostSetCard extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: 6,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: CardCover(id: set.postIds.firstOrNull),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  tagToName(set.name),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 14),
-                ),
-                DefaultTextStyle.merge(
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
-                  child: PostSetByline(set: set),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => CoverCard(
+    cover: CardCover(id: set.postIds.firstOrNull),
+    title: tagToName(set.name),
+    subtitle: PostSetByline(set: set),
+    onTap: onTap,
+  );
 }
 
 class PostSetByline extends StatelessWidget {
@@ -155,29 +123,15 @@ class SliverPostSetGrid extends StatelessWidget {
   final InfiniteQuery<List<int>, int> query;
 
   @override
-  Widget build(BuildContext context) =>
-      PagedSliverMasonryGrid<int, PostSet>.count(
-        showNewPageProgressIndicatorAsGridChild: false,
-        showNewPageErrorIndicatorAsGridChild: false,
-        showNoMoreItemsIndicatorAsGridChild: false,
-        state: state.paging,
-        fetchNextPage: query.getNextPage,
-        crossAxisCount: coverCardColumns(context),
-        crossAxisSpacing: 8,
-        builderDelegate: defaultPagedChildBuilderDelegate<PostSet>(
-          onRetry: query.getNextPage,
-          itemBuilder: (context, item, index) => ImageCacheSizeProvider(
-            size: TileLayout.of(context).tileSize * 2,
-            child: PostSetCard(
-              set: item,
-              onTap: () => openPostSet(context, item),
-            ),
-          ),
-          onLoading: CoverCardSkeleton(coverRatio: cardCoverRatio(context)),
-          onEmpty: const Text('No sets'),
-          onError: const Text('Failed to load sets'),
-        ),
-      );
+  Widget build(BuildContext context) => SliverCoverCardGrid<PostSet>(
+    state: state,
+    query: query,
+    itemBuilder: (context, set) =>
+        PostSetCard(set: set, onTap: () => openPostSet(context, set)),
+    skeleton: CoverCardSkeleton(coverRatio: cardCoverRatio(context)),
+    empty: 'No sets',
+    error: 'Failed to load sets',
+  );
 }
 
 class PostSetDock extends StatelessWidget {
@@ -187,44 +141,13 @@ class PostSetDock extends StatelessWidget {
   final Future<void> Function(AnimationController? transition) onOpen;
 
   @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return SearchDock(
-      onOpen: onOpen,
-      child: ListenableBuilder(
-        listenable: params,
-        builder: (context, child) {
-          final String name = params.value.name ?? '';
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                name.isEmpty ? 'Set name' : name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: name.isEmpty
-                      ? theme.colorScheme.onSurface.withValues(alpha: 0.45)
-                      : null,
-                ),
-              ),
-              Text(
-                postSetParamsWords(params.value),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
+  Widget build(BuildContext context) => NameSearchDock(
+    params: params,
+    name: () => params.value.name,
+    hint: 'Set name',
+    words: () => postSetParamsWords(params.value),
+    onOpen: onOpen,
+  );
 }
 
 Future<void> showPostSetSearchSheet(
@@ -234,22 +157,16 @@ Future<void> showPostSetSearchSheet(
   final PostSetParamsController params = context
       .read<PostSetParamsController>();
   final NavigatorState page = Navigator.of(context);
-  return showModalBottomSheet<void>(
-    context: context,
-    useRootNavigator: true,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    elevation: 0,
-    transitionAnimationController: transition,
-    builder: (sheetContext) => FloatingSheet(
-      child: PostSetSearchSheet(
-        params: params.value,
-        onSubmit: (value) => params.value = value,
-        onOpen: (set) {
-          Navigator.of(sheetContext).pop();
-          openPostSet(page.context, set);
-        },
-      ),
+  return showFloatingSearchSheet(
+    context,
+    transition: transition,
+    builder: (sheetContext) => PostSetSearchSheet(
+      params: params.value,
+      onSubmit: (value) => params.value = value,
+      onOpen: (set) {
+        Navigator.of(sheetContext).pop();
+        openPostSet(page.context, set);
+      },
     ),
   );
 }
@@ -370,28 +287,17 @@ class PostSetFilterPanel extends StatelessWidget {
     return SheetPanel(
       title: 'Filters',
       onClose: onClose,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 6,
-        children: [
-          const MetaLabel('Order'),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              for (final PostSetOrder value in PostSetOrder.values)
-                MetaOption(
-                  label: value.label,
-                  selected: value == order,
-                  onTap: () => onChange(
-                    params.copyWith(
-                      order: value == PostSetOrder.updatedAt ? null : value,
-                    ),
-                  ),
-                ),
-            ],
+      child: MetaChoices<PostSetOrder>(
+        label: 'Order',
+        options: PostSetOrder.values,
+        name: (value) => value.label,
+        selected: order,
+        any: null,
+        onPick: (value) => onChange(
+          params.copyWith(
+            order: value == PostSetOrder.updatedAt ? null : value,
           ),
-        ],
+        ),
       ),
     );
   }

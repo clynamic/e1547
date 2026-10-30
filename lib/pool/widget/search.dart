@@ -54,45 +54,13 @@ class PoolCard extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: InkWell(
-        onTap: onTap,
-        onLongPress: () => showPoolPrompt(context: context, pool: pool),
-        borderRadius: BorderRadius.circular(4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: 6,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: CardCover(id: pool.postIds.firstOrNull),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  tagToName(pool.name),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 14),
-                ),
-                Text(
-                  poolSubtitle(pool),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => CoverCard(
+    cover: CardCover(id: pool.postIds.firstOrNull),
+    title: tagToName(pool.name),
+    subtitle: Text(poolSubtitle(pool)),
+    onTap: onTap,
+    onLongPress: () => showPoolPrompt(context: context, pool: pool),
+  );
 }
 
 class SliverPoolGrid extends StatelessWidget {
@@ -102,24 +70,14 @@ class SliverPoolGrid extends StatelessWidget {
   final InfiniteQuery<List<int>, int> query;
 
   @override
-  Widget build(BuildContext context) => PagedSliverMasonryGrid<int, Pool>.count(
-    showNewPageProgressIndicatorAsGridChild: false,
-    showNewPageErrorIndicatorAsGridChild: false,
-    showNoMoreItemsIndicatorAsGridChild: false,
-    state: state.paging,
-    fetchNextPage: query.getNextPage,
-    crossAxisCount: coverCardColumns(context),
-    crossAxisSpacing: 8,
-    builderDelegate: defaultPagedChildBuilderDelegate<Pool>(
-      onRetry: query.getNextPage,
-      itemBuilder: (context, item, index) => ImageCacheSizeProvider(
-        size: TileLayout.of(context).tileSize * 2,
-        child: PoolCard(pool: item, onTap: () => openPool(context, item)),
-      ),
-      onLoading: CoverCardSkeleton(coverRatio: cardCoverRatio(context)),
-      onEmpty: const Text('No pools'),
-      onError: const Text('Failed to load pools'),
-    ),
+  Widget build(BuildContext context) => SliverCoverCardGrid<Pool>(
+    state: state,
+    query: query,
+    itemBuilder: (context, pool) =>
+        PoolCard(pool: pool, onTap: () => openPool(context, pool)),
+    skeleton: CoverCardSkeleton(coverRatio: cardCoverRatio(context)),
+    empty: 'No pools',
+    error: 'Failed to load pools',
   );
 }
 
@@ -130,44 +88,13 @@ class PoolDock extends StatelessWidget {
   final Future<void> Function(AnimationController? transition) onOpen;
 
   @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return SearchDock(
-      onOpen: onOpen,
-      child: ListenableBuilder(
-        listenable: params,
-        builder: (context, child) {
-          final String name = params.value.name ?? '';
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                name.isEmpty ? 'Pool name' : name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: name.isEmpty
-                      ? theme.colorScheme.onSurface.withValues(alpha: 0.45)
-                      : null,
-                ),
-              ),
-              Text(
-                poolParamsWords(params.value),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
+  Widget build(BuildContext context) => NameSearchDock(
+    params: params,
+    name: () => params.value.name,
+    hint: 'Pool name',
+    words: () => poolParamsWords(params.value),
+    onOpen: onOpen,
+  );
 }
 
 Future<void> showPoolSearchSheet(
@@ -176,24 +103,16 @@ Future<void> showPoolSearchSheet(
 }) {
   final PoolParamsController params = context.read<PoolParamsController>();
   final NavigatorState page = Navigator.of(context);
-  return showModalBottomSheet<void>(
-    context: context,
-    useRootNavigator: true,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    elevation: 0,
-    transitionAnimationController: transition,
-    builder: (sheetContext) => FloatingSheet(
-      child: PoolSearchSheet(
-        params: params.value,
-        onSubmit: (value) => params.value = value,
-        onOpen: (pool) {
-          Navigator.of(sheetContext).pop();
-          page.push(
-            MaterialPageRoute(builder: (context) => PoolPage(pool: pool)),
-          );
-        },
-      ),
+  return showFloatingSearchSheet(
+    context,
+    transition: transition,
+    builder: (sheetContext) => PoolSearchSheet(
+      params: params.value,
+      onSubmit: (value) => params.value = value,
+      onOpen: (pool) {
+        Navigator.of(sheetContext).pop();
+        openPool(page.context, pool);
+      },
     ),
   );
 }
@@ -294,28 +213,17 @@ class PoolFilterPanel extends StatelessWidget {
             selected: params.category,
             onPick: (value) => onChange(params.copyWith(category: value)),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            spacing: 6,
-            children: [
-              const MetaLabel('Order'),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [
-                  for (final PoolOrder value in PoolOrder.values)
-                    MetaOption(
-                      label: value.label,
-                      selected: value == order,
-                      onTap: () => onChange(
-                        params.copyWith(
-                          order: value == PoolOrder.updatedAt ? null : value,
-                        ),
-                      ),
-                    ),
-                ],
+          MetaChoices<PoolOrder>(
+            label: 'Order',
+            options: PoolOrder.values,
+            name: (value) => value.label,
+            selected: order,
+            any: null,
+            onPick: (value) => onChange(
+              params.copyWith(
+                order: value == PoolOrder.updatedAt ? null : value,
               ),
-            ],
+            ),
           ),
         ],
       ),

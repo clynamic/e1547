@@ -185,3 +185,74 @@ class SheetTextField extends StatelessWidget {
     );
   }
 }
+
+class NameSearchDock extends StatelessWidget {
+  const NameSearchDock({
+    super.key,
+    required this.params,
+    required this.name,
+    required this.hint,
+    required this.words,
+    required this.onOpen,
+  });
+
+  final Listenable params;
+  final String? Function() name;
+  final String hint;
+  final String Function() words;
+  final Future<void> Function(AnimationController? transition) onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return SearchDock(
+      onOpen: onOpen,
+      child: ListenableBuilder(
+        listenable: params,
+        builder: (context, child) {
+          final String name = this.name() ?? '';
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                name.isEmpty ? hint : name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 15,
+                  color: name.isEmpty
+                      ? theme.colorScheme.onSurface.withValues(alpha: 0.45)
+                      : null,
+                ),
+              ),
+              Text(
+                words(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+Future<void> showFloatingSearchSheet(
+  BuildContext context, {
+  required WidgetBuilder builder,
+  AnimationController? transition,
+}) => showModalBottomSheet<void>(
+  context: context,
+  useRootNavigator: true,
+  isScrollControlled: true,
+  backgroundColor: Colors.transparent,
+  elevation: 0,
+  transitionAnimationController: transition,
+  builder: (sheetContext) => FloatingSheet(child: builder(sheetContext)),
+);

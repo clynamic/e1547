@@ -20,41 +20,33 @@ Future<void> showPostSearchSheet(
   final PostParamsController params = context.read<PostParamsController>();
   final PostFilter filter = context.read<PostFilter>();
   final NavigatorState page = Navigator.of(context);
-  return showModalBottomSheet<void>(
-    context: context,
-    useRootNavigator: true,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    elevation: 0,
-    transitionAnimationController: transition,
-    builder: (sheetContext) => FloatingSheet(
-      child: PostSearchSheet(
-        query: params.value.tags ?? '',
-        posts: filter.tracked.where(filter.filter).toList(),
-        filter: filter,
-        onShowHidden: () => showHiddenPostsSheet(context, filter),
-        onAllRecent: () {
-          Navigator.of(sheetContext).pop();
-          page.push(
-            MaterialPageRoute(builder: (context) => const HistoriesPage()),
-          );
-        },
-        onOpenPool: (pool) {
-          Navigator.of(sheetContext).pop();
-          page.push(
-            MaterialPageRoute(builder: (context) => PoolPage(pool: pool)),
-          );
-        },
-        onSubmit: (value) {
-          final String tags = TagMap(value).toString();
-          if (tags == TagMap(params.value.tags).toString()) return;
-          page.push(
-            MaterialPageRoute(
-              builder: (context) => PostsPage(params: PostParams(tags: tags)),
-            ),
-          );
-        },
-      ),
+  return showFloatingSearchSheet(
+    context,
+    transition: transition,
+    builder: (sheetContext) => PostSearchSheet(
+      query: params.value.tags ?? '',
+      posts: filter.tracked.where(filter.filter).toList(),
+      filter: filter,
+      onShowHidden: () => showHiddenPostsSheet(context, filter),
+      onAllRecent: () {
+        Navigator.of(sheetContext).pop();
+        page.push(
+          MaterialPageRoute(builder: (context) => const HistoriesPage()),
+        );
+      },
+      onOpenPool: (pool) {
+        Navigator.of(sheetContext).pop();
+        openPool(page.context, pool);
+      },
+      onSubmit: (value) {
+        final String tags = TagMap(value).toString();
+        if (tags == TagMap(params.value.tags).toString()) return;
+        page.push(
+          MaterialPageRoute(
+            builder: (context) => PostsPage(params: PostParams(tags: tags)),
+          ),
+        );
+      },
     ),
   );
 }

@@ -717,6 +717,7 @@ class MetaChoices<T> extends StatelessWidget {
     required this.name,
     required this.selected,
     required this.onPick,
+    this.any = 'Any',
   });
 
   final String label;
@@ -724,6 +725,7 @@ class MetaChoices<T> extends StatelessWidget {
   final String Function(T option) name;
   final T? selected;
   final ValueChanged<T?> onPick;
+  final String? any;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -735,11 +737,12 @@ class MetaChoices<T> extends StatelessWidget {
         spacing: 6,
         runSpacing: 6,
         children: [
-          MetaOption(
-            label: 'Any',
-            selected: selected == null,
-            onTap: () => onPick(null),
-          ),
+          if (any case final String any?)
+            MetaOption(
+              label: any,
+              selected: selected == null,
+              onTap: () => onPick(null),
+            ),
           for (final T option in options)
             MetaOption(
               label: name(option),
