@@ -1,5 +1,6 @@
 import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
+import 'package:e1547/query/query.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
@@ -362,23 +363,65 @@ void main() {
     expect(find.text('Show less'), findsOneWidget);
   });
 
-  displayTest('the comments line reads the newest comment', (tester) async {
-    final Map<String, Object?> newest = loadFixtureList('comments.json').first;
+  displayTest('the comments line reads the newest comment its filter allows', (
+    tester,
+  ) async {
+    final List<Map<String, Object?>> comments = loadFixtureList(
+      'comments.json',
+    );
+    bed.traits.value = bed.traits.value.copyWith(
+      denylist: ['user:${comments.first['creator_id']}'],
+    );
 
     await show(
       tester,
       PostCommentsLine(
         post: samplePost(
-          id: newest['post_id']! as int,
+          id: comments.first['post_id']! as int,
         ).copyWith(commentCount: 3),
       ),
     );
 
     expect(
-      find.textContaining('${newest['creator_name']} · Recorded text'),
+      find.textContaining('${comments[1]['creator_name']} · Recorded text'),
       findsOneWidget,
     );
     expect(find.textContaining('COMMENTS 3', findRichText: true), findsOne);
+    expect(
+      bed.fake.requests
+          .where((e) => e.path == '/comments.json')
+          .map((e) => e.query['limit']),
+      everyElement('5'),
+    );
+  });
+
+  displayTest('More by the artist leaves out this post and blacklisted ones', (
+    tester,
+  ) async {
+    bed.traits.value = bed.traits.value.copyWith(denylist: ['tag_48']);
+
+    await show(
+      tester,
+      FilterControllerProvider<PostFilter, Post>(
+        create: (_) => PostFilter(bed.client),
+        child: PostArtistSection(
+          post: samplePost(
+            id: 1000,
+            tags: const {
+              'artist': ['tag_32'],
+            },
+          ),
+        ),
+      ),
+    );
+
+    expect(thumbnails(tester), [1042]);
+    expect(
+      bed.fake.requests
+          .where((e) => e.path == '/posts.json')
+          .map((e) => e.query['limit']),
+      everyElement('12'),
+    );
   });
 
   displayTest('details read the file as type, size and weight', (tester) async {
