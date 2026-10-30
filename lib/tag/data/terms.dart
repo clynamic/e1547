@@ -147,3 +147,6 @@ int? poolIdOf(String term) {
   if (meta == null || meta.key != 'pool') return null;
   return int.tryParse(meta.value);
 }
+
+String termPrefix(String term) =>
+    term.length > 1 && (term[0] == '-' || term[0] == '~') ? term[0] : '';

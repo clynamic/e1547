@@ -10,12 +10,6 @@ import 'package:e1547/tag/tag.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-const Map<String, String> ratingWords = {
-  's': 'Safe',
-  'q': 'Questionable',
-  'e': 'Explicit',
-};
-
 class PostSearchSuggestions extends StatefulWidget {
   const PostSearchSuggestions({
     super.key,
@@ -61,7 +55,7 @@ class _PostSearchSuggestionsState extends State<PostSearchSuggestions> {
       final String value = search.substring('rating:'.length);
       return SuggestionList(
         children: [
-          for (final MapEntry(key: key, value: word) in ratingWords.entries)
+          for (final MapEntry(key: key, value: word) in ratingNames.entries)
             if (key.startsWith(value) || word.toLowerCase().startsWith(value))
               SuggestionRow(
                 label: '${prefix}rating:$key',
@@ -111,9 +105,11 @@ class _PostSearchSuggestionsState extends State<PostSearchSuggestions> {
                   SuggestionRow(
                     label: '$prefix${tag.name}',
                     meta: NumberFormat.compact().format(tag.count),
-                    stripe: TagCategory.byId(
-                      tag.category,
-                    )?.colorFor(Theme.of(context).brightness),
+                    stripe: tagMarkColor(
+                      Theme.of(context),
+                      tag.name,
+                      category: TagCategory.byId(tag.category),
+                    ),
                     onTap: () => onPick('$prefix${tag.name}'),
                   ),
                 ...recent.take(2),
@@ -159,7 +155,7 @@ class SuggestionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final String prefix = label.length > 1 && label[0] == '-' ? '-' : '';
+    final String prefix = termPrefix(label);
     return InkWell(
       onTap: onTap,
       child: ConstrainedBox(
@@ -193,7 +189,7 @@ class SuggestionRow extends StatelessWidget {
                       if (prefix.isNotEmpty)
                         TextSpan(
                           text: prefix,
-                          style: TextStyle(color: Colors.red.shade300),
+                          style: TextStyle(color: termPrefixColor(prefix)),
                         ),
                       TextSpan(
                         text: label

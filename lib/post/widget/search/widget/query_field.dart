@@ -164,9 +164,7 @@ class QueryChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final String prefix = term.length > 1 && (term[0] == '-' || term[0] == '~')
-        ? term[0]
-        : '';
+    final String prefix = termPrefix(term);
     final String name = term.substring(prefix.length);
     final bool meta = name.contains(':');
     final bool unknown = !meta && preview?.postCount == 0;
@@ -181,11 +179,7 @@ class QueryChip extends StatelessWidget {
           if (prefix.isNotEmpty)
             TextSpan(
               text: prefix,
-              style: TextStyle(
-                color: prefix == '~'
-                    ? Colors.orange.shade300
-                    : Colors.red.shade300,
-              ),
+              style: TextStyle(color: termPrefixColor(prefix)),
             ),
           TextSpan(
             text: text,
@@ -202,12 +196,12 @@ class QueryChip extends StatelessWidget {
       maxLines: 1,
       style: dense ? const TextStyle(fontSize: 13) : null,
     );
-    final Color stripe = meta || unknown
-        ? Colors.grey
-        : (TagCategory.byId(preview?.category) ?? category)?.colorFor(
-                theme.brightness,
-              ) ??
-              theme.colorScheme.onSurface.withValues(alpha: 0.38);
+    final Color stripe = tagMarkColor(
+      theme,
+      term,
+      preview: preview,
+      category: category,
+    );
     return Material(
       color: selected
           ? theme.colorScheme.primary.withValues(alpha: 0.16)
@@ -285,13 +279,13 @@ class QueryChipActions extends StatelessWidget {
               icon: excluded
                   ? Icons.add_circle_outline
                   : Icons.remove_circle_outline,
-              color: excluded ? Colors.green.shade300 : Colors.red.shade300,
+              color: excluded ? Colors.green.shade300 : excludedTermColor,
               onTap: () => onChange(excluded ? name : '-$name'),
             ),
             QueryChipAction(
               label: 'Any of',
               icon: any ? Icons.check : Icons.alt_route,
-              color: Colors.orange.shade300,
+              color: anyOfTermColor,
               active: any,
               onTap: () => onChange(any ? name : '~$name'),
             ),

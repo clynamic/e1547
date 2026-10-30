@@ -692,11 +692,7 @@ class SavedPostSearches extends StatelessWidget {
           children: [
             for (final Follow follow in follows)
               SheetEntry(
-                icon: switch (follow.type) {
-                  FollowType.notify => Icons.notifications_active,
-                  FollowType.update => Icons.person_add,
-                  FollowType.bookmark => Icons.bookmark,
-                },
+                icon: follow.type.iconData,
                 onTap: () => onPick(follow.tags),
                 trailing: (follow.unseen ?? 0) > 0
                     ? Container(

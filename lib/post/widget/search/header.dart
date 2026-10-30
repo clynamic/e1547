@@ -109,11 +109,7 @@ class PostSearchTitle extends StatelessWidget {
             .where((e) => TagMap(e.tags).toString() == query)
             .firstOrNull;
         if (follow == null) return title('Search');
-        return title(follow.name, switch (follow.type) {
-          FollowType.notify => Icons.notifications_active,
-          FollowType.update => Icons.person_add,
-          FollowType.bookmark => Icons.bookmark,
-        });
+        return title(follow.name, follow.type.iconData);
       },
     );
   }
@@ -135,7 +131,6 @@ class PostTagPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final String name = tagWithoutPrefix(term);
-    final bool meta = name.contains(':');
     return TagPreviewBuilder(
       terms: [term],
       builder: (context, previews) {
@@ -153,12 +148,7 @@ class PostTagPanel extends StatelessWidget {
                     width: 2,
                     height: 14,
                     decoration: BoxDecoration(
-                      color: meta
-                          ? Colors.grey
-                          : category?.colorFor(theme.brightness) ??
-                                theme.colorScheme.onSurface.withValues(
-                                  alpha: 0.38,
-                                ),
+                      color: tagMarkColor(theme, term, preview: preview),
                       borderRadius: BorderRadius.circular(1),
                     ),
                   ),

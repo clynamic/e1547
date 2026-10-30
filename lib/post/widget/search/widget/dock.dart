@@ -271,10 +271,7 @@ class QueryToken extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final String prefix = switch (token[0]) {
-      '-' || '~' => token[0],
-      _ => '',
-    };
+    final String prefix = termPrefix(token);
     final String name = token.substring(prefix.length).replaceAll('_', ' ');
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -284,12 +281,7 @@ class QueryToken extends StatelessWidget {
           height: 15,
           margin: const EdgeInsets.only(right: 6),
           decoration: BoxDecoration(
-            color: name.contains(':')
-                ? Colors.grey
-                : TagCategory.byId(
-                        preview?.category,
-                      )?.colorFor(theme.brightness) ??
-                      theme.colorScheme.onSurface.withValues(alpha: 0.38),
+            color: tagMarkColor(theme, token, preview: preview),
             borderRadius: BorderRadius.circular(1),
           ),
         ),
@@ -299,11 +291,7 @@ class QueryToken extends StatelessWidget {
               if (prefix.isNotEmpty)
                 TextSpan(
                   text: prefix,
-                  style: TextStyle(
-                    color: prefix == '~'
-                        ? Colors.orange.shade300
-                        : Colors.red.shade300,
-                  ),
+                  style: TextStyle(color: termPrefixColor(prefix)),
                 ),
               TextSpan(text: name),
             ],
