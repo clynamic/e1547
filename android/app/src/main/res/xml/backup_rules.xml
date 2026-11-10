@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The database stores account credentials in plain text; keep it out of
+     cloud backups. Users transfer it deliberately via export/import. -->
+<full-backup-content>
+    <exclude domain="file" path="app.db" />
+    <exclude domain="file" path="app.db.new" />
+    <exclude domain="file" path="app.db-journal" />
+    <exclude domain="file" path="app.db-wal" />
+    <exclude domain="file" path="app.db-shm" />
+</full-backup-content>

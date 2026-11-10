@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="file" path="app.db" />
+        <exclude domain="file" path="app.db.new" />
+        <exclude domain="file" path="app.db-journal" />
+        <exclude domain="file" path="app.db-wal" />
+        <exclude domain="file" path="app.db-shm" />
+    </cloud-backup>
+    <device-transfer>
+        <!-- keep app.db so direct device-to-device migration keeps logins;
+             the transfer link is user-initiated and encrypted -->
+        <exclude domain="file" path="app.db.new" />
+        <exclude domain="file" path="app.db-journal" />
+        <exclude domain="file" path="app.db-wal" />
+        <exclude domain="file" path="app.db-shm" />
+    </device-transfer>
+</data-extraction-rules>
