@@ -1,5 +1,11 @@
+import 'package:collection/collection.dart';
+import 'package:e1547/client/client.dart';
+import 'package:e1547/follow/follow.dart';
 import 'package:e1547/post/post.dart';
+import 'package:e1547/query/query.dart';
+import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
+import 'package:e1547/traits/traits.dart';
 import 'package:flutter/material.dart';
 
 class TagDisplay extends StatelessWidget {
@@ -9,11 +15,36 @@ class TagDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Client client = context.watch<Client>();
+    return QueryBuilder(
+      query: client.follows.useAll(),
+      builder: (context, follows) => ValueListenableBuilder<Traits>(
+        valueListenable: client.traits,
+        builder: (context, traits, child) => buildTags(
+          context,
+          follows: follows.data ?? const [],
+          denylist: traits.denylist,
+        ),
+      ),
+    );
+  }
+
+  Widget buildTags(
+    BuildContext context, {
+    required List<Follow> follows,
+    required List<String> denylist,
+  }) {
     Widget tagCategory(String category) {
       return Wrap(
         children: [
           ...post.tags[category]!.map(
-            (tag) => TagCard(tag: tag, category: category),
+            (tag) => TagCard(
+              tag: tag,
+              category: category,
+              icon: denylist.contains(tag)
+                  ? Icons.block
+                  : follows.firstWhereOrNull((e) => e.tags == tag)?.type.icon,
+            ),
           ),
         ],
       );

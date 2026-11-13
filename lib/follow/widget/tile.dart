@@ -237,7 +237,7 @@ class FollowTile extends StatelessWidget {
                               showChild: follow.type == FollowType.notify,
                               child: Padding(
                                 padding: const EdgeInsets.only(right: 4),
-                                child: follow.type.icon,
+                                child: Icon(follow.type.icon),
                               ),
                             ),
                             Expanded(

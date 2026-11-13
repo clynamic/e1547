@@ -10,6 +10,7 @@ class ColoredCard extends StatelessWidget {
     this.onLongPress,
     this.onSecondaryTap,
     this.trailing,
+    this.icon,
     this.padding = const EdgeInsets.only(
       top: 4,
       bottom: 4,
@@ -21,6 +22,8 @@ class ColoredCard extends StatelessWidget {
   /// The content has to clear this width.
   static const double stripeWidth = 5;
 
+  static const double iconStripeWidth = 26;
+
   final Widget child;
   final Color? backgroundColor;
   final Color? color;
@@ -28,6 +31,7 @@ class ColoredCard extends StatelessWidget {
   final VoidCallback? onLongPress;
   final VoidCallback? onSecondaryTap;
   final Widget? trailing;
+  final IconData? icon;
   final EdgeInsetsGeometry padding;
 
   @override
@@ -62,7 +66,16 @@ class ColoredCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Flexible(
-                child: Padding(padding: padding, child: child),
+                child: Padding(
+                  padding: icon == null
+                      ? padding
+                      : padding.add(
+                          const EdgeInsets.only(
+                            left: iconStripeWidth - stripeWidth,
+                          ),
+                        ),
+                  child: child,
+                ),
               ),
               if (trailing case final trailing?) trailing,
             ],
@@ -74,7 +87,7 @@ class ColoredCard extends StatelessWidget {
               top: 0,
               bottom: 0,
               left: 0,
-              width: ColoredCard.stripeWidth,
+              width: icon == null ? stripeWidth : iconStripeWidth,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: stripeColor,
@@ -83,6 +96,14 @@ class ColoredCard extends StatelessWidget {
                     bottomLeft: Radius.circular(4),
                   ),
                 ),
+                child: switch (icon) {
+                  final IconData icon => Icon(
+                    icon,
+                    size: 16,
+                    color: Colors.black.withValues(alpha: 0.78),
+                  ),
+                  null => null,
+                },
               ),
             ),
         ],
