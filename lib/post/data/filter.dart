@@ -19,6 +19,10 @@ class PostFilter extends FilterController<Post>
 
   final Map<int, _PostFilterCache> _filterCache = {};
 
+  static const Duration _staleAfter = Duration(minutes: 5);
+
+  DateTime _evictedAt = DateTime.now();
+
   void _updateDenyList() {
     _filterCache.clear();
     notifyListeners();
@@ -101,14 +105,16 @@ class PostFilter extends FilterController<Post>
   }
 
   List<String> entriesFor(PostSummary post) {
-    _evictStaleEntries();
+    final now = DateTime.now();
+    _evictStaleEntries(now);
 
     final cached = _filterCache[post.id];
-    final now = DateTime.now();
 
-    if (cached == null || cached.hash != post.hashCode) {
+    if (cached == null ||
+        (!identical(cached.post, post) && cached.hash != post.hashCode)) {
       final deniers = post.getDeniers(client.traits.value.denylist).toList();
       _filterCache[post.id] = (
+        post: post,
         hash: post.hashCode,
         entries: deniers,
         lastAccessed: now,
@@ -117,6 +123,7 @@ class PostFilter extends FilterController<Post>
     }
 
     _filterCache[post.id] = (
+      post: post,
       hash: cached.hash,
       entries: cached.entries,
       lastAccessed: now,
@@ -124,8 +131,10 @@ class PostFilter extends FilterController<Post>
     return cached.entries;
   }
 
-  void _evictStaleEntries() {
-    final cutoff = DateTime.now().subtract(const Duration(minutes: 1));
+  void _evictStaleEntries(DateTime now) {
+    if (now.difference(_evictedAt) < _staleAfter) return;
+    _evictedAt = now;
+    final cutoff = now.subtract(_staleAfter);
     _filterCache.removeWhere((_, entry) => entry.lastAccessed.isBefore(cutoff));
   }
 
@@ -157,6 +166,7 @@ class FavoritePostFilter extends PostFilter {
 }
 
 typedef _PostFilterCache = ({
+  PostSummary post,
   int hash,
   List<String> entries,
   DateTime lastAccessed,

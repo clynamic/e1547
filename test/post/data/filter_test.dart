@@ -85,6 +85,24 @@ void main() {
     expect(filter.denies(post), false);
   });
 
+  test('a post whose tags change is judged by its new tags', () {
+    final Post clean = samplePost(
+      id: 8,
+      tags: const {
+        'general': ['fine_tag'],
+      },
+    );
+    expect(filter.blocks(clean), false);
+
+    final Post tagged = clean.copyWith(
+      tags: const {
+        'general': ['fine_tag', 'bad_tag'],
+      },
+    );
+
+    expect(filter.blocks(tagged), true);
+  });
+
   test('an allowed post stays blocked without being denied', () {
     filter.allow(post.id);
 
