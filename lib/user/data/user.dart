@@ -5,8 +5,15 @@ part 'ghost.dart';
 part 'user.freezed.dart';
 part 'user.g.dart';
 
+abstract class UserSummary {
+  int get id;
+  String get name;
+  int? get avatarId;
+  bool get hasCroppedAvatar;
+}
+
 @freezed
-abstract class User with _$User {
+abstract class User with _$User implements UserSummary {
   const factory User({
     required int id,
     required String name,
@@ -19,6 +26,18 @@ abstract class User with _$User {
   const User._();
 
   factory User.fromJson(dynamic json) => _$UserFromJson(json);
+}
+
+@freezed
+abstract class PartialUser with _$PartialUser implements UserSummary {
+  const factory PartialUser({
+    required int id,
+    required String name,
+    required int? avatarId,
+    @Default(false) bool hasCroppedAvatar,
+  }) = _PartialUser;
+
+  factory PartialUser.fromJson(dynamic json) => _$PartialUserFromJson(json);
 }
 
 @freezed

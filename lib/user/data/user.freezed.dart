@@ -210,6 +210,149 @@ $UserStatsCopyWith<$Res>? get stats {
 
 
 /// @nodoc
+mixin _$PartialUser {
+
+ int get id; String get name; int? get avatarId; bool get hasCroppedAvatar;
+/// Create a copy of PartialUser
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$PartialUserCopyWith<PartialUser> get copyWith => _$PartialUserCopyWithImpl<PartialUser>(this as PartialUser, _$identity);
+
+  /// Serializes this PartialUser to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PartialUser&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.avatarId, avatarId) || other.avatarId == avatarId)&&(identical(other.hasCroppedAvatar, hasCroppedAvatar) || other.hasCroppedAvatar == hasCroppedAvatar));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,name,avatarId,hasCroppedAvatar);
+
+@override
+String toString() {
+  return 'PartialUser(id: $id, name: $name, avatarId: $avatarId, hasCroppedAvatar: $hasCroppedAvatar)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $PartialUserCopyWith<$Res>  {
+  factory $PartialUserCopyWith(PartialUser value, $Res Function(PartialUser) _then) = _$PartialUserCopyWithImpl;
+@useResult
+$Res call({
+ int id, String name, int? avatarId, bool hasCroppedAvatar
+});
+
+
+
+
+}
+/// @nodoc
+class _$PartialUserCopyWithImpl<$Res>
+    implements $PartialUserCopyWith<$Res> {
+  _$PartialUserCopyWithImpl(this._self, this._then);
+
+  final PartialUser _self;
+  final $Res Function(PartialUser) _then;
+
+/// Create a copy of PartialUser
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? avatarId = freezed,Object? hasCroppedAvatar = null,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,avatarId: freezed == avatarId ? _self.avatarId : avatarId // ignore: cast_nullable_to_non_nullable
+as int?,hasCroppedAvatar: null == hasCroppedAvatar ? _self.hasCroppedAvatar : hasCroppedAvatar // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+}
+
+
+
+/// @nodoc
+@JsonSerializable()
+
+class _PartialUser implements PartialUser {
+  const _PartialUser({required this.id, required this.name, required this.avatarId, this.hasCroppedAvatar = false});
+  factory _PartialUser.fromJson(Map<String, dynamic> json) => _$PartialUserFromJson(json);
+
+@override final  int id;
+@override final  String name;
+@override final  int? avatarId;
+@override@JsonKey() final  bool hasCroppedAvatar;
+
+/// Create a copy of PartialUser
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$PartialUserCopyWith<_PartialUser> get copyWith => __$PartialUserCopyWithImpl<_PartialUser>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$PartialUserToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PartialUser&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.avatarId, avatarId) || other.avatarId == avatarId)&&(identical(other.hasCroppedAvatar, hasCroppedAvatar) || other.hasCroppedAvatar == hasCroppedAvatar));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,name,avatarId,hasCroppedAvatar);
+
+@override
+String toString() {
+  return 'PartialUser(id: $id, name: $name, avatarId: $avatarId, hasCroppedAvatar: $hasCroppedAvatar)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$PartialUserCopyWith<$Res> implements $PartialUserCopyWith<$Res> {
+  factory _$PartialUserCopyWith(_PartialUser value, $Res Function(_PartialUser) _then) = __$PartialUserCopyWithImpl;
+@override @useResult
+$Res call({
+ int id, String name, int? avatarId, bool hasCroppedAvatar
+});
+
+
+
+
+}
+/// @nodoc
+class __$PartialUserCopyWithImpl<$Res>
+    implements _$PartialUserCopyWith<$Res> {
+  __$PartialUserCopyWithImpl(this._self, this._then);
+
+  final _PartialUser _self;
+  final $Res Function(_PartialUser) _then;
+
+/// Create a copy of PartialUser
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? avatarId = freezed,Object? hasCroppedAvatar = null,}) {
+  return _then(_PartialUser(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,avatarId: freezed == avatarId ? _self.avatarId : avatarId // ignore: cast_nullable_to_non_nullable
+as int?,hasCroppedAvatar: null == hasCroppedAvatar ? _self.hasCroppedAvatar : hasCroppedAvatar // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$UserAbout {
 
  String? get bio; String? get comission;

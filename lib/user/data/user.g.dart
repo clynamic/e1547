@@ -24,6 +24,21 @@ Map<String, dynamic> _$UserToJson(_User instance) => <String, dynamic>{
   'stats': instance.stats,
 };
 
+_PartialUser _$PartialUserFromJson(Map<String, dynamic> json) => _PartialUser(
+  id: (json['id'] as num).toInt(),
+  name: json['name'] as String,
+  avatarId: (json['avatar_id'] as num?)?.toInt(),
+  hasCroppedAvatar: json['has_cropped_avatar'] as bool? ?? false,
+);
+
+Map<String, dynamic> _$PartialUserToJson(_PartialUser instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'avatar_id': instance.avatarId,
+      'has_cropped_avatar': instance.hasCroppedAvatar,
+    };
+
 _UserAbout _$UserAboutFromJson(Map<String, dynamic> json) => _UserAbout(
   bio: json['bio'] as String?,
   comission: json['comission'] as String?,

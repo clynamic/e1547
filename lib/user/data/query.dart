@@ -2,6 +2,8 @@ import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/user/user.dart';
 
+final Expando<QueryLoader<int, PartialUser>> _partialUserLoaders = Expando();
+
 extension UserQuerying on UserClient {
   static const queryDomain = 'users';
 
@@ -11,6 +13,24 @@ extension UserQuerying on UserClient {
 
   QueryBridge<User, int> get userCache =>
       queryCache.bridge(queryKey, fromJson: User.fromJson);
+
+  QueryBridge<PartialUser, int> get partialUserCache => queryCache.bridge([
+    ...queryKey,
+    'partial',
+  ], fromJson: PartialUser.fromJson);
+
+  QueryLoader<int, PartialUser> get partialUserLoader =>
+      _partialUserLoaders[this] ??= partialUserCache.loader(
+        (ids) => byIds(ids: ids),
+        limit: maxPageLimit,
+      );
+
+  Query<PartialUser> usePartial({required int id}) => Query(
+    cache: queryCache,
+    key: [...queryKey, 'partial', id],
+    queryFn: () => partialUserLoader.require(id),
+    config: partialUserCache.getConfig(),
+  );
 
   Query<User> useGet({required int id, bool? vendored}) => Query(
     cache: queryCache,
