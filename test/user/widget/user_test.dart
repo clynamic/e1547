@@ -28,6 +28,14 @@ void main() {
     'name': 'uploader',
     'post_upload_count': 1,
     'favorite_count': 2,
+    'pool_version_count': 0,
+    'wiki_page_version_count': 31,
+    'upload_karma': 12,
+    'upload_slots': 7,
+    'positive_feedback_count': 3,
+    'negative_feedback_count': 1,
+    'can_approve_posts': true,
+    'is_verified': false,
   });
 
   Future<void> show(WidgetTester tester) async {
@@ -81,5 +89,30 @@ void main() {
 
     expect(row(tester, 'Uploads'), [posts[0]]);
     expect(find.text('uploader keeps their favorites private'), findsOneWidget);
+  });
+
+  displayTest('a profile lists what the server knows of its user and leaves '
+      'out empty counts', (tester) async {
+    await show(tester);
+
+    Finder tile(String title) => find.ancestor(
+      of: find.text(title, skipOffstage: false),
+      matching: find.byType(UserInfoTile, skipOffstage: false),
+    );
+    Finder shown(String title, String value) => find.descendant(
+      of: tile(title),
+      matching: find.text(value, skipOffstage: false),
+    );
+
+    expect(shown('wiki edits', '31'), findsOneWidget);
+    expect(tile('pool edits'), findsNothing);
+    expect(shown('upload karma', '12'), findsOneWidget);
+    expect(shown('upload slots', '7'), findsOneWidget);
+    expect(
+      shown('feedback', '3 positive, 0 neutral, 1 negative'),
+      findsOneWidget,
+    );
+    expect(shown('permissions', 'approve posts'), findsOneWidget);
+    expect(shown('status', 'unactivated'), findsOneWidget);
   });
 }

@@ -427,6 +427,57 @@ class UserInfo extends StatelessWidget {
                         info(Icons.favorite, 'favorites', stats.favoriteCount),
                         info(Icons.comment, 'comments', stats.commentCount),
                         info(Icons.forum, 'forum', stats.forumPostCount),
+                        if (stats.poolUpdateCount case final count?
+                            when count != 0)
+                          info(Icons.collections, 'pool edits', count),
+                        if (stats.artistUpdateCount case final count?
+                            when count != 0)
+                          info(Icons.brush, 'artist edits', count),
+                        if (stats.wikiUpdateCount case final count?
+                            when count != 0)
+                          info(Icons.menu_book, 'wiki edits', count),
+                        if (stats.noteUpdateCount case final count?
+                            when count != 0)
+                          info(Icons.sticky_note_2, 'note edits', count),
+                        info(
+                          Icons.trending_up,
+                          'upload karma',
+                          stats.uploadKarma,
+                        ),
+                        info(
+                          Icons.hourglass_empty,
+                          'upload slots',
+                          stats.canUploadFree ? null : stats.uploadSlots,
+                        ),
+                        if ((
+                              stats.positiveFeedbackCount ?? 0,
+                              stats.neutralFeedbackCount ?? 0,
+                              stats.negativeFeedbackCount ?? 0,
+                            )
+                            case (final positive, final neutral, final negative)
+                            when positive + neutral + negative > 0)
+                          info(
+                            Icons.thumbs_up_down,
+                            'feedback',
+                            '$positive positive, $neutral neutral, '
+                                '$negative negative',
+                          ),
+                        if ([
+                              if (stats.canApprovePosts) 'approve posts',
+                              if (stats.canUploadFree) 'unrestricted uploads',
+                            ]
+                            case final permissions when permissions.isNotEmpty)
+                          info(
+                            Icons.verified_user,
+                            'permissions',
+                            permissions.join(', '),
+                          ),
+                        if ([
+                              if (stats.isBanned) 'banned',
+                              if (!stats.isVerified) 'unactivated',
+                            ]
+                            case final status when status.isNotEmpty)
+                          info(Icons.gavel, 'status', status.join(', ')),
                       ],
                     ],
                   ),

@@ -58,6 +58,19 @@ abstract class UserStats with _$UserStats {
     required int? postUploadCount,
     required int? forumPostCount,
     required int? commentCount,
+    required int? poolUpdateCount,
+    required int? artistUpdateCount,
+    required int? wikiUpdateCount,
+    required int? noteUpdateCount,
+    required int? uploadKarma,
+    required int? uploadSlots,
+    required int? positiveFeedbackCount,
+    required int? neutralFeedbackCount,
+    required int? negativeFeedbackCount,
+    @Default(false) bool canApprovePosts,
+    @Default(false) bool canUploadFree,
+    @Default(false) bool isBanned,
+    @Default(true) bool isVerified,
   }) = _UserStats;
 
   factory UserStats.fromJson(dynamic json) => _$UserStatsFromJson(json);

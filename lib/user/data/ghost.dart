@@ -30,6 +30,15 @@ class UserGhost extends User with Ghost {
     postUploadCount: count(7, 500),
     forumPostCount: count(8, 500),
     commentCount: count(9, 500),
+    poolUpdateCount: null,
+    artistUpdateCount: null,
+    wikiUpdateCount: null,
+    noteUpdateCount: null,
+    uploadKarma: null,
+    uploadSlots: null,
+    positiveFeedbackCount: null,
+    neutralFeedbackCount: null,
+    negativeFeedbackCount: null,
   );
 
   @override
