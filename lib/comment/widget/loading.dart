@@ -25,6 +25,8 @@ class CommentLoadingPage extends StatelessWidget {
           ),
           body: child(context),
         ),
+        skeleton: (context) =>
+            PostCommentsPage(postId: const CommentGhost().postId),
         onError: const Text('Failed to load comment'),
         onEmpty: const Text('Comment not found'),
         child: (context) => PostCommentsPage(postId: state.data!.postId),

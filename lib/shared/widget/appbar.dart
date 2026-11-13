@@ -136,16 +136,27 @@ class DefaultAppBar extends StatelessWidget implements PreferredSizeWidget {
           automaticallyImplyLeading: automaticallyImplyLeading,
           leading: leading,
         );
+        final bool skeleton = isSkeleton(context);
         List<Widget>? effectiveActions = actions;
         if (actions != null) {
-          effectiveActions = [...actions!, const SizedBox(width: 8)];
+          effectiveActions = [
+            for (final Widget action in actions!)
+              Skeleton.keep(child: SkeletonIgnore(child: action)),
+            const SizedBox(width: 8),
+          ];
         }
 
         return AppBar(
-          leading: leadingConfig.leading,
+          leading: switch (leadingConfig.leading) {
+            final Widget leading => Skeleton.keep(child: leading),
+            null => null,
+          },
           leadingWidth: leadingConfig.leadingWidth,
           actions: effectiveActions,
-          title: IgnorePointer(ignoring: ignoreTitlePointer, child: title),
+          title: IgnorePointer(
+            ignoring: ignoreTitlePointer || skeleton,
+            child: title,
+          ),
           elevation: elevation,
           automaticallyImplyLeading: false,
           flexibleSpace: const ScrollToTop(),
@@ -290,7 +301,11 @@ class DefaultSliverAppBar extends StatelessWidget {
   Widget build(BuildContext context) {
     List<Widget>? effectiveActions = actions;
     if (actions != null) {
-      effectiveActions = [...actions!, const SizedBox(width: 8)];
+      effectiveActions = [
+        for (final Widget action in actions!)
+          Skeleton.keep(child: SkeletonIgnore(child: action)),
+        const SizedBox(width: 8),
+      ];
     }
 
     return SliverPadding(
@@ -312,13 +327,22 @@ class DefaultSliverAppBar extends StatelessWidget {
               borderRadius: BorderRadius.all(Radius.circular(4)),
             ),
             expandedHeight: expandedHeight,
-            leading: leadingConfig.leading,
+            leading: switch (leadingConfig.leading) {
+              final Widget leading => Skeleton.keep(child: leading),
+              null => null,
+            },
             leadingWidth: leadingConfig.leadingWidth,
             floating: floating,
             pinned: pinned,
             snap: snap,
             actions: effectiveActions,
-            bottom: bottom,
+            bottom: switch (bottom) {
+              final PreferredSizeWidget bottom => PreferredSize(
+                preferredSize: bottom.preferredSize,
+                child: Skeleton.keep(child: bottom),
+              ),
+              null => null,
+            },
             flexibleSpace: ScrollToTop(
               controller: scrollController,
               child: Padding(

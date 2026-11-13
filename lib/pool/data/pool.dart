@@ -1,5 +1,7 @@
+import 'package:e1547/shared/shared.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+part 'ghost.dart';
 part 'pool.freezed.dart';
 part 'pool.g.dart';
 
@@ -15,6 +17,8 @@ abstract class Pool with _$Pool {
     required int postCount,
     required bool active,
   }) = _Pool;
+
+  const Pool._();
 
   factory Pool.fromJson(dynamic json) => _$PoolFromJson(json);
 }

@@ -1,5 +1,7 @@
+import 'package:e1547/shared/shared.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+part 'ghost.dart';
 part 'user.freezed.dart';
 part 'user.g.dart';
 
@@ -13,6 +15,8 @@ abstract class User with _$User {
     required UserAbout? about,
     required UserStats? stats,
   }) = _User;
+
+  const User._();
 
   factory User.fromJson(dynamic json) => _$UserFromJson(json);
 }

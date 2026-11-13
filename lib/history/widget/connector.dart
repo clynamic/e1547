@@ -25,22 +25,26 @@ class ItemHistoryConnector<T> extends StatefulWidget {
 }
 
 class _ItemHistoryConnectorState<T> extends State<ItemHistoryConnector<T>> {
+  T? added;
+
   @override
-  void initState() {
-    super.initState();
-    final client = context.read<Client>();
-    final request = widget.getEntry(context, widget.item);
-    client.histories.useAdd().mutate(request);
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _add();
   }
 
   @override
   void didUpdateWidget(covariant ItemHistoryConnector<T> oldWidget) {
-    if (oldWidget.item != widget.item) {
-      final client = context.read<Client>();
-      final request = widget.getEntry(context, widget.item);
-      client.histories.useAdd().mutate(request);
-    }
     super.didUpdateWidget(oldWidget);
+    _add();
+  }
+
+  void _add() {
+    if (widget.item == added || isSkeleton(context)) return;
+    added = widget.item;
+    final client = context.read<Client>();
+    final request = widget.getEntry(context, widget.item);
+    client.histories.useAdd().mutate(request);
   }
 
   @override

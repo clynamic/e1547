@@ -26,6 +26,8 @@ class PoolLoadingPage extends StatelessWidget {
           ),
           body: child(context),
         ),
+        skeleton: (context) =>
+            PoolPage(pool: const PoolGhost(), orderByOldest: orderByOldest),
         onError: const Text('Failed to load pool'),
         onEmpty: const Text('Pool not found'),
         child: (context) =>

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cached_query_flutter/cached_query_flutter.dart';
+import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
 typedef QueryRequestBuilder<S, R> = R? Function(BuildContext context, S state);
@@ -32,15 +33,15 @@ class _QueryOnceConnectorState<S, R> extends State<QueryOnceConnector<S, R>> {
   bool _sent = false;
 
   @override
-  void initState() {
-    super.initState();
-    _subscribe();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_sub == null && !isSkeleton(context)) _subscribe();
   }
 
   @override
   void didUpdateWidget(covariant QueryOnceConnector<S, R> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!identical(widget.query, oldWidget.query)) {
+    if (!identical(widget.query, oldWidget.query) && _sub != null) {
       _sub?.cancel();
       _sent = false;
       _subscribe();

@@ -1,6 +1,8 @@
 import 'package:e1547/comment/comment.dart';
+import 'package:e1547/shared/shared.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+part 'ghost.dart';
 part 'reply.freezed.dart';
 part 'reply.g.dart';
 
@@ -19,6 +21,8 @@ abstract class Reply with _$Reply {
     required WarningType? warning,
     required bool hidden,
   }) = _Reply;
+
+  const Reply._();
 
   factory Reply.fromJson(Map<String, dynamic> json) => _$ReplyFromJson(json);
 }

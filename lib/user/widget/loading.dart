@@ -40,6 +40,8 @@ class UserLoadingPage extends StatelessWidget {
           ),
           body: child(context),
         ),
+        skeleton: (context) =>
+            UserPage(user: const UserGhost(), initialPage: initalPage),
         onError: const Text('Failed to load user'),
         onEmpty: const Text('User not found'),
         child: (context) =>

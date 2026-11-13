@@ -39,19 +39,26 @@ class SliverTopicList extends StatelessWidget {
     }
 
     return TopicPageQueryBuilder(
-      builder: (context, state, query) => PagedSliverList<int, Topic>(
+      builder: (context, state, query) => SliverSkeletonPaging<Topic>(
         state: state.paging,
         fetchNextPage: query.getNextPage,
-        builderDelegate: defaultPagedChildBuilderDelegate(
-          onRetry: query.getNextPage,
-          itemBuilder: (context, topic, index) => TopicTile(
-            topic: topic,
-            onPressed: () => pushReplies(topic),
-            onCountPressed: () => pushReplies(topic, orderByOldest: false),
-          ),
-          onEmpty: const Text('No topics'),
-          onError: const Text('Failed to load topics'),
-        ),
+        ghost: TopicGhost.new,
+        builder: (context, paging, fetchNextPage) =>
+            PagedSliverList<int, Topic>(
+              state: paging,
+              fetchNextPage: fetchNextPage,
+              builderDelegate: defaultPagedChildBuilderDelegate(
+                onRetry: query.getNextPage,
+                itemBuilder: (context, topic, index) => TopicTile(
+                  topic: topic,
+                  onPressed: () => pushReplies(topic),
+                  onCountPressed: () =>
+                      pushReplies(topic, orderByOldest: false),
+                ),
+                onEmpty: const Text('No topics'),
+                onError: const Text('Failed to load topics'),
+              ),
+            ),
       ),
     );
   }

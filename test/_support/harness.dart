@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:e1547/settings/settings.dart';
+import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -47,3 +48,10 @@ void displayTest(String description, WidgetTesterCallback body) =>
         await tester.pump(const Duration(seconds: 5));
       }
     });
+
+Finder skeletons(Finder matching) => find.descendant(
+  of: find.byWidgetPredicate(
+    (widget) => widget is Skeletonizer && widget.enabled,
+  ),
+  matching: matching,
+);

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:e1547/query/query.dart';
+import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
 typedef GetItemQuery<T> = Query<T> Function(int id);
@@ -68,6 +69,15 @@ class _PagedQueryBuilderState<T, Arg> extends State<PagedQueryBuilder<T, Arg>> {
     items.remove(id);
   }
 
+  InfiniteQueryStatus<List<T>, Arg> _pending(DateTime timeCreated) =>
+      InfiniteQueryStatus<List<T>, Arg>.loading(
+        timeCreated: timeCreated,
+        data: null,
+        isRefetching: false,
+        isFetchingNextPage: false,
+        isInitialFetch: true,
+      );
+
   InfiniteQueryStatus<List<T>, Arg> resolveState(
     InfiniteQueryStatus<List<int>, Arg> state,
   ) {
@@ -117,13 +127,7 @@ class _PagedQueryBuilderState<T, Arg> extends State<PagedQueryBuilder<T, Arg>> {
     if (state is! InfiniteQueryError &&
         pages.any((page) => page.isNotEmpty) &&
         resolvedPages.every((page) => page.isEmpty)) {
-      final pending = InfiniteQueryStatus<List<T>, Arg>.loading(
-        timeCreated: state.timeCreated,
-        data: null,
-        isRefetching: false,
-        isFetchingNextPage: false,
-        isInitialFetch: true,
-      );
+      final pending = _pending(state.timeCreated);
       lastState = state;
       cachedState = pending;
       return pending;
@@ -164,12 +168,15 @@ class _PagedQueryBuilderState<T, Arg> extends State<PagedQueryBuilder<T, Arg>> {
   }
 
   @override
-  Widget build(BuildContext context) => QueryBuilder(
-    query: widget.query,
-    enabled: widget.enabled,
-    builder: (context, state) {
-      final resolved = resolveState(state);
-      return widget.builder(context, resolved);
-    },
-  );
+  Widget build(BuildContext context) {
+    final bool skeleton = isSkeleton(context);
+    return QueryBuilder(
+      query: widget.query,
+      enabled: widget.enabled && !skeleton,
+      builder: (context, state) => widget.builder(
+        context,
+        skeleton ? _pending(state.timeCreated) : resolveState(state),
+      ),
+    );
+  }
 }

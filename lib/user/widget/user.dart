@@ -60,25 +60,27 @@ class UserPage extends StatelessWidget {
                     ),
                   ),
                 ],
-                body: LimitedWidthLayout(
-                  child: TileLayout(
-                    child: Builder(
-                      builder: (context) => TabBarView(
-                        children: tabs.values
-                            .map(
-                              (e) => CustomScrollView(
-                                slivers: [
-                                  SliverOverlapInjector(
-                                    handle:
-                                        NestedScrollView.sliverOverlapAbsorberHandleFor(
-                                          context,
-                                        ),
-                                  ),
-                                  e(context),
-                                ],
-                              ),
-                            )
-                            .toList(),
+                body: SkeletonIgnore(
+                  child: LimitedWidthLayout(
+                    child: TileLayout(
+                      child: Builder(
+                        builder: (context) => TabBarView(
+                          children: tabs.values
+                              .map(
+                                (e) => CustomScrollView(
+                                  slivers: [
+                                    SliverOverlapInjector(
+                                      handle:
+                                          NestedScrollView.sliverOverlapAbsorberHandleFor(
+                                            context,
+                                          ),
+                                    ),
+                                    e(context),
+                                  ],
+                                ),
+                              )
+                              .toList(),
+                        ),
                       ),
                     ),
                   ),
@@ -96,70 +98,77 @@ class UserPage extends StatelessWidget {
                 ),
               );
             } else {
-              body = Row(
-                children: [
-                  SizedBox(
-                    width: 360,
-                    child: ListView(
-                      primary: false,
-                      padding: defaultListPadding,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                height: 100,
-                                width: 100,
-                                child: UserAvatar(
-                                  id: user.avatarId,
-                                  userId: user.id,
-                                  hasCroppedAvatar: user.hasCroppedAvatar,
+              body = SkeletonIgnore(
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 360,
+                      child: ListView(
+                        primary: false,
+                        padding: defaultListPadding,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  height: 100,
+                                  width: 100,
+                                  child: UserAvatar(
+                                    id: user.avatarId,
+                                    userId: user.id,
+                                    hasCroppedAvatar: user.hasCroppedAvatar,
+                                  ),
                                 ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                  top: 16,
-                                  bottom: 32,
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    top: 16,
+                                    bottom: 32,
+                                  ),
+                                  child: Text(
+                                    user.name,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleLarge,
+                                  ),
                                 ),
-                                child: Text(
-                                  user.name,
-                                  style: Theme.of(context).textTheme.titleLarge,
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        UserInfo(user: user, compact: false),
-                      ],
+                          UserInfo(user: user, compact: false),
+                        ],
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: LimitedWidthLayout(
-                      child: TileLayout(
-                        child: TabBarView(
-                          children: tabs.values
-                              .toList()
-                              .sublist(0, tabs.length)
-                              .map(
-                                (e) => CustomScrollView(slivers: [e(context)]),
-                              )
-                              .toList(),
+                    Expanded(
+                      child: LimitedWidthLayout(
+                        child: TileLayout(
+                          child: TabBarView(
+                            children: tabs.values
+                                .toList()
+                                .sublist(0, tabs.length)
+                                .map(
+                                  (e) =>
+                                      CustomScrollView(slivers: [e(context)]),
+                                )
+                                .toList(),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               );
               appbar = DefaultAppBar(
                 ignoreTitlePointer: false,
-                title: TabBar(
-                  isScrollable: true,
-                  labelColor: Theme.of(context).iconTheme.color,
-                  indicatorColor: Theme.of(context).iconTheme.color,
-                  tabs: tabs.keys.toList().sublist(0, tabs.length).toList(),
+                title: Skeleton.keep(
+                  child: TabBar(
+                    isScrollable: true,
+                    labelColor: Theme.of(context).iconTheme.color,
+                    indicatorColor: Theme.of(context).iconTheme.color,
+                    tabs: tabs.keys.toList().sublist(0, tabs.length).toList(),
+                  ),
                 ),
                 actions: [
                   _UserProfileActions(user: user),

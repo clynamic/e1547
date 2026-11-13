@@ -1,6 +1,7 @@
 import 'package:e1547/shared/shared.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+part 'ghost.dart';
 part 'comment.freezed.dart';
 part 'comment.g.dart';
 
@@ -19,6 +20,8 @@ abstract class Comment with _$Comment {
     required WarningType? warning,
     required bool hidden,
   }) = _Comment;
+
+  const Comment._();
 
   factory Comment.fromJson(dynamic json) => _$CommentFromJson(json);
 }

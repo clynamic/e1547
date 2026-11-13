@@ -60,32 +60,34 @@ class App extends StatelessWidget {
                       RouteLoggerObserver(),
                     ],
                     routes: context.watch<RouterDrawerController>().routes,
-                    builder: (context, child) => WindowFrame(
-                      child: WindowShortcuts(
-                        navigatorKey: navigatorKey,
-                        child: SecureDisplay(
-                          child: LockScreen(
-                            child: LoadingShell(
-                              child: MultiProvider(
-                                providers: [
-                                  IdentityClientProvider(),
-                                  TraitsClientProvider(),
-                                  ClientProvider(),
-                                  FileCacheProvider(),
-                                  TasksControllerProvider(),
-                                ],
-                                child: LoadingCore(
-                                  child: OnboardingGate(
-                                    child: AccountConnector(
-                                      navigatorKey: navigatorKey,
-                                      child: FollowConnector(
-                                        child: AppLinkHandler(
-                                          navigatorKey: navigatorKey,
-                                          child: NotificationHandler(
+                    builder: (context, child) => ThemedSkeletons(
+                      child: WindowFrame(
+                        child: WindowShortcuts(
+                          navigatorKey: navigatorKey,
+                          child: SecureDisplay(
+                            child: LockScreen(
+                              child: LoadingShell(
+                                child: MultiProvider(
+                                  providers: [
+                                    IdentityClientProvider(),
+                                    TraitsClientProvider(),
+                                    ClientProvider(),
+                                    FileCacheProvider(),
+                                    TasksControllerProvider(),
+                                  ],
+                                  child: LoadingCore(
+                                    child: OnboardingGate(
+                                      child: AccountConnector(
+                                        navigatorKey: navigatorKey,
+                                        child: FollowConnector(
+                                          child: AppLinkHandler(
                                             navigatorKey: navigatorKey,
-                                            child: AppBubbleOverlay(
+                                            child: NotificationHandler(
                                               navigatorKey: navigatorKey,
-                                              child: child!,
+                                              child: AppBubbleOverlay(
+                                                navigatorKey: navigatorKey,
+                                                child: child!,
+                                              ),
                                             ),
                                           ),
                                         ),

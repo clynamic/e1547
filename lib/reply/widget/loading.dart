@@ -27,6 +27,10 @@ class ReplyLoadingPage extends StatelessWidget {
           ),
           body: child(context),
         ),
+        skeleton: (context) => TopicRepliesPage(
+          topic: const TopicGhost(),
+          orderByOldest: orderByOldest,
+        ),
         onError: const Text('Failed to load reply'),
         onEmpty: const Text('Reply not found'),
         child: (context) =>

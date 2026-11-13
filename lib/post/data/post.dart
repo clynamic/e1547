@@ -1,5 +1,7 @@
+import 'package:e1547/shared/shared.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+part 'ghost.dart';
 part 'post.freezed.dart';
 part 'post.g.dart';
 
@@ -32,6 +34,8 @@ abstract class Post with _$Post {
     required List<int>? pools,
     required Relationships relationships,
   }) = _Post;
+
+  const Post._();
 
   factory Post.fromJson(dynamic json) => _$PostFromJson(json);
 }

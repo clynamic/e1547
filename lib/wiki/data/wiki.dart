@@ -1,5 +1,7 @@
+import 'package:e1547/shared/shared.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+part 'ghost.dart';
 part 'wiki.freezed.dart';
 part 'wiki.g.dart';
 
@@ -14,6 +16,8 @@ abstract class Wiki with _$Wiki {
     List<String>? otherNames,
     bool? isLocked,
   }) = _Wiki;
+
+  const Wiki._();
 
   factory Wiki.fromJson(dynamic json) => _$WikiFromJson(json);
 }

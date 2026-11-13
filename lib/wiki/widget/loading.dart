@@ -31,6 +31,7 @@ class WikiLoadingPage extends StatelessWidget {
           ),
           body: child(context),
         ),
+        skeleton: (context) => const WikiPage(wiki: WikiGhost()),
         onError: const Text('Failed to load wiki'),
         onEmpty: const Text('Wiki not found'),
         child: (context) => WikiPage(wiki: state.data!),

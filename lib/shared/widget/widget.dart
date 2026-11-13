@@ -34,6 +34,7 @@ export 'refreshing.dart';
 export 'scaffold.dart';
 export 'scroll.dart';
 export 'selection.dart';
+export 'skeletons.dart';
 export 'snackbar.dart';
 export 'style.dart';
 export 'text_editor.dart';

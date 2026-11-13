@@ -32,6 +32,20 @@ class PostImageTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (isSkeleton(context)) {
+      final CardThemeData card = Theme.of(context).cardTheme;
+      final ShapeBorder? shape = card.shape;
+      return Padding(
+        padding: card.margin ?? const EdgeInsets.all(4),
+        child: Bone(
+          width: double.infinity,
+          height: double.infinity,
+          borderRadius: shape is RoundedRectangleBorder
+              ? shape.borderRadius
+              : BorderRadius.circular(AppStyle.of(context).smallRadius),
+        ),
+      );
+    }
     return Card(
       clipBehavior: Clip.antiAlias,
       child: SelectionItemOverlay(

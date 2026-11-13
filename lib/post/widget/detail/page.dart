@@ -88,7 +88,8 @@ class PostDetail extends StatelessWidget {
             floatingActionButtonLocation: Handedness.of(
               context,
             ).floatingActionButtonLocation,
-            floatingActionButton: context.read<Client>().hasLogin
+            floatingActionButton:
+                context.read<Client>().hasLogin && !isSkeleton(context)
                 ? DismissFade(child: PostDetailFab(post: post))
                 : null,
             body: MediaQuery.removeViewInsets(
@@ -98,8 +99,10 @@ class PostDetail extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   DismissFade(
-                    child: ColoredBox(
-                      color: Theme.of(context).scaffoldBackgroundColor,
+                    child: Skeleton.keep(
+                      child: ColoredBox(
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                      ),
                     ),
                   ),
                   Builder(
@@ -113,10 +116,16 @@ class PostDetail extends StatelessWidget {
                             bottom: kBottomNavigationBarHeight + 24,
                           ),
                           children: [
-                            image(context, size),
-                            DismissFade(child: upperBody(context)),
-                            DismissFade(child: middleBody(context)),
-                            DismissFade(child: lowerBody(context)),
+                            SkeletonIgnore(child: image(context, size)),
+                            SkeletonIgnore(
+                              child: DismissFade(child: upperBody(context)),
+                            ),
+                            SkeletonIgnore(
+                              child: DismissFade(child: middleBody(context)),
+                            ),
+                            SkeletonIgnore(
+                              child: DismissFade(child: lowerBody(context)),
+                            ),
                           ],
                         );
                       } else {
@@ -129,42 +138,44 @@ class PostDetail extends StatelessWidget {
                         return CustomScrollView(
                           primary: true,
                           slivers: [
-                            SliverCrossAxisGroup(
-                              slivers: [
-                                SliverMainAxisGroup(
-                                  slivers: [
-                                    SliverToBoxAdapter(
-                                      child: Column(
-                                        children: [
-                                          image(context, size),
-                                          DismissFade(
-                                            child: upperBody(context),
-                                          ),
-                                        ],
+                            SliverSkeletonIgnore(
+                              sliver: SliverCrossAxisGroup(
+                                slivers: [
+                                  SliverMainAxisGroup(
+                                    slivers: [
+                                      SliverToBoxAdapter(
+                                        child: Column(
+                                          children: [
+                                            image(context, size),
+                                            DismissFade(
+                                              child: upperBody(context),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                    DismissSliverFade(
-                                      sliver: SliverPostCommentSection(
-                                        postId: post.id,
+                                      DismissSliverFade(
+                                        sliver: SliverPostCommentSection(
+                                          postId: post.id,
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                SliverConstrainedCrossAxis(
-                                  maxExtent: sideBarWidth,
-                                  sliver: SliverToBoxAdapter(
-                                    child: DismissFade(
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          const SizedBox(height: 56),
-                                          lowerBody(context),
-                                        ],
+                                    ],
+                                  ),
+                                  SliverConstrainedCrossAxis(
+                                    maxExtent: sideBarWidth,
+                                    sliver: SliverToBoxAdapter(
+                                      child: DismissFade(
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const SizedBox(height: 56),
+                                            lowerBody(context),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ],
                         );

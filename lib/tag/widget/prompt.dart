@@ -251,15 +251,7 @@ class _SearchTagDisplayState extends State<SearchTagDisplay> {
             );
           }
         },
-        secondChild: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Padding(
-              padding: EdgeInsets.all(16),
-              child: HexagonalLoadingIndicator(),
-            ),
-          ],
-        ),
+        secondChild: Skeletonizer(child: DText(const WikiGhost().body)),
       ),
     );
   }

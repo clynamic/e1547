@@ -75,29 +75,45 @@ class PoolGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return PullToRefresh(
       onRefresh: query.invalidate,
-      child: PagedMasonryGridView<int, Pool>.count(
+      child: CustomScrollView(
         primary: true,
-        showNewPageProgressIndicatorAsGridChild: false,
-        showNewPageErrorIndicatorAsGridChild: false,
-        showNoMoreItemsIndicatorAsGridChild: false,
-        padding: defaultListPadding,
-        state: state.paging,
-        fetchNextPage: query.getNextPage,
-        crossAxisCount: (TileLayout.of(context).crossAxisCount * 0.5).round(),
-        builderDelegate: defaultPagedChildBuilderDelegate<Pool>(
-          onRetry: query.getNextPage,
-          itemBuilder: (context, item, index) => ImageCacheSizeProvider(
-            size: TileLayout.of(context).tileSize * 4,
-            child: PoolTile(
-              pool: item,
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => PoolPage(pool: item)),
-              ),
+        slivers: [
+          SliverPadding(
+            padding: defaultListPadding,
+            sliver: SliverSkeletonPaging<Pool>(
+              state: state.paging,
+              fetchNextPage: query.getNextPage,
+              ghost: PoolGhost.new,
+              builder: (context, paging, fetchNextPage) =>
+                  PagedSliverMasonryGrid<int, Pool>.count(
+                    showNewPageProgressIndicatorAsGridChild: false,
+                    showNewPageErrorIndicatorAsGridChild: false,
+                    showNoMoreItemsIndicatorAsGridChild: false,
+                    state: paging,
+                    fetchNextPage: fetchNextPage,
+                    crossAxisCount:
+                        (TileLayout.of(context).crossAxisCount * 0.5).round(),
+                    builderDelegate: defaultPagedChildBuilderDelegate<Pool>(
+                      onRetry: query.getNextPage,
+                      itemBuilder: (context, item, index) =>
+                          ImageCacheSizeProvider(
+                            size: TileLayout.of(context).tileSize * 4,
+                            child: PoolTile(
+                              pool: item,
+                              onPressed: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => PoolPage(pool: item),
+                                ),
+                              ),
+                            ),
+                          ),
+                      onEmpty: const Text('No pools'),
+                      onError: const Text('Failed to load pools'),
+                    ),
+                  ),
             ),
           ),
-          onEmpty: const Text('No pools'),
-          onError: const Text('Failed to load pools'),
-        ),
+        ],
       ),
     );
   }

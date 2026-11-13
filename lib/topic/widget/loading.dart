@@ -27,6 +27,10 @@ class TopicLoadingPage extends StatelessWidget {
           ),
           body: child(context),
         ),
+        skeleton: (context) => TopicRepliesPage(
+          topic: const TopicGhost(),
+          orderByOldest: orderByOldest,
+        ),
         onError: const Text('Failed to load topic'),
         onEmpty: const Text('Topic not found'),
         child: (context) =>

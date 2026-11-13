@@ -131,6 +131,7 @@ class TestEnvironment {
       theme: theme,
       navigatorObservers: [routeObserver],
       localizationsDelegates: testLocalizations,
+      builder: (context, child) => ThemedSkeletons(child: child!),
       home: home,
     ),
   );

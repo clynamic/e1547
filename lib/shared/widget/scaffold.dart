@@ -248,7 +248,8 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
             showChild: inlineDrawer != null && showInlineDrawer,
             builder: (context) => inlineDrawer!,
           ),
-          if (widget.body != null) Expanded(child: widget.body!),
+          if (widget.body != null)
+            Expanded(child: SkeletonIgnore(child: widget.body!)),
           CrossFade.builder(
             showChild: inlineEndDrawer != null && showInlineEndDrawer,
             builder: (context) => inlineEndDrawer!,
@@ -258,7 +259,9 @@ class _AdaptiveScaffoldState extends State<AdaptiveScaffold> {
         return _AdaptiveScaffoldBody(
           appBar: widget.appBar,
           body: Row(children: bodyChildren),
-          floatingActionButton: widget.floatingActionButton,
+          floatingActionButton: isSkeleton(context)
+              ? null
+              : widget.floatingActionButton,
           floatingActionButtonLocation: _InsetFabLocation(
             widget.floatingActionButtonLocation ??
                 Handedness.of(context).floatingActionButtonLocation,

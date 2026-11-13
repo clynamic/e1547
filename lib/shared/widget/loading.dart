@@ -61,11 +61,13 @@ class LoadingPage extends StatelessWidget {
     this.isBuilt,
     this.pageBuilder,
     this.loadingBuilder,
+    this.skeleton,
     this.onEmpty,
     this.onError,
   });
 
   final WidgetBuilder child;
+  final WidgetBuilder? skeleton;
   final Widget Function(BuildContext context, WidgetBuilder child)? pageBuilder;
   final Widget Function(BuildContext context, WidgetBuilder child)?
   loadingBuilder;
@@ -93,6 +95,10 @@ class LoadingPage extends StatelessWidget {
       } else {
         state = LoadingPageState.empty;
       }
+    }
+
+    if (skeleton case final skeleton? when state == LoadingPageState.loading) {
+      return SkeletonPage(child: Builder(builder: skeleton));
     }
 
     Widget content(BuildContext context) {

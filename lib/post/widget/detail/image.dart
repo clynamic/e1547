@@ -211,6 +211,16 @@ class PostDetailImageDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (post is Ghost) {
+      return AspectRatio(
+        aspectRatio: post.width / post.height,
+        child: const Bone(
+          width: double.infinity,
+          height: double.infinity,
+          borderRadius: BorderRadius.zero,
+        ),
+      );
+    }
     return PostDetailImageActions(
       onOpen: onTap,
       post: post,

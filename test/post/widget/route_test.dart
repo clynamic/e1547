@@ -96,6 +96,7 @@ void main() {
           ],
           child: MaterialApp(
             theme: AppTheme.dark.data,
+            localizationsDelegates: testLocalizations,
             navigatorObservers: [routeObserver],
             home: FilterControllerProvider<PostFilter, Post>.value(
               value: filter,
@@ -548,4 +549,86 @@ void main() {
       expect(find.byType(PostDetail), findsOneWidget);
     },
   );
+
+  Future<void> pushLoadingDetail(WidgetTester tester) async {
+    final filter = PostFilter(client);
+    addTearDown(filter.dispose);
+    await pushDetail(
+      tester,
+      filter,
+      opener: (context) => TextButton(
+        onPressed: () => Navigator.of(context).push(
+          DismissRoute<void>(
+            builder: (context) => PostRouteScope(
+              params: null,
+              filter: filter,
+              child: SkeletonPage(
+                child: PostDetail(
+                  post: samplePost(
+                    id: 1000,
+                    file: 'http://example.invalid/1000.jpg',
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        child: const Text('open'),
+      ),
+    );
+    await tester.pump(const Duration(seconds: 1));
+  }
+
+  Future<void> pushLoadingDetailAt(WidgetTester tester, double width) async {
+    tester.view.physicalSize = Size(width, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await pushLoadingDetail(tester);
+    expect(skeletons(find.byType(PostDetailImageDisplay)), findsOneWidget);
+  }
+
+  Future<void> dragDown(WidgetTester tester) async {
+    await tester.timedDrag(
+      find.byType(PostDetail),
+      const Offset(0, 400),
+      const Duration(milliseconds: 500),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+  }
+
+  displayTest('a loading detail closes on a drag down in the narrow layout', (
+    tester,
+  ) async {
+    await pushLoadingDetailAt(tester, 800);
+    expect(find.byType(CustomScrollView), findsNothing);
+
+    await dragDown(tester);
+
+    expect(find.byType(PostDetail), findsNothing);
+    expect(find.text('open'), findsOneWidget);
+  });
+
+  displayTest('a loading detail closes on a drag down in the wide layout', (
+    tester,
+  ) async {
+    await pushLoadingDetailAt(tester, 1500);
+    expect(find.byType(CustomScrollView), findsOneWidget);
+
+    await dragDown(tester);
+
+    expect(find.byType(PostDetail), findsNothing);
+    expect(find.text('open'), findsOneWidget);
+  });
+
+  displayTest('a loading detail ignores a tap on its image', (tester) async {
+    await pushLoadingDetail(tester);
+
+    await tester.tap(find.byType(PostDetailImageDisplay), warnIfMissed: false);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.byType(PostFullscreen), findsNothing);
+    expect(find.byType(PostDetail), findsOneWidget);
+  });
 }

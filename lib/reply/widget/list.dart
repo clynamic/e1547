@@ -28,14 +28,19 @@ class SliverReplyList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ReplyPageQueryBuilder(
-    builder: (context, state, query) => PagedSliverList<int, Reply>(
+    builder: (context, state, query) => SliverSkeletonPaging<Reply>(
       state: state.paging,
       fetchNextPage: query.getNextPage,
-      builderDelegate: defaultPagedChildBuilderDelegate(
-        onRetry: query.getNextPage,
-        itemBuilder: (context, item, index) => ReplyTile(reply: item),
-        onEmpty: const Text('No replies'),
-        onError: const Text('Failed to load replies'),
+      ghost: ReplyGhost.new,
+      builder: (context, paging, fetchNextPage) => PagedSliverList<int, Reply>(
+        state: paging,
+        fetchNextPage: fetchNextPage,
+        builderDelegate: defaultPagedChildBuilderDelegate(
+          onRetry: query.getNextPage,
+          itemBuilder: (context, item, index) => ReplyTile(reply: item),
+          onEmpty: const Text('No replies'),
+          onError: const Text('Failed to load replies'),
+        ),
       ),
     ),
   );
