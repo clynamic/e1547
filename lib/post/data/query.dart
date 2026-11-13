@@ -6,6 +6,8 @@ import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
 
+final Expando<QueryLoader<int, Post>> _postLoaders = Expando();
+
 extension PostQuerying on PostClient {
   static const queryDomain = 'posts';
 
@@ -16,10 +18,13 @@ extension PostQuerying on PostClient {
   QueryBridge<Post, int> get postCache =>
       queryCache.bridge(queryKey, fromJson: Post.fromJson);
 
+  QueryLoader<int, Post> get postLoader => _postLoaders[this] ??= postCache
+      .loader((ids) => byIds(ids: ids, hidden: true), limit: maxPageLimit);
+
   Query<Post> useGet({required int id, bool? vendored}) => Query(
     cache: queryCache,
     key: [...queryKey, id],
-    queryFn: () => get(id: id),
+    queryFn: () => postLoader.require(id),
     config: postCache.getConfig(vendored: vendored),
   );
 

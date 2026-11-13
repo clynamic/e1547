@@ -159,6 +159,43 @@ void main() {
     expect(posts.map((e) => e.id), ids);
   });
 
+  test(
+    'finds posts by id that a search would hide, when asked for them',
+    () async {
+      final Map<String, Object?> recorded = fake.state.posts.first;
+      final Map<String, Object?> files =
+          recorded['files']! as Map<String, Object?>;
+      final Map<String, Object?> unavailable = {
+        ...files,
+        'original': {
+          ...(files['original']! as Map<String, Object?>),
+          'url': null,
+        },
+      };
+      fake.state.posts.addAll([
+        {
+          ...recorded,
+          'id': 998,
+          'flags': {
+            ...(recorded['flags']! as Map<String, Object?>),
+            'deleted': true,
+          },
+          'files': unavailable,
+        },
+        {...recorded, 'id': 999, 'files': unavailable},
+      ]);
+
+      final found = await client.byIds(ids: [998, 999], hidden: true);
+      final shown = await client.byIds(ids: [998, 999]);
+
+      expect(found.map((e) => (e.id, e.isDeleted, e.file)), [
+        (998, true, null),
+        (999, false, null),
+      ]);
+      expect(shown, isEmpty);
+    },
+  );
+
   test('drops posts that cannot be displayed', () async {
     fake.state.posts.add({
       ...fake.state.posts.first,

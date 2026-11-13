@@ -35,6 +35,18 @@ class PostClient {
     int? limit,
     QueryMap? query,
     CancelToken? cancelToken,
+  }) => _search(
+    page: page,
+    limit: limit,
+    query: query,
+    cancelToken: cancelToken,
+  ).then(_filter);
+
+  Future<List<Post>> _search({
+    int? page,
+    int? limit,
+    QueryMap? query,
+    CancelToken? cancelToken,
   }) => dio
       .get(
         '/posts.json',
@@ -49,8 +61,7 @@ class PostClient {
       .then(
         (response) =>
             (response.data as List).map<Post>(E621Post.fromJson).toList(),
-      )
-      .then(_filter);
+      );
 
   /// Filters out "broken" posts.
   /// Flash posts are considered to be broken by default, since we will not be able to display them.
@@ -63,6 +74,7 @@ class PostClient {
 
   Future<List<Post>> byIds({
     required List<int> ids,
+    bool hidden = false,
     CancelToken? cancelToken,
   }) async {
     if (ids.isEmpty) return [];
@@ -78,7 +90,8 @@ class PostClient {
     List<Post> result = [];
     for (final chunk in chunks) {
       String filter = 'id:${chunk.join(',')}';
-      List<Post> part = await page(
+      if (hidden) filter = '$filter status:any';
+      List<Post> part = await (hidden ? _search : page)(
         query: {'tags': filter},
         limit: chunk.length,
         cancelToken: cancelToken,

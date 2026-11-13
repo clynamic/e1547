@@ -1,20 +1,13 @@
-import 'package:drift/native.dart';
-import 'package:e1547/app/app.dart';
-import 'package:e1547/client/client.dart';
-import 'package:e1547/identity/identity.dart';
 import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
-import 'package:e1547/traits/traits.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:notified_preferences/notified_preferences.dart';
 import 'package:provider/provider.dart';
 
-import '../../_support/fake_e621.dart';
+import '../../_support/environment.dart';
+import '../../_support/fixtures.dart';
 import '../../_support/harness.dart';
-import '../../_support/images.dart';
 import '../../_support/posts.dart';
 
 Pool samplePool({
@@ -34,84 +27,66 @@ Pool samplePool({
 );
 
 void main() {
-  late FakeE621 fake;
-  late Client client;
-  late ValueNotifier<Traits> traits;
-  late AppDatabase sqlite;
+  setUpAll(initializeTestApp);
 
-  setUpAll(() async {
-    await initializeTestApp();
-    sqlite = AppDatabase(NativeDatabase.memory());
-  });
+  late TestEnvironment env;
 
-  tearDownAll(() => sqlite.close());
+  setUp(() async => env = await TestEnvironment.start());
 
-  setUp(() async {
-    SharedPreferences.setMockInitialValues({});
-    fake = await FakeE621.start();
-    traits = ValueNotifier(
-      const Traits(
-        id: 1,
-        userId: null,
-        denylist: [],
-        homeTags: '',
-        avatar: null,
-        perPage: null,
-      ),
-    );
-    client = Client(
-      identity: Identity(id: 1, host: fake.url, username: null, headers: null),
-      traits: traits,
-      storage: AppStorage(
-        preferences: await SharedPreferences.getInstance(),
-        temporaryFiles: '.',
-        queryCache: CachedQuery.asNewInstance()
-          ..config(
-            config: const GlobalQueryConfig(
-              cacheDuration: Duration(milliseconds: 1),
-            ),
-          ),
-        sqlite: sqlite,
-      ),
-    );
-  });
-
-  tearDown(() async {
-    traits.dispose();
-    await fake.stop();
-  });
+  tearDown(() => env.dispose());
 
   Future<void> show(
     WidgetTester tester,
     Widget child, {
     PostFilter? filter,
   }) async {
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-        MultiProvider(
+    await tester.runAsync(
+      () => tester.pumpWidget(
+        env.app(
+          Scaffold(body: SingleChildScrollView(child: child)),
           providers: [
-            Provider<Client>.value(value: client),
-            Provider<BaseCacheManager>.value(
-              value: const NoImageCacheManager(),
-            ),
             if (filter != null)
               ListenableProvider<FilterController<Post>>.value(value: filter),
           ],
-          child: MaterialApp(
-            home: Scaffold(body: SingleChildScrollView(child: child)),
-          ),
         ),
-      );
-      // The displays fetch what they could not resolve, so that request has
-      // to land before the tree is torn down.
-      await Future<void>.delayed(const Duration(milliseconds: 100));
-    });
-    await tester.pump();
+      ),
+    );
+    await env.settle(tester);
   }
 
   group('RelationshipDisplay', () {
+    displayTest('loads a parent and its children in one request', (
+      tester,
+    ) async {
+      final List<int> ids = loadFixtureList(
+        'posts.json',
+      ).map((e) => e['id']! as int).take(4).toList();
+      env.fake.requests.clear();
+
+      await show(
+        tester,
+        RelationshipDisplay(
+          post: samplePost(
+            id: 10,
+            relationships: Relationships(
+              parentId: ids.first,
+              hasChildren: true,
+              hasActiveChildren: true,
+              children: ids.skip(1).toList(),
+            ),
+          ),
+        ),
+      );
+
+      expect(env.fake.requests.map((e) => e.path), ['/posts.json']);
+      expect(
+        env.fake.requests.single.query['tags'],
+        'id:${ids.join(',')} status:any',
+      );
+    });
+
     displayTest('names the artists of a cached parent', (tester) async {
-      client.posts.postCache.set(
+      env.client.posts.postCache.set(
         samplePost(
           id: 20,
           tags: const {
@@ -141,7 +116,7 @@ void main() {
 
     displayTest('counts children and previews each one', (tester) async {
       for (final id in [21, 22]) {
-        client.posts.postCache.set(samplePost(id: id));
+        env.client.posts.postCache.set(samplePost(id: id));
       }
 
       await show(
@@ -203,8 +178,8 @@ void main() {
     });
 
     displayTest('marks a denied child as blocked', (tester) async {
-      traits.value = traits.value.copyWith(denylist: const ['bad_tag']);
-      client.posts.postCache.set(
+      env.traits.value = env.traits.value.copyWith(denylist: const ['bad_tag']);
+      env.client.posts.postCache.set(
         samplePost(
           id: 21,
           tags: const {
@@ -228,7 +203,7 @@ void main() {
             ),
           ),
         ),
-        filter: PostFilter(client),
+        filter: PostFilter(env.client),
       );
 
       expect(find.byIcon(Icons.block), findsOneWidget);
@@ -238,7 +213,7 @@ void main() {
 
   group('PoolDisplay', () {
     displayTest('names a cached pool and its size', (tester) async {
-      client.pools.poolCache.set(
+      env.client.pools.poolCache.set(
         samplePool(id: 30, name: 'sample_pool', postIds: const [21, 22, 23]),
       );
 
