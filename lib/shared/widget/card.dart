@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class ColoredCard extends StatefulWidget {
+class ColoredCard extends StatelessWidget {
   const ColoredCard({
     super.key,
     required this.child,
@@ -30,41 +30,19 @@ class ColoredCard extends StatefulWidget {
   final Widget? trailing;
   final EdgeInsetsGeometry padding;
 
-  bool get _interactive =>
-      onTap != null || onLongPress != null || onSecondaryTap != null;
-
   @override
-  State<ColoredCard> createState() => _ColoredCardState();
-}
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.all(2),
+    child: PressBuilder(
+      onTap: onTap,
+      onLongPress: onLongPress,
+      onSecondaryTap: onSecondaryTap,
+      builder: _body,
+    ),
+  );
 
-class _ColoredCardState extends State<ColoredCard> {
-  bool _pressed = false;
-  bool _held = false;
-  int _pressToken = 0;
-
-  void _press() {
-    setState(() => _pressed = true);
-    final token = ++_pressToken;
-    Future.delayed(const Duration(milliseconds: 150), () {
-      if (mounted && _pressToken == token && !_held) {
-        setState(() => _pressed = false);
-      }
-    });
-  }
-
-  void _hold() {
-    _held = true;
-    setState(() => _pressed = true);
-  }
-
-  void _release() {
-    _held = false;
-    _press();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final baseColor = widget.backgroundColor ?? Theme.of(context).cardColor;
+  Widget _body(BuildContext context, bool pressed) {
+    final baseColor = backgroundColor ?? Theme.of(context).cardColor;
     final brightness = Theme.of(context).brightness;
     final pressedColor = Color.lerp(
       baseColor,
@@ -72,9 +50,9 @@ class _ColoredCardState extends State<ColoredCard> {
       0.1,
     )!;
 
-    Widget body = DecoratedBox(
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: _pressed ? pressedColor : baseColor,
+        color: pressed ? pressedColor : baseColor,
         borderRadius: const BorderRadius.all(Radius.circular(4)),
       ),
       child: Stack(
@@ -84,14 +62,14 @@ class _ColoredCardState extends State<ColoredCard> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Flexible(
-                child: Padding(padding: widget.padding, child: widget.child),
+                child: Padding(padding: padding, child: child),
               ),
-              if (widget.trailing case final trailing?) trailing,
+              if (trailing case final trailing?) trailing,
             ],
           ),
           // Stacking gives the stripe the content's height rather than a
           // fixed one.
-          if (widget.color case final stripeColor?)
+          if (color case final stripeColor?)
             Positioned(
               top: 0,
               bottom: 0,
@@ -110,24 +88,74 @@ class _ColoredCardState extends State<ColoredCard> {
         ],
       ),
     );
+  }
+}
 
-    if (widget._interactive) {
-      body = GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: widget.onTap,
-        onTapDown: (_) => _press(),
-        onTapCancel: () => setState(() => _pressed = false),
-        onLongPress: widget.onLongPress,
-        onLongPressDown: (_) => _hold(),
-        onLongPressUp: _release,
-        onLongPressCancel: _release,
-        onSecondaryTap: widget.onSecondaryTap,
-        onSecondaryTapDown: (_) => _press(),
-        onSecondaryTapCancel: () => setState(() => _pressed = false),
-        child: body,
-      );
-    }
+class PressBuilder extends StatefulWidget {
+  const PressBuilder({
+    super.key,
+    required this.builder,
+    this.onTap,
+    this.onLongPress,
+    this.onSecondaryTap,
+  });
 
-    return Padding(padding: const EdgeInsets.all(2), child: body);
+  final Widget Function(BuildContext context, bool pressed) builder;
+  final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
+  final VoidCallback? onSecondaryTap;
+
+  @override
+  State<PressBuilder> createState() => _PressBuilderState();
+}
+
+class _PressBuilderState extends State<PressBuilder> {
+  bool _pressed = false;
+  bool _held = false;
+  int _pressToken = 0;
+
+  void _press() {
+    setState(() => _pressed = true);
+    final token = ++_pressToken;
+    Future.delayed(const Duration(milliseconds: 150), () {
+      if (mounted && _pressToken == token && !_held) {
+        setState(() => _pressed = false);
+      }
+    });
+  }
+
+  void _cancel() => setState(() => _pressed = false);
+
+  void _hold() {
+    _held = true;
+    setState(() => _pressed = true);
+  }
+
+  void _release() {
+    _held = false;
+    _press();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Widget child = widget.builder(context, _pressed);
+    final bool tap = widget.onTap != null;
+    final bool hold = widget.onLongPress != null;
+    final bool secondary = widget.onSecondaryTap != null;
+    if (!tap && !hold && !secondary) return child;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: widget.onTap,
+      onTapDown: tap ? (_) => _press() : null,
+      onTapCancel: tap ? _cancel : null,
+      onLongPress: widget.onLongPress,
+      onLongPressDown: hold ? (_) => _hold() : null,
+      onLongPressUp: hold ? _release : null,
+      onLongPressCancel: hold ? _release : null,
+      onSecondaryTap: widget.onSecondaryTap,
+      onSecondaryTapDown: secondary ? (_) => _press() : null,
+      onSecondaryTapCancel: secondary ? _cancel : null,
+      child: child,
+    );
   }
 }
