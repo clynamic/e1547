@@ -193,6 +193,35 @@ void main() {
     expect(top.dragOffset, 0);
   });
 
+  testWidgets('a drag that starts below the top stops there and stays', (
+    tester,
+  ) async {
+    final NavigatorState navigator = await pumpBase(tester);
+    final DismissRoute<void> top = DismissRoute<void>(
+      builder: (context) => ScrollToDismiss(child: list()),
+    );
+    navigator.push(top);
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView), const Offset(0, -300));
+    await tester.pumpAndSettle();
+
+    final TestGesture finger = await tester.startGesture(
+      const Offset(400, 200),
+    );
+    Duration at = Duration.zero;
+    for (int step = 0; step < 12; step++) {
+      at += const Duration(milliseconds: 16);
+      await finger.moveBy(const Offset(0, 60), timeStamp: at);
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+
+    expect(top.dragOffset, 0);
+    await finger.up(timeStamp: at);
+    await tester.pumpAndSettle();
+
+    expect(top.isCurrent, isTrue);
+  });
+
   testWidgets('a vertical drag past the threshold pops the route', (
     tester,
   ) async {

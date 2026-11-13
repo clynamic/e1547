@@ -24,6 +24,7 @@ class DismissRoute<T> extends PageRoute<T> {
   double direction = 1;
   bool settling = false;
   bool blocked = false;
+  bool fromEdge = false;
   double released = 0;
 
   AnimationController get driver => controller!;
@@ -152,6 +153,10 @@ class DismissController implements Listenable {
   double get scale => 1 - (1 - dismissMinScale) * progress;
 
   bool get isDragging => route.dragging;
+
+  bool get fromEdge => route.fromEdge;
+
+  set fromEdge(bool value) => route.fromEdge = value;
 
   double opacity(double rate) => (1 - progress * rate).clamp(0, 1);
 
@@ -314,7 +319,9 @@ class DismissScrollPhysics extends ScrollPhysics {
     if (position.axis != Axis.vertical) {
       return super.applyPhysicsToUserOffset(position, offset);
     }
-    if (offset > 0 && position.pixels <= position.minScrollExtent) {
+    if (offset > 0 &&
+        position.pixels <= position.minScrollExtent &&
+        controller.fromEdge) {
       controller.push(offset);
       return 0;
     }
@@ -363,6 +370,11 @@ class _ScrollToDismissState extends State<ScrollToDismiss> {
       case ScrollStartNotification(:final DragStartDetails? dragDetails):
         if (!_dragging) _controller!.settle();
         _dragging = dragDetails != null;
+        if (_dragging) {
+          _controller!.fromEdge =
+              notification.metrics.pixels <=
+              notification.metrics.minScrollExtent;
+        }
       default:
         break;
     }
