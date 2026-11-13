@@ -2,6 +2,8 @@ import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
 import 'package:e1547/logs/logs.dart';
 import 'package:e1547/markup/markup.dart';
+// ignore: feature_layering
+import 'package:e1547/post/post.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -348,6 +350,15 @@ class DTextBody extends StatelessWidget {
   }
 
   InlineSpan _buildLinkSpan(BuildContext context, DTextLink node) {
+    final int? thumb = node.idType == DTextIdType.thumb
+        ? int.tryParse(node.id ?? '')
+        : null;
+    if (thumb != null) {
+      return WidgetSpan(
+        alignment: PlaceholderAlignment.middle,
+        child: PostThumbnail(id: thumb),
+      );
+    }
     final href = node.href;
     final local = _isLocalLink(href);
     final action = _buildLinkAction(context, node, local: local);

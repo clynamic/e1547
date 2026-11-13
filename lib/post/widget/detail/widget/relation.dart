@@ -60,6 +60,24 @@ class PostRelationPreview extends StatelessWidget {
   }
 }
 
+class PostThumbnail extends StatelessWidget {
+  const PostThumbnail({super.key, required this.id});
+
+  final int id;
+
+  @override
+  Widget build(BuildContext context) {
+    final Widget thumbnail = PostRelationPreview(id: id);
+    if (context.read<FilterController<Post>?>() != null) return thumbnail;
+    final Client client = context.watch<Client>();
+    return FilterControllerProvider<PostFilter, Post>(
+      create: (_) => PostFilter(client),
+      keys: (_) => [client],
+      child: thumbnail,
+    );
+  }
+}
+
 /// Square shell every relation preview is drawn in.
 class RelationPreviewCard extends StatelessWidget {
   const RelationPreviewCard({
