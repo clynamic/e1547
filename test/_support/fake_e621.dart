@@ -36,13 +36,15 @@ class FakeE621 {
     ..get('/data/<path|.*>', _serveImage)
     ..get('/posts.json', _listPosts)
     ..get('/favorites.json', _listFavorites)
+    ..post('/favorites.json', _addFavorite)
+    ..delete('/favorites/<id|[0-9]+>.json', _removeFavorite)
     ..get('/posts/<id|[0-9]+>.json', _showPost)
     ..post('/posts/<id|[0-9]+>/votes.json', _votePost)
     ..get('/forum_posts.json', _listReplies)
     ..post('/forum_posts.json', _createReply)
     ..get('/forum_posts/<id|[0-9]+>.json', _showReply)
     ..patch('/forum_posts/<id|[0-9]+>.json', _updateReply)
-    ..get('/comments.json', (Request request) => _list(state.comments, request))
+    ..get('/comments.json', _listComments)
     ..post('/comments.json', _createComment)
     ..get(
       '/comments/<id|[0-9]+>.json',
@@ -57,23 +59,128 @@ class FakeE621 {
       '/forum_topics/<id|[0-9]+>.json',
       (Request request, String id) => _json(_find(state.topics, id)),
     )
-    ..get('/pools.json', (Request request) => _list(state.pools, request))
+    ..get('/pools.json', _listPools)
     ..get(
       '/pools/<id|[0-9]+>.json',
       (Request request, String id) => _json(_find(state.pools, id)),
     )
+    ..get('/post_sets.json', _listSets)
+    ..get(
+      '/post_sets/<id|[0-9]+>.json',
+      (Request request, String id) => _json(_find(state.sets, id)),
+    )
     ..get('/tags.json', (Request request) => _list(state.tags, request))
+    ..get('/tags/autocomplete.json', _autocompleteTags)
+    ..post('/tags/preview.json', _previewTags)
     ..get(
       '/tag_aliases.json',
       (Request request) => _list(state.tagAliases, request),
     )
-    ..get('/users.json', (Request request) => _list(state.users, request))
+    ..get('/users.json', _listUsers)
     ..get('/users/<lookup>.json', _showUser)
+    ..put('/users/<lookup>.json', _updateUser)
     ..get('/wiki_pages.json', (Request request) => _list(state.wikis, request))
     ..get('/wiki_pages/<lookup>.json', _showWiki)
     ..get('/post_flags.json', _listFlags)
     ..post('/post_flags.json', _createFlag)
     ..post('/tickets', _createTicket);
+
+  Response _autocompleteTags(Request request) {
+    final search = request.url.queryParameters['search[name_matches]'] ?? '';
+    return _json(
+      state.tags
+          .where((e) => (e['name']! as String).startsWith(search))
+          .take(10)
+          .toList(),
+    );
+  }
+
+  Response _previewTags(Request request) {
+    final names = (_params(request)['tags'] ?? '')
+        .split(' ')
+        .where((e) => e.isNotEmpty);
+    return _json([
+      for (final name in names)
+        state.tags.firstWhere(
+          (e) => e['name'] == name,
+          orElse: () => {'name': name, 'post_count': 0},
+        ),
+    ]);
+  }
+
+  Response _listPools(Request request) {
+    final Map<String, String> query = request.url.queryParameters;
+    final String name = (query['search[name_matches]'] ?? '').toLowerCase();
+    final String? category = query['search[category]'];
+    final Set<String>? ids = query['search[id]']?.split(',').toSet();
+    return _json(
+      _paginate(
+        state.pools
+            .where((e) => (e['name']! as String).toLowerCase().contains(name))
+            .where((e) => category == null || e['category'] == category)
+            .where((e) => ids == null || ids.contains('${e['id']}'))
+            .toList(),
+        query,
+      ),
+    );
+  }
+
+  Response _listSets(Request request) {
+    final Map<String, String> query = request.url.queryParameters;
+    final String name = (query['search[name]'] ?? '').toLowerCase();
+    final String? creator = query['search[creator_name]'];
+    final Object? creatorId = creator == null
+        ? null
+        : creator == state.user['name']
+        ? state.user['id']
+        : -1;
+    final int? maintainer = int.tryParse(query['maintainer_id'] ?? '');
+    if (maintainer != null) {
+      return _json(
+        _paginate(
+          state.sets.where((e) {
+            final List<Object?> maintainers =
+                e['maintainers'] as List<Object?>? ?? const [];
+            return maintainers.contains(maintainer) ||
+                (e['creator_id'] == maintainer && maintainers.isNotEmpty);
+          }).toList(),
+          query,
+        ),
+      );
+    }
+    return _json(
+      _paginate(
+        state.sets
+            .where((e) => (e['name']! as String).toLowerCase().contains(name))
+            .where((e) => creatorId == null || e['creator_id'] == creatorId)
+            .toList(),
+        query,
+      ),
+    );
+  }
+
+  Response _listComments(Request request) {
+    final bool oldest =
+        request.url.queryParameters['search[order]'] == 'id_asc';
+    final List<Map<String, Object?>> sorted = [...state.comments]
+      ..sort((a, b) => (a['id']! as int).compareTo(b['id']! as int));
+    return _list(oldest ? sorted : sorted.reversed.toList(), request);
+  }
+
+  Response _listUsers(Request request) {
+    final String? ids = request.url.queryParameters['search[id]'];
+    final Set<int>? wanted = ids?.split(',').map(int.parse).toSet();
+    final String? name = request.url.queryParameters['search[name_matches]'];
+    final String? prefix = name != null && name.endsWith('*')
+        ? name.substring(0, name.length - 1)
+        : null;
+    return _list([
+      for (final Map<String, Object?> user in state.users)
+        if ((wanted == null || wanted.contains(user['id'])) &&
+            (prefix == null || (user['name']! as String).startsWith(prefix)))
+          user,
+    ], request);
+  }
 
   Response _list(List<Map<String, Object?>> items, Request request) =>
       _json(_paginate(items, request.url.queryParameters));
@@ -86,6 +193,13 @@ class FakeE621 {
 
   Response _showUser(Request request, String lookup) =>
       _json(_lookup([state.user], lookup, 'name'));
+
+  Response _updateUser(Request request, String lookup) {
+    final Map<String, Object?> user = _lookup([state.user], lookup, 'name');
+    final String? blacklist = _params(request)['user[blacklisted_tags]'];
+    if (blacklist != null) user['blacklisted_tags'] = blacklist;
+    return _json(user);
+  }
 
   Response _showWiki(Request request, String lookup) =>
       _json(_lookup(state.wikis, lookup, 'title'));
@@ -130,11 +244,14 @@ class FakeE621 {
 
   Response _listFlags(Request request) {
     final type = request.url.queryParameters['search[type]'];
+    final postId = int.tryParse(
+      request.url.queryParameters['search[post_id]'] ?? '',
+    );
     final flags = switch (type) {
       'deletion' => state.flags.where((e) => e['is_deletion'] == true),
       'flag' => state.flags.where((e) => e['is_deletion'] == false),
       _ => state.flags,
-    };
+    }.where((e) => postId == null || e['post_id'] == postId);
     return _list(flags.toList(), request);
   }
 
@@ -186,13 +303,97 @@ class FakeE621 {
   Response _listPosts(Request request) {
     final query = request.url.queryParameters;
     var posts = state.posts;
-    final tags = query['tags'] ?? '';
-    final ids = RegExp(r'^id:([\d,]+)$').firstMatch(tags);
-    if (ids != null) {
-      final wanted = ids.group(1)!.split(',').map(int.parse).toSet();
-      posts = posts.where((e) => wanted.contains(e['id'])).toList();
+    final tags = (query['tags'] ?? '').split(' ');
+    if (!tags.contains('status:any')) {
+      posts = posts
+          .where((e) => (e['flags'] as Map?)?['deleted'] != true)
+          .toList();
+    }
+    for (final String tag in tags) {
+      final ids = RegExp(r'^id:([\d,]+)$').firstMatch(tag);
+      if (ids != null) {
+        final wanted = ids.group(1)!.split(',').map(int.parse).toSet();
+        posts = posts.where((e) => wanted.contains(e['id'])).toList();
+      }
+      final uploader = RegExp(r'^user:(.+)$').firstMatch(tag);
+      if (uploader != null) {
+        final Object? id = [
+          state.user,
+          ...state.users,
+        ].where((e) => e['name'] == uploader.group(1)).firstOrNull?['id'];
+        posts = posts.where((e) => e['uploader_id'] == id).toList();
+      }
+      final faved = RegExp(r'^fav:(.+)$').firstMatch(tag);
+      if (faved != null) {
+        final String name = faved.group(1)!;
+        if (state.privateFavorites.contains(name)) {
+          throw FakeE621Error(403, "This user's favorites are hidden");
+        }
+        final Set<int> wanted = state.favoritesOf[name] ?? const {};
+        posts = posts.where((e) => wanted.contains(e['id'])).toList();
+      }
+      final parent = RegExp(r'^parent:(\d+)$').firstMatch(tag);
+      if (parent != null) {
+        final int id = int.parse(parent.group(1)!);
+        posts = posts
+            .where((e) => (e['relationships'] as Map?)?['parent_id'] == id)
+            .toList();
+      }
+    }
+    if (tags.contains('order:id')) {
+      posts = [...posts]
+        ..sort((a, b) => (a['id']! as int).compareTo(b['id']! as int));
+    }
+    if (query['v2'] == 'true' && query['mode'] == 'thumbnail') {
+      return _json([
+        for (final Object? post in _paginate(posts, query))
+          _thumbnail(post! as Map<String, Object?>),
+      ]);
     }
     return _json(_paginate(posts, query).map((e) => _post(e, query)).toList());
+  }
+
+  Map<String, Object?> _thumbnail(Map<String, Object?> post) {
+    final Map file = post['file']! as Map;
+    final Map flags = (post['flags'] as Map?) ?? const {};
+    final Map tags = (post['tags'] as Map?) ?? const {};
+    return {
+      'id': post['id'],
+      'created_at': post['created_at'],
+      'file_ext': file['ext'],
+      'width': file['width'],
+      'height': file['height'],
+      'size': file['size'],
+      'preview_url': (post['preview'] as Map?)?['url'],
+      'sample_url': (post['sample'] as Map?)?['url'],
+      'file_url': file['url'],
+      'uploader_id': post['uploader_id'],
+      'score': (post['score'] as Map?)?['total'] ?? 0,
+      'fav_count': post['fav_count'],
+      'is_favorited': post['is_favorited'],
+      'vote': post['vote'] ?? 0,
+      'comment_count': post['comment_count'],
+      'flags': [
+        if (flags['pending'] == true) 'pending',
+        if (flags['flagged'] == true) 'flagged',
+        if (flags['deleted'] == true) 'deleted',
+      ].join(' '),
+      'pools': ((post['pools'] as List?) ?? const []).join(' '),
+      'rating': post['rating'],
+      'tags': tags.values.expand((e) => e as List).join(' '),
+    };
+  }
+
+  Response _addFavorite(Request request) {
+    final int id = int.parse(request.url.queryParameters['post_id']!);
+    _find(state.posts, '$id');
+    state.favorites.add(id);
+    return _json({'post_id': id});
+  }
+
+  Response _removeFavorite(Request request, String id) {
+    state.favorites.remove(int.parse(id));
+    return Response(204);
   }
 
   Response _listFavorites(Request request) {
@@ -498,6 +699,7 @@ class FakeE621State {
     required this.replies,
     required this.comments,
     required this.pools,
+    required this.sets,
     required this.tags,
     required this.tagAliases,
     required this.users,
@@ -524,6 +726,7 @@ class FakeE621State {
       replies: _repeat(loadFixtureList('replies.json'), replies),
       comments: _repeat(loadFixtureList('comments.json'), comments),
       pools: loadFixtureList('pools.json'),
+      sets: [],
       tags: loadFixtureList('tags.json'),
       tagAliases: loadFixtureList('tag_aliases.json'),
       users: loadFixtureList('users.json'),
@@ -560,6 +763,7 @@ class FakeE621State {
   final List<Map<String, Object?>> replies;
   final List<Map<String, Object?>> comments;
   final List<Map<String, Object?>> pools;
+  final List<Map<String, Object?>> sets;
   final List<Map<String, Object?>> tags;
   final List<Map<String, Object?>> tagAliases;
   final List<Map<String, Object?>> users;
@@ -570,6 +774,8 @@ class FakeE621State {
   final List<Map<String, Object?>> flags;
   final Set<int> lockedTopics;
   final Set<int> reportReasons;
+  final Map<String, Set<int>> favoritesOf = {};
+  final Set<String> privateFavorites = {};
 
   int _nextId = 100;
 
