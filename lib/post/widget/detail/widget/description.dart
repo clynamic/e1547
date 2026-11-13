@@ -19,7 +19,7 @@ class DescriptionDisplay extends StatelessWidget {
               child: Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
-                  child: DText(post.description),
+                  child: DTextFold(text: post.description),
                 ),
               ),
             ),

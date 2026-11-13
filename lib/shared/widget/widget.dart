@@ -17,6 +17,7 @@ export 'favicon.dart';
 export 'gallery.dart';
 export 'grouped.dart';
 export 'header.dart';
+export 'height_limit.dart';
 export 'hero.dart';
 export 'hexagonal_loading.dart';
 export 'image_load.dart';
