@@ -21,7 +21,6 @@ void main() {
     final int id = recorded['id']! as int;
 
     await tester.pumpWidget(env.app(TopicLoadingPage(id)));
-    await tester.pump();
 
     expect(skeletons(find.byType(TopicRepliesPage)), findsOneWidget);
     expect(skeletons(find.byType(ReplyTile)), findsWidgets);

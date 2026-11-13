@@ -21,7 +21,7 @@ class UserLoadingPage extends StatelessWidget {
           ? users.useGet(id: id)
           : users.useGetByName(name: name!),
       builder: (context, state) => LoadingPage(
-        isLoading: state.isLoading,
+        isLoading: state.isLoading || state.isInitial,
         isError: state.isError,
         isEmpty: state.data == null,
         loadingBuilder: (context, child) => Scaffold(

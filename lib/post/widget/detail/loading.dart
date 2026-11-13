@@ -15,7 +15,7 @@ class PostLoadingPage extends StatelessWidget {
     final Widget page = QueryBuilder(
       query: client.posts.useGet(id: id),
       builder: (context, state) => LoadingPage(
-        isLoading: state.isLoading,
+        isLoading: state.isLoading || state.isInitial,
         isError: state.isError,
         isEmpty: state.data == null,
         skeleton: (context) => PostDetail(

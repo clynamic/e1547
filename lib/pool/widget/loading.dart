@@ -16,7 +16,7 @@ class PoolLoadingPage extends StatelessWidget {
     return QueryBuilder(
       query: client.pools.useGet(id: id),
       builder: (context, state) => LoadingPage(
-        isLoading: state.isLoading,
+        isLoading: state.isLoading || state.isInitial,
         isError: state.isError,
         isEmpty: state.data == null,
         loadingBuilder: (context, child) => Scaffold(
