@@ -67,7 +67,7 @@ class VideoButton extends StatelessWidget {
                       secondChild: const Center(
                         child: Padding(
                           padding: EdgeInsets.all(8),
-                          child: CircularProgressIndicator(),
+                          child: HexagonalLoadingIndicator(),
                         ),
                       ),
                       child: SubValue<StreamSubscription<bool>>(

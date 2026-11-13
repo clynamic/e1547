@@ -69,7 +69,7 @@ class _PostDetailGalleryState extends State<PostDetailGallery>
           if (items != null) close();
           return const Scaffold(
             appBar: TransparentAppBar(child: DefaultAppBar()),
-            body: Center(child: CircularProgressIndicator()),
+            body: Center(child: HexagonalLoadingIndicator()),
           );
         }
 

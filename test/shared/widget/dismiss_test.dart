@@ -139,38 +139,34 @@ void main() {
     expect(middle.isCurrent, isTrue);
   });
 
-  testWidgets(
-    'a drag back up undoes the pull',
-    (tester) async {
-      late DismissController top;
-      final NavigatorState navigator = await pumpBase(tester);
-      navigator.push(
-        DismissRoute<void>(
-          builder: (context) {
-            top = DismissController.maybeOf(context)!;
-            return ScrollToDismiss(child: list());
-          },
-        ),
-      );
-      await tester.pumpAndSettle();
+  testWidgets('a drag back up undoes the pull', (tester) async {
+    late DismissController top;
+    final NavigatorState navigator = await pumpBase(tester);
+    navigator.push(
+      DismissRoute<void>(
+        builder: (context) {
+          top = DismissController.maybeOf(context)!;
+          return ScrollToDismiss(child: list());
+        },
+      ),
+    );
+    await tester.pumpAndSettle();
 
-      final TestGesture finger = await tester.startGesture(
-        const Offset(400, 200),
-      );
-      for (int step = 0; step < 10; step++) {
-        await finger.moveBy(const Offset(0, 30));
-        await tester.pump();
-      }
-      final double pulled = top.offset;
-      for (int step = 0; step < 3; step++) {
-        await finger.moveBy(const Offset(0, -20));
-        await tester.pump();
-      }
+    final TestGesture finger = await tester.startGesture(
+      const Offset(400, 200),
+    );
+    for (int step = 0; step < 10; step++) {
+      await finger.moveBy(const Offset(0, 30));
+      await tester.pump();
+    }
+    final double pulled = top.offset;
+    for (int step = 0; step < 3; step++) {
+      await finger.moveBy(const Offset(0, -20));
+      await tester.pump();
+    }
 
-      expect(top.offset, closeTo(pulled - 60, 0.001));
-    },
-    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
-  );
+    expect(top.offset, closeTo(pulled - 60, 0.001));
+  }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
 
   testWidgets('a short pull leaves the route in place', (tester) async {
     final NavigatorState navigator = await pumpBase(tester);
@@ -458,30 +454,26 @@ void main() {
     expect(top.offset, 50);
   });
 
-  testWidgets(
-    'a flick short of the threshold pops the route',
-    (tester) async {
-      final NavigatorState navigator = await pumpBase(tester);
-      final DismissRoute<void> top = DismissRoute<void>(
-        builder: (context) => ScrollToDismiss(child: list()),
-      );
-      navigator.push(top);
-      await tester.pumpAndSettle();
+  testWidgets('a flick short of the threshold pops the route', (tester) async {
+    final NavigatorState navigator = await pumpBase(tester);
+    final DismissRoute<void> top = DismissRoute<void>(
+      builder: (context) => ScrollToDismiss(child: list()),
+    );
+    navigator.push(top);
+    await tester.pumpAndSettle();
 
-      final TestGesture finger = await dragSlowly(
-        tester,
-        const Offset(400, 200),
-        const Offset(0, 15),
-        steps: 6,
-        pace: const Duration(milliseconds: 16),
-      );
-      await finger.up();
-      await tester.pumpAndSettle();
+    final TestGesture finger = await dragSlowly(
+      tester,
+      const Offset(400, 200),
+      const Offset(0, 15),
+      steps: 6,
+      pace: const Duration(milliseconds: 16),
+    );
+    await finger.up();
+    await tester.pumpAndSettle();
 
-      expect(top.isActive, isFalse);
-    },
-    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
-  );
+    expect(top.isActive, isFalse);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
 
   testWidgets('a pull shows the route beneath', (tester) async {
     late DismissController top;

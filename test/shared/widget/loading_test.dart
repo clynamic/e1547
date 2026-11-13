@@ -37,7 +37,7 @@ void main() {
   testWidgets('a page still loading paints its own background', (tester) async {
     await show(tester, loaded: false);
 
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(HexagonalLoadingIndicator), findsOneWidget);
     expect(wrapper(tester), MaterialType.canvas);
   });
 }

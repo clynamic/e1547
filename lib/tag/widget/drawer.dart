@@ -109,7 +109,7 @@ class DrawerTagCounterBody extends StatelessWidget {
                         children: [
                           Padding(
                             padding: EdgeInsets.all(8),
-                            child: SizedCircularProgressIndicator(size: 24),
+                            child: HexagonalLoadingIndicator(size: 24),
                           ),
                         ],
                       ),

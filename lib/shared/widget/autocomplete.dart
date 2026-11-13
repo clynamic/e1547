@@ -90,7 +90,7 @@ class AutocompleteTextField<T> extends StatelessWidget {
       loadingBuilder: (context) => const ListTile(
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [SizedCircularProgressIndicator(size: 24)],
+          children: [HexagonalLoadingIndicator(size: 24)],
         ),
       ),
       errorBuilder: (context, error) => const Column(

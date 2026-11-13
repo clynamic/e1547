@@ -154,10 +154,14 @@ class RawPostImageWidget extends StatelessWidget {
       DownloadProgress progress,
     ) {
       return Center(
-        child: SizedCircularProgressIndicator(
-          size: 30,
-          value: progress.progress,
-        ),
+        child: switch (progress.progress) {
+          final double value => HexagonalLoadingIndicator(
+            state: HexagonState.tracing,
+            progress: value,
+            size: 30,
+          ),
+          null => const HexagonalLoadingIndicator(size: 30),
+        },
       );
     }
 

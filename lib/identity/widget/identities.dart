@@ -149,7 +149,7 @@ class IdentitiesPage extends StatelessWidget {
                   shrinkWrap: true,
                   children: [
                     if (identities == null)
-                      const Center(child: CircularProgressIndicator())
+                      const Center(child: HexagonalLoadingIndicator())
                     else if (snapshot.hasError)
                       const IconMessage(
                         icon: Icon(Icons.warning_amber),

@@ -219,7 +219,7 @@ class ActionIndicators extends StatelessWidget {
                   : controller.isLoading
                   ? const Padding(
                       padding: EdgeInsets.only(right: 10),
-                      child: SizedCircularProgressIndicator(size: 24),
+                      child: HexagonalLoadingIndicator(size: 24),
                     )
                   : const SizedBox(),
             ),

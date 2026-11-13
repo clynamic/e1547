@@ -46,7 +46,7 @@ class UserReportScreen extends StatelessWidget {
                         shape: BoxShape.circle,
                         color: Colors.black54,
                       ),
-                      child: Center(child: CircularProgressIndicator()),
+                      child: Center(child: HexagonalLoadingIndicator()),
                     ),
                   ),
                 ),

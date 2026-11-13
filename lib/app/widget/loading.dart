@@ -1,4 +1,5 @@
 import 'package:e1547/settings/settings.dart';
+import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
 @immutable
@@ -105,7 +106,7 @@ class _LoadingShellState extends State<LoadingShell> {
                           height: 300,
                           child: Center(child: AppIcon(radius: 64)),
                         ),
-                        const CircularProgressIndicator(),
+                        const HexagonalLoadingIndicator(),
                         const SizedBox(height: 16),
                         AnimatedAlign(
                           duration: const Duration(milliseconds: 200),

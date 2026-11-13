@@ -33,7 +33,7 @@ PagedChildBuilderDelegate<T> defaultPagedChildBuilderDelegate<T>({
       const Material(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [CircularProgressIndicator()],
+          children: [HexagonalLoadingIndicator()],
         ),
       ),
     ),
@@ -43,7 +43,7 @@ PagedChildBuilderDelegate<T> defaultPagedChildBuilderDelegate<T>({
         child: Center(
           child: Padding(
             padding: EdgeInsets.all(16),
-            child: CircularProgressIndicator(),
+            child: HexagonalLoadingIndicator(),
           ),
         ),
       ),

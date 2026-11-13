@@ -21,7 +21,7 @@ class ReportLoadingOverlay extends StatelessWidget {
             showChild: isLoading,
             child: const DecoratedBox(
               decoration: BoxDecoration(color: Colors.black54),
-              child: Center(child: CircularProgressIndicator()),
+              child: Center(child: HexagonalLoadingIndicator()),
             ),
           ),
         ),

@@ -256,7 +256,7 @@ class _SearchTagDisplayState extends State<SearchTagDisplay> {
           children: [
             Padding(
               padding: EdgeInsets.all(16),
-              child: CircularProgressIndicator(),
+              child: HexagonalLoadingIndicator(),
             ),
           ],
         ),

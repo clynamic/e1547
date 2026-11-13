@@ -121,7 +121,7 @@ class DatabaseExportTile extends StatelessWidget {
                 child: SizedBox(
                   height: 28,
                   width: 28,
-                  child: CircularProgressIndicator(),
+                  child: HexagonalLoadingIndicator(),
                 ),
               ),
               Padding(
@@ -209,7 +209,7 @@ class DatabaseImportTile extends StatelessWidget {
                 child: SizedBox(
                   height: 28,
                   width: 28,
-                  child: CircularProgressIndicator(),
+                  child: HexagonalLoadingIndicator(),
                 ),
               ),
               Padding(

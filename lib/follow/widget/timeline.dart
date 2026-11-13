@@ -27,7 +27,7 @@ class FollowsTimelinePage extends StatelessWidget {
                   title: Text('Timeline'),
                   actions: [ContextDrawerButton()],
                 ),
-                body: Center(child: CircularProgressIndicator()),
+                body: Center(child: HexagonalLoadingIndicator()),
               );
             }
             final followedTags = [
