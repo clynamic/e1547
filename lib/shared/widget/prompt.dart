@@ -399,3 +399,44 @@ Future<T?> showPrompt<T>(
   parentBuilder: parentBuilder,
   dialogConstraints: dialogConstraints,
 );
+
+class PromptHeader extends StatelessWidget {
+  const PromptHeader({super.key, required this.title, required this.actions});
+
+  final Widget title;
+  final Widget actions;
+
+  static const EdgeInsets padding = EdgeInsets.symmetric(
+    vertical: 12,
+    horizontal: 16,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    const Widget divider = Divider(indent: 4, endIndent: 4);
+    if (Theme.of(context).isDesktop) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: padding,
+            child: OverflowBar(
+              alignment: MainAxisAlignment.spaceBetween,
+              overflowSpacing: 8,
+              children: [title, actions],
+            ),
+          ),
+          divider,
+        ],
+      );
+    }
+    return Padding(
+      padding: padding,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [title, divider, actions],
+      ),
+    );
+  }
+}

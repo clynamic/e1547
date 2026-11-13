@@ -13,26 +13,18 @@ Future<void> showPoolPrompt({
   context,
   dialogWidth: 800,
   pinnedHeader: true,
-  header: (context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-    child: OverflowBar(
-      alignment: MainAxisAlignment.spaceBetween,
-      overflowSpacing: 8,
-      children: [
-        Text(
-          tagToName(pool.name),
-          style: Theme.of(context).textTheme.titleLarge,
-          softWrap: true,
-        ),
-        PoolActions(pool: pool),
-      ],
+  header: (context) => PromptHeader(
+    title: Text(
+      tagToName(pool.name),
+      style: Theme.of(context).textTheme.titleLarge,
+      softWrap: true,
     ),
+    actions: PoolActions(pool: pool),
   ),
   body: Column(
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      const Divider(indent: 4, endIndent: 4),
       Padding(
         padding: const EdgeInsets.all(16),
         child: pool.description.isNotEmpty

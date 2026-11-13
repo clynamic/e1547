@@ -28,39 +28,31 @@ Future<void> showTagSearchPrompt({
     header: (context) {
       final canSearch =
           context.read<PostParamsController?>()?.canSearch ?? false;
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-        child: OverflowBar(
-          alignment: MainAxisAlignment.spaceBetween,
-          overflowSpacing: 8,
-          children: [
-            InkWell(
-              onTap: () {
-                Navigator.of(context).maybePop();
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        PostsPage(params: PostParams(tags: tag)),
-                  ),
-                );
-              },
-              child: Text(
-                tagToName(tag),
-                style: Theme.of(context).textTheme.titleLarge,
-                softWrap: true,
+      return PromptHeader(
+        title: InkWell(
+          onTap: () {
+            Navigator.of(context).maybePop();
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => PostsPage(params: PostParams(tags: tag)),
               ),
-            ),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (canSearch) TagSearchActions(tag: tag),
-                  TagListActions(tag: tag),
-                ],
-              ),
-            ),
-          ],
+            );
+          },
+          child: Text(
+            tagToName(tag),
+            style: Theme.of(context).textTheme.titleLarge,
+            softWrap: true,
+          ),
+        ),
+        actions: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (canSearch) TagSearchActions(tag: tag),
+              TagListActions(tag: tag),
+            ],
+          ),
         ),
       );
     },
@@ -68,7 +60,6 @@ Future<void> showTagSearchPrompt({
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Divider(indent: 4, endIndent: 4),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           // Keeps the dialog from jumping as each tag resolves.
