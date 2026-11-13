@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:e1547/client/client.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
@@ -33,27 +35,21 @@ class PostRelationPreview extends StatelessWidget {
         final Post? post = state.data;
         final bool denied =
             post != null && filter != null && !filter.filter(post);
+        final VoidCallback open =
+            onTap ?? () => pushPostLoadingPage(context, id);
+        if (post != null && !denied) {
+          return PostRowTile(post: post, size: size, onTap: open);
+        }
         return RelationPreviewCard(
           size: size,
-          onTap: onTap ?? () => pushPostLoadingPage(context, id),
-          child: post != null && !denied
-              ? PostTileOverlay(
-                  post: post,
-                  child: PostImageWidget(
-                    post: post,
-                    size: PostImageSize.preview,
-                    fit: BoxFit.cover,
-                    showProgress: false,
-                    withLowRes: false,
-                  ),
-                )
-              : RelationPreviewIcon(
-                  icon: denied
-                      ? Icons.block
-                      : state.error != null
-                      ? Icons.warning_amber_outlined
-                      : null,
-                ),
+          onTap: open,
+          child: RelationPreviewIcon(
+            icon: denied
+                ? Icons.block
+                : state.error != null
+                ? Icons.warning_amber_outlined
+                : null,
+          ),
         );
       },
     );
@@ -206,6 +202,115 @@ class RelationHeader extends StatelessWidget {
           ),
         ],
       ],
+    ),
+  );
+}
+
+class PostRowSection extends StatelessWidget {
+  const PostRowSection({
+    super.key,
+    required this.title,
+    required this.onAll,
+    required this.children,
+    this.count,
+  }) : loading = false;
+
+  const PostRowSection.loading({
+    super.key,
+    required this.title,
+    required this.onAll,
+  }) : count = null,
+       loading = true,
+       children = const [];
+
+  final String title;
+  final int? count;
+  final VoidCallback onAll;
+  final List<Widget> children;
+  final bool loading;
+
+  static const double minTileSize = 100;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Row(
+        children: [
+          Expanded(
+            child: RelationHeader(title: title, count: count),
+          ),
+          TextButton.icon(
+            style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+            onPressed: onAll,
+            iconAlignment: IconAlignment.end,
+            icon: const Icon(Icons.arrow_forward),
+            label: const Text('See all'),
+          ),
+        ],
+      ),
+      LayoutBuilder(
+        builder: (context, constraints) {
+          final int slots = max(
+            1,
+            (constraints.maxWidth / minTileSize).floor(),
+          );
+          final List<Widget> fitting = loading
+              ? [
+                  for (int i = 0; i < min(slots, 6); i++)
+                    Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Bone(
+                        width: double.infinity,
+                        height: double.infinity,
+                        borderRadius: BorderRadius.circular(
+                          AppStyle.of(context).smallRadius,
+                        ),
+                      ),
+                    ),
+                ]
+              : children.take(slots).toList();
+          final Widget row = Row(
+            children: [
+              for (final Widget child in fitting)
+                Expanded(child: AspectRatio(aspectRatio: 1, child: child)),
+              for (int i = fitting.length; i < slots; i++) const Spacer(),
+            ],
+          );
+          return Skeletonizer(enabled: loading, child: row);
+        },
+      ),
+      const SizedBox(height: 8),
+      const Divider(),
+    ],
+  );
+}
+
+class PostRowTile extends StatelessWidget {
+  const PostRowTile({
+    super.key,
+    required this.post,
+    required this.onTap,
+    this.size = postRelationPreviewSize,
+  });
+
+  final PostSummary post;
+  final VoidCallback onTap;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => RelationPreviewCard(
+    size: size,
+    onTap: onTap,
+    child: PostTileOverlay(
+      post: post,
+      child: PostImageWidget(
+        post: post,
+        size: PostImageSize.preview,
+        fit: BoxFit.cover,
+        showProgress: false,
+        withLowRes: false,
+      ),
     ),
   );
 }

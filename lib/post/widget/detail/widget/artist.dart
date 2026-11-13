@@ -41,10 +41,7 @@ class ArtistDisplay extends StatelessWidget {
                   borderRadius: BorderRadius.circular(4),
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => UserLoadingPage(
-                        post.uploaderId,
-                        initalPage: UserPageSection.uploads,
-                      ),
+                      builder: (context) => UserLoadingPage(post.uploaderId),
                     ),
                   ),
                   child: Padding(
