@@ -4,6 +4,7 @@ import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/traits/data/client.dart';
+import 'package:e1547/user/user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_sub/flutter_sub.dart';
@@ -33,12 +34,14 @@ class UserAvatar extends StatelessWidget {
     required this.userId,
     required this.hasCroppedAvatar,
     this.radius = 20,
+    this.onTap,
   });
 
   final int? id;
   final int userId;
   final bool hasCroppedAvatar;
   final double radius;
+  final VoidCallback? onTap;
 
   String? _cropped(int id, String? reference) =>
       !hasCroppedAvatar || reference == null
@@ -48,10 +51,8 @@ class UserAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final int? id = this.id;
-    if (id == null) {
-      return EmptyAvatar(radius: radius);
-    }
-    void open() => pushPostLoadingPage(context, id);
+    if (id == null) return Avatar(null, radius: radius, onTap: onTap);
+    final VoidCallback open = onTap ?? () => pushPostLoadingPage(context, id);
     final Client client = context.watch<Client>();
     return QueryBuilder(
       query: client.posts.useGet(id: id),
@@ -66,9 +67,40 @@ class UserAvatar extends StatelessWidget {
             final post => post.sample,
           },
           radius: radius,
-          onTap: post == null ? null : open,
+          onTap: onTap ?? (post == null ? null : open),
         );
       },
+    );
+  }
+}
+
+class UserSummaryAvatar extends StatelessWidget {
+  const UserSummaryAvatar({
+    super.key,
+    required this.userId,
+    this.radius = 20,
+    this.onTap,
+  });
+
+  final int userId;
+  final double radius;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isSkeleton(context)) {
+      return Bone.circle(size: radius * 2);
+    }
+    final Client client = context.watch<Client>();
+    return QueryBuilder(
+      query: client.users.usePartial(id: userId),
+      builder: (context, state) => UserAvatar(
+        id: state.data?.avatarId,
+        userId: userId,
+        hasCroppedAvatar: state.data?.hasCroppedAvatar ?? false,
+        radius: radius,
+        onTap: onTap,
+      ),
     );
   }
 }
@@ -106,30 +138,27 @@ class Avatar extends StatelessWidget {
   final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) {
-    if (url case final url?) {
-      return MouseCursorRegion(
-        onTap: onTap,
-        child: Container(
-          decoration: const BoxDecoration(shape: BoxShape.circle),
-          clipBehavior: Clip.antiAlias,
-          width: radius * 2,
-          height: radius * 2,
-          child: CachedNetworkImage(
-            imageUrl: url,
-            fit: BoxFit.cover,
-            cacheManager: context.read<BaseCacheManager>(),
-            placeholder: (context, url) => EmptyAvatar(radius: radius),
-            errorWidget: (context, url, error) => EmptyAvatar(radius: radius),
-            fadeInDuration: Duration.zero,
-            fadeOutDuration: Duration.zero,
-          ),
+  Widget build(BuildContext context) => MouseCursorRegion(
+    onTap: onTap,
+    child: switch (url) {
+      final url? => Container(
+        decoration: const BoxDecoration(shape: BoxShape.circle),
+        clipBehavior: Clip.antiAlias,
+        width: radius * 2,
+        height: radius * 2,
+        child: CachedNetworkImage(
+          imageUrl: url,
+          fit: BoxFit.cover,
+          cacheManager: context.read<BaseCacheManager>(),
+          placeholder: (context, url) => EmptyAvatar(radius: radius),
+          errorWidget: (context, url, error) => EmptyAvatar(radius: radius),
+          fadeInDuration: Duration.zero,
+          fadeOutDuration: Duration.zero,
         ),
-      );
-    } else {
-      return EmptyAvatar(radius: radius);
-    }
-  }
+      ),
+      null => EmptyAvatar(radius: radius),
+    },
+  );
 }
 
 class EmptyAvatar extends StatelessWidget {

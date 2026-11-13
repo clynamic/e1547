@@ -27,9 +27,18 @@ class ReplyTile extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.only(right: 8, top: 4),
-                    child: Icon(Icons.person),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8, top: 4),
+                    child: UserSummaryAvatar(
+                      userId: reply.creatorId,
+                      radius: 12,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              UserLoadingPage(reply.creatorId),
+                        ),
+                      ),
+                    ),
                   ),
                   Expanded(
                     child: Column(

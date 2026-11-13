@@ -78,6 +78,33 @@ void main() {
     expect(urls(tester).single, endsWith('/data/avatars/7.jpg?t=$id'));
   });
 
+  displayTest('avatars of users shown together come in one user request', (
+    tester,
+  ) async {
+    final List<int> posts = recorded()
+        .map((e) => e['id']! as int)
+        .take(2)
+        .toList();
+    final List<Map<String, Object?>> users = env.fake.state.users;
+    users[0]['avatar_id'] = posts[0];
+    users[1]['avatar_id'] = posts[1];
+    env.fake.requests.clear();
+
+    await show(tester, [
+      for (final Map<String, Object?> user in users.take(3))
+        UserSummaryAvatar(userId: user['id']! as int),
+    ]);
+
+    expect(
+      env.fake.requests
+          .where((e) => e.path == '/users.json')
+          .map((e) => e.query['search[id]']),
+      [users.take(3).map((e) => e['id']).join(',')],
+    );
+    expect(postRequests(), hasLength(1));
+    expect(urls(tester), [isNotNull, isNotNull, isNull]);
+  });
+
   displayTest('an avatar that does not load shows the empty avatar', (
     tester,
   ) async {
@@ -100,5 +127,21 @@ void main() {
       findsOneWidget,
     );
     expect(find.byIcon(Icons.warning_amber), findsNothing);
+  });
+
+  displayTest('an avatar without an image still answers a tap', (tester) async {
+    int taps = 0;
+
+    await show(tester, [
+      UserAvatar(
+        id: 999999,
+        userId: 7,
+        hasCroppedAvatar: false,
+        onTap: () => taps++,
+      ),
+    ]);
+    await tester.tap(find.byType(EmptyAvatar));
+
+    expect(taps, 1);
   });
 }
