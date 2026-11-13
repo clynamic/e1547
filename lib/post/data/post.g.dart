@@ -73,6 +73,55 @@ Map<String, dynamic> _$PostToJson(_Post instance) => <String, dynamic>{
 
 const _$RatingEnumMap = {Rating.s: 's', Rating.q: 'q', Rating.e: 'e'};
 
+_PartialPost _$PartialPostFromJson(Map<String, dynamic> json) => _PartialPost(
+  id: (json['id'] as num).toInt(),
+  file: json['file'] as String?,
+  sample: json['sample'] as String?,
+  preview: json['preview'] as String?,
+  width: (json['width'] as num).toInt(),
+  height: (json['height'] as num).toInt(),
+  ext: json['ext'] as String,
+  size: (json['size'] as num).toInt(),
+  tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
+  uploaderId: (json['uploader_id'] as num).toInt(),
+  uploaderName: json['uploader_name'] as String?,
+  createdAt: DateTime.parse(json['created_at'] as String),
+  score: (json['score'] as num).toInt(),
+  vote: (json['vote'] as num?)?.toInt(),
+  isDeleted: json['is_deleted'] as bool,
+  rating: $enumDecode(_$RatingEnumMap, json['rating']),
+  favCount: (json['fav_count'] as num).toInt(),
+  isFavorited: json['is_favorited'] as bool,
+  commentCount: (json['comment_count'] as num).toInt(),
+  pools: (json['pools'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
+);
+
+Map<String, dynamic> _$PartialPostToJson(_PartialPost instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'file': instance.file,
+      'sample': instance.sample,
+      'preview': instance.preview,
+      'width': instance.width,
+      'height': instance.height,
+      'ext': instance.ext,
+      'size': instance.size,
+      'tags': instance.tags,
+      'uploader_id': instance.uploaderId,
+      'uploader_name': instance.uploaderName,
+      'created_at': instance.createdAt.toIso8601String(),
+      'score': instance.score,
+      'vote': instance.vote,
+      'is_deleted': instance.isDeleted,
+      'rating': _$RatingEnumMap[instance.rating]!,
+      'fav_count': instance.favCount,
+      'is_favorited': instance.isFavorited,
+      'comment_count': instance.commentCount,
+      'pools': instance.pools,
+    };
+
 _Relationships _$RelationshipsFromJson(Map<String, dynamic> json) =>
     _Relationships(
       parentId: (json['parent_id'] as num?)?.toInt(),

@@ -18,6 +18,11 @@ extension PostQuerying on PostClient {
   QueryBridge<Post, int> get postCache =>
       queryCache.bridge(queryKey, fromJson: Post.fromJson);
 
+  QueryBridge<PartialPost, int> get partialPostCache => queryCache.bridge([
+    ...queryKey,
+    'partial',
+  ], fromJson: PartialPost.fromJson);
+
   QueryLoader<int, Post> get postLoader => _postLoaders[this] ??= postCache
       .loader((ids) => byIds(ids: ids, hidden: true), limit: maxPageLimit);
 
@@ -28,6 +33,25 @@ extension PostQuerying on PostClient {
     config: postCache.getConfig(vendored: vendored),
   );
 
+  Query<List<PartialPost>> useArtistRecommendations({required int id}) => Query(
+    cache: queryCache,
+    key: [...queryKey, 'recommendations', 'artist', id],
+    queryFn: () async {
+      final List<PartialPost> posts = await artistRecommendations(id: id);
+      partialPostCache.savePage(posts);
+      return posts;
+    },
+  );
+
+  InfiniteQuery<List<int>, int> usePageOfIds({required List<int> ids}) =>
+      InfiniteQuery<List<int>, int>(
+        cache: queryCache,
+        key: [...queryKey, 'page_of_ids', ids.join(',')],
+        getNextArg: (state) => state == null || state.args.isEmpty ? 1 : null,
+        config: pagedIdConfig(),
+        queryFn: (_) => byIds(ids: ids).then(postCache.savePage),
+      );
+
   InfiniteQuery<List<int>, int> usePage({required QueryMap? query}) {
     final normalized = _normalize(query);
     final tags = TagMap(normalized?['tags']);
@@ -37,6 +61,10 @@ extension PostQuerying on PostClient {
     if (tags.length == 2 && order == 'pool') {
       final poolId = int.tryParse(tags['pool'] ?? '');
       if (poolId != null) return useByPool(id: poolId);
+    }
+    if (tags['id'] case final id? when tags.length == 1 && id.contains(',')) {
+      final List<int?> ids = id.split(',').map(int.tryParse).toList();
+      if (!ids.contains(null)) return usePageOfIds(ids: ids.nonNulls.toList());
     }
     if (tags.length == 2 && order == 'id') {
       final parentId = int.tryParse(tags['parent'] ?? '');

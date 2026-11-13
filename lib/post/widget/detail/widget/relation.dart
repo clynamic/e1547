@@ -172,7 +172,14 @@ class RelationHeader extends StatelessWidget {
     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
     child: Row(
       children: [
-        Text(title, style: const TextStyle(fontSize: 16)),
+        Flexible(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 16),
+          ),
+        ),
         if (count != null) ...[
           const SizedBox(width: 8),
           Text(

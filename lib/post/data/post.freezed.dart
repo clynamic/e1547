@@ -112,8 +112,8 @@ $RelationshipsCopyWith<$Res> get relationships {
 /// @nodoc
 @JsonSerializable()
 
-class _Post implements Post {
-  const _Post({required this.id, required this.file, required this.sample, required this.preview, required this.width, required this.height, required this.ext, required this.size, required final  Map<String, String?>? variants, required final  Map<String, List<String>> tags, required this.uploaderId, required this.uploaderName, required this.createdAt, required this.updatedAt, required this.score, required this.vote, required this.isDeleted, required this.rating, required this.favCount, required this.isFavorited, required this.commentCount, required this.description, required final  List<String> sources, required final  List<int>? pools, required this.relationships}): _variants = variants,_tags = tags,_sources = sources,_pools = pools;
+class _Post extends Post {
+  const _Post({required this.id, required this.file, required this.sample, required this.preview, required this.width, required this.height, required this.ext, required this.size, required final  Map<String, String?>? variants, required final  Map<String, List<String>> tags, required this.uploaderId, required this.uploaderName, required this.createdAt, required this.updatedAt, required this.score, required this.vote, required this.isDeleted, required this.rating, required this.favCount, required this.isFavorited, required this.commentCount, required this.description, required final  List<String> sources, required final  List<int>? pools, required this.relationships}): _variants = variants,_tags = tags,_sources = sources,_pools = pools,super._();
   factory _Post.fromJson(Map<String, dynamic> json) => _$PostFromJson(json);
 
 @override final  int id;
@@ -261,6 +261,209 @@ $RelationshipsCopyWith<$Res> get relationships {
     return _then(_self.copyWith(relationships: value));
   });
 }
+}
+
+
+/// @nodoc
+mixin _$PartialPost {
+
+ int get id; String? get file; String? get sample; String? get preview; int get width; int get height; String get ext; int get size; List<String> get tags; int get uploaderId; String? get uploaderName; DateTime get createdAt; int get score; int? get vote; bool get isDeleted; Rating get rating; int get favCount; bool get isFavorited; int get commentCount; List<int> get pools;
+/// Create a copy of PartialPost
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$PartialPostCopyWith<PartialPost> get copyWith => _$PartialPostCopyWithImpl<PartialPost>(this as PartialPost, _$identity);
+
+  /// Serializes this PartialPost to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PartialPost&&(identical(other.id, id) || other.id == id)&&(identical(other.file, file) || other.file == file)&&(identical(other.sample, sample) || other.sample == sample)&&(identical(other.preview, preview) || other.preview == preview)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height)&&(identical(other.ext, ext) || other.ext == ext)&&(identical(other.size, size) || other.size == size)&&const DeepCollectionEquality().equals(other.tags, tags)&&(identical(other.uploaderId, uploaderId) || other.uploaderId == uploaderId)&&(identical(other.uploaderName, uploaderName) || other.uploaderName == uploaderName)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.score, score) || other.score == score)&&(identical(other.vote, vote) || other.vote == vote)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted)&&(identical(other.rating, rating) || other.rating == rating)&&(identical(other.favCount, favCount) || other.favCount == favCount)&&(identical(other.isFavorited, isFavorited) || other.isFavorited == isFavorited)&&(identical(other.commentCount, commentCount) || other.commentCount == commentCount)&&const DeepCollectionEquality().equals(other.pools, pools));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hashAll([runtimeType,id,file,sample,preview,width,height,ext,size,const DeepCollectionEquality().hash(tags),uploaderId,uploaderName,createdAt,score,vote,isDeleted,rating,favCount,isFavorited,commentCount,const DeepCollectionEquality().hash(pools)]);
+
+@override
+String toString() {
+  return 'PartialPost(id: $id, file: $file, sample: $sample, preview: $preview, width: $width, height: $height, ext: $ext, size: $size, tags: $tags, uploaderId: $uploaderId, uploaderName: $uploaderName, createdAt: $createdAt, score: $score, vote: $vote, isDeleted: $isDeleted, rating: $rating, favCount: $favCount, isFavorited: $isFavorited, commentCount: $commentCount, pools: $pools)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $PartialPostCopyWith<$Res>  {
+  factory $PartialPostCopyWith(PartialPost value, $Res Function(PartialPost) _then) = _$PartialPostCopyWithImpl;
+@useResult
+$Res call({
+ int id, String? file, String? sample, String? preview, int width, int height, String ext, int size, List<String> tags, int uploaderId, String? uploaderName, DateTime createdAt, int score, int? vote, bool isDeleted, Rating rating, int favCount, bool isFavorited, int commentCount, List<int> pools
+});
+
+
+
+
+}
+/// @nodoc
+class _$PartialPostCopyWithImpl<$Res>
+    implements $PartialPostCopyWith<$Res> {
+  _$PartialPostCopyWithImpl(this._self, this._then);
+
+  final PartialPost _self;
+  final $Res Function(PartialPost) _then;
+
+/// Create a copy of PartialPost
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? file = freezed,Object? sample = freezed,Object? preview = freezed,Object? width = null,Object? height = null,Object? ext = null,Object? size = null,Object? tags = null,Object? uploaderId = null,Object? uploaderName = freezed,Object? createdAt = null,Object? score = null,Object? vote = freezed,Object? isDeleted = null,Object? rating = null,Object? favCount = null,Object? isFavorited = null,Object? commentCount = null,Object? pools = null,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int,file: freezed == file ? _self.file : file // ignore: cast_nullable_to_non_nullable
+as String?,sample: freezed == sample ? _self.sample : sample // ignore: cast_nullable_to_non_nullable
+as String?,preview: freezed == preview ? _self.preview : preview // ignore: cast_nullable_to_non_nullable
+as String?,width: null == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
+as int,height: null == height ? _self.height : height // ignore: cast_nullable_to_non_nullable
+as int,ext: null == ext ? _self.ext : ext // ignore: cast_nullable_to_non_nullable
+as String,size: null == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
+as int,tags: null == tags ? _self.tags : tags // ignore: cast_nullable_to_non_nullable
+as List<String>,uploaderId: null == uploaderId ? _self.uploaderId : uploaderId // ignore: cast_nullable_to_non_nullable
+as int,uploaderName: freezed == uploaderName ? _self.uploaderName : uploaderName // ignore: cast_nullable_to_non_nullable
+as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,score: null == score ? _self.score : score // ignore: cast_nullable_to_non_nullable
+as int,vote: freezed == vote ? _self.vote : vote // ignore: cast_nullable_to_non_nullable
+as int?,isDeleted: null == isDeleted ? _self.isDeleted : isDeleted // ignore: cast_nullable_to_non_nullable
+as bool,rating: null == rating ? _self.rating : rating // ignore: cast_nullable_to_non_nullable
+as Rating,favCount: null == favCount ? _self.favCount : favCount // ignore: cast_nullable_to_non_nullable
+as int,isFavorited: null == isFavorited ? _self.isFavorited : isFavorited // ignore: cast_nullable_to_non_nullable
+as bool,commentCount: null == commentCount ? _self.commentCount : commentCount // ignore: cast_nullable_to_non_nullable
+as int,pools: null == pools ? _self.pools : pools // ignore: cast_nullable_to_non_nullable
+as List<int>,
+  ));
+}
+
+}
+
+
+
+/// @nodoc
+@JsonSerializable()
+
+class _PartialPost extends PartialPost {
+  const _PartialPost({required this.id, required this.file, required this.sample, required this.preview, required this.width, required this.height, required this.ext, required this.size, required final  List<String> tags, required this.uploaderId, required this.uploaderName, required this.createdAt, required this.score, required this.vote, required this.isDeleted, required this.rating, required this.favCount, required this.isFavorited, required this.commentCount, required final  List<int> pools}): _tags = tags,_pools = pools,super._();
+  factory _PartialPost.fromJson(Map<String, dynamic> json) => _$PartialPostFromJson(json);
+
+@override final  int id;
+@override final  String? file;
+@override final  String? sample;
+@override final  String? preview;
+@override final  int width;
+@override final  int height;
+@override final  String ext;
+@override final  int size;
+ final  List<String> _tags;
+@override List<String> get tags {
+  if (_tags is EqualUnmodifiableListView) return _tags;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_tags);
+}
+
+@override final  int uploaderId;
+@override final  String? uploaderName;
+@override final  DateTime createdAt;
+@override final  int score;
+@override final  int? vote;
+@override final  bool isDeleted;
+@override final  Rating rating;
+@override final  int favCount;
+@override final  bool isFavorited;
+@override final  int commentCount;
+ final  List<int> _pools;
+@override List<int> get pools {
+  if (_pools is EqualUnmodifiableListView) return _pools;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_pools);
+}
+
+
+/// Create a copy of PartialPost
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$PartialPostCopyWith<_PartialPost> get copyWith => __$PartialPostCopyWithImpl<_PartialPost>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$PartialPostToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PartialPost&&(identical(other.id, id) || other.id == id)&&(identical(other.file, file) || other.file == file)&&(identical(other.sample, sample) || other.sample == sample)&&(identical(other.preview, preview) || other.preview == preview)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height)&&(identical(other.ext, ext) || other.ext == ext)&&(identical(other.size, size) || other.size == size)&&const DeepCollectionEquality().equals(other._tags, _tags)&&(identical(other.uploaderId, uploaderId) || other.uploaderId == uploaderId)&&(identical(other.uploaderName, uploaderName) || other.uploaderName == uploaderName)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.score, score) || other.score == score)&&(identical(other.vote, vote) || other.vote == vote)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted)&&(identical(other.rating, rating) || other.rating == rating)&&(identical(other.favCount, favCount) || other.favCount == favCount)&&(identical(other.isFavorited, isFavorited) || other.isFavorited == isFavorited)&&(identical(other.commentCount, commentCount) || other.commentCount == commentCount)&&const DeepCollectionEquality().equals(other._pools, _pools));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hashAll([runtimeType,id,file,sample,preview,width,height,ext,size,const DeepCollectionEquality().hash(_tags),uploaderId,uploaderName,createdAt,score,vote,isDeleted,rating,favCount,isFavorited,commentCount,const DeepCollectionEquality().hash(_pools)]);
+
+@override
+String toString() {
+  return 'PartialPost(id: $id, file: $file, sample: $sample, preview: $preview, width: $width, height: $height, ext: $ext, size: $size, tags: $tags, uploaderId: $uploaderId, uploaderName: $uploaderName, createdAt: $createdAt, score: $score, vote: $vote, isDeleted: $isDeleted, rating: $rating, favCount: $favCount, isFavorited: $isFavorited, commentCount: $commentCount, pools: $pools)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$PartialPostCopyWith<$Res> implements $PartialPostCopyWith<$Res> {
+  factory _$PartialPostCopyWith(_PartialPost value, $Res Function(_PartialPost) _then) = __$PartialPostCopyWithImpl;
+@override @useResult
+$Res call({
+ int id, String? file, String? sample, String? preview, int width, int height, String ext, int size, List<String> tags, int uploaderId, String? uploaderName, DateTime createdAt, int score, int? vote, bool isDeleted, Rating rating, int favCount, bool isFavorited, int commentCount, List<int> pools
+});
+
+
+
+
+}
+/// @nodoc
+class __$PartialPostCopyWithImpl<$Res>
+    implements _$PartialPostCopyWith<$Res> {
+  __$PartialPostCopyWithImpl(this._self, this._then);
+
+  final _PartialPost _self;
+  final $Res Function(_PartialPost) _then;
+
+/// Create a copy of PartialPost
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? file = freezed,Object? sample = freezed,Object? preview = freezed,Object? width = null,Object? height = null,Object? ext = null,Object? size = null,Object? tags = null,Object? uploaderId = null,Object? uploaderName = freezed,Object? createdAt = null,Object? score = null,Object? vote = freezed,Object? isDeleted = null,Object? rating = null,Object? favCount = null,Object? isFavorited = null,Object? commentCount = null,Object? pools = null,}) {
+  return _then(_PartialPost(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int,file: freezed == file ? _self.file : file // ignore: cast_nullable_to_non_nullable
+as String?,sample: freezed == sample ? _self.sample : sample // ignore: cast_nullable_to_non_nullable
+as String?,preview: freezed == preview ? _self.preview : preview // ignore: cast_nullable_to_non_nullable
+as String?,width: null == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
+as int,height: null == height ? _self.height : height // ignore: cast_nullable_to_non_nullable
+as int,ext: null == ext ? _self.ext : ext // ignore: cast_nullable_to_non_nullable
+as String,size: null == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
+as int,tags: null == tags ? _self._tags : tags // ignore: cast_nullable_to_non_nullable
+as List<String>,uploaderId: null == uploaderId ? _self.uploaderId : uploaderId // ignore: cast_nullable_to_non_nullable
+as int,uploaderName: freezed == uploaderName ? _self.uploaderName : uploaderName // ignore: cast_nullable_to_non_nullable
+as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,score: null == score ? _self.score : score // ignore: cast_nullable_to_non_nullable
+as int,vote: freezed == vote ? _self.vote : vote // ignore: cast_nullable_to_non_nullable
+as int?,isDeleted: null == isDeleted ? _self.isDeleted : isDeleted // ignore: cast_nullable_to_non_nullable
+as bool,rating: null == rating ? _self.rating : rating // ignore: cast_nullable_to_non_nullable
+as Rating,favCount: null == favCount ? _self.favCount : favCount // ignore: cast_nullable_to_non_nullable
+as int,isFavorited: null == isFavorited ? _self.isFavorited : isFavorited // ignore: cast_nullable_to_non_nullable
+as bool,commentCount: null == commentCount ? _self.commentCount : commentCount // ignore: cast_nullable_to_non_nullable
+as int,pools: null == pools ? _self._pools : pools // ignore: cast_nullable_to_non_nullable
+as List<int>,
+  ));
+}
+
+
 }
 
 

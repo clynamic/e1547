@@ -105,6 +105,32 @@ class PostClient {
     return result;
   }
 
+  Future<List<PartialPost>> artistRecommendations({
+    required int id,
+    int? limit,
+    CancelToken? cancelToken,
+  }) => dio
+      .get(
+        '/posts/$id/similar/artist.json',
+        queryParameters: {'limit': limit}.toQuery(),
+        cancelToken: cancelToken,
+      )
+      .then((response) {
+        final Map<int, PartialPost> posts = {
+          for (final PartialPost post
+              in (response.data['post_data'] as List).map(
+                E621Post.partialFromJson,
+              ))
+            post.id: post,
+        };
+        return [
+          for (final Map<String, dynamic> result
+              in (response.data['results'] as List)
+                  .cast<Map<String, dynamic>>())
+            if (posts[result['post_id']] case final PartialPost post) post,
+        ];
+      });
+
   Future<List<Post>> byTags({
     required List<String> tags,
     int? page,

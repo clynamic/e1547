@@ -23,7 +23,7 @@ class PostImageWidget extends StatelessWidget {
   });
 
   /// The post which provides the image.
-  final Post post;
+  final PostSummary post;
 
   /// How the image should be fit.
   final BoxFit fit;
@@ -132,7 +132,7 @@ class RawPostImageWidget extends StatelessWidget {
     this.load,
   });
 
-  final Post post;
+  final PostSummary post;
   final PostImageSize size;
   final BoxFit? fit;
   final ProgressIndicatorBuilder? progressIndicatorBuilder;

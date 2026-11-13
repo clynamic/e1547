@@ -119,7 +119,7 @@ class PostImageTag extends StatelessWidget {
 class PostTileOverlay extends StatelessWidget {
   const PostTileOverlay({super.key, required this.post, required this.child});
 
-  final Post post;
+  final PostSummary post;
   final Widget child;
 
   @override

@@ -78,6 +78,12 @@ class _PostDetailGalleryState extends State<PostDetailGallery>
                 case final Post post) {
               return PostDetail(post: post);
             }
+            return SkeletonPage(
+              child: PostDetail(
+                post: const PostGhost(),
+                summary: context.read<Client>().posts.partialPostCache.get(id),
+              ),
+            );
           }
           return const Scaffold(
             appBar: TransparentAppBar(child: DefaultAppBar()),

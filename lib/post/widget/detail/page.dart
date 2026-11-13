@@ -7,9 +7,15 @@ import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 
 class PostDetail extends StatelessWidget {
-  const PostDetail({super.key, required this.post, this.onTapImage});
+  const PostDetail({
+    super.key,
+    required this.post,
+    this.summary,
+    this.onTapImage,
+  });
 
   final Post post;
+  final PostSummary? summary;
   final VoidCallback? onTapImage;
 
   Widget image(BuildContext context, Size size) => Padding(
@@ -23,21 +29,42 @@ class PostDetail extends StatelessWidget {
       ),
       child: AnimatedSize(
         duration: defaultAnimationDuration,
-        child: PostDetailImageDisplay(
-          post: post,
-          onTap: () {
-            PostVideoRoute.of(context).keepPlaying();
-            if (onTapImage != null) {
-              onTapImage!();
-            } else {
-              Navigator.of(context).push(
-                DismissRoute<void>(
-                  builder: (context) => PostFullscreen(post: post),
+        child: switch (summary) {
+          final PostSummary summary => Skeleton.keep(
+            child: Center(
+              child: ContentHero(
+                tag: PostLinking.getPostLink(summary.id),
+                content: FittedContent(
+                  fit: BoxFit.contain,
+                  aspectRatio: summary.width / summary.height,
                 ),
-              );
-            }
-          },
-        ),
+                child: PostImageWidget(
+                  post: summary,
+                  size: PostImageSize.sample,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ),
+          null => Skeleton.keep(
+            keep: post is! Ghost,
+            child: PostDetailImageDisplay(
+              post: post,
+              onTap: () {
+                PostVideoRoute.of(context).keepPlaying();
+                if (onTapImage != null) {
+                  onTapImage!();
+                } else {
+                  Navigator.of(context).push(
+                    DismissRoute<void>(
+                      builder: (context) => PostFullscreen(post: post),
+                    ),
+                  );
+                }
+              },
+            ),
+          ),
+        },
       ),
     ),
   );
@@ -66,6 +93,7 @@ class PostDetail extends StatelessWidget {
       children: [
         RelationshipDisplay(post: post),
         PoolDisplay(post: post),
+        ArtistRecommendations(post: post),
         DenylistTagDisplay(post: post),
         TagDisplay(post: post),
         FileDisplay(post: post),

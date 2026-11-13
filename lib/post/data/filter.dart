@@ -28,7 +28,9 @@ class PostFilter extends FilterController<Post>
   Object idOf(Post post) => post.id;
 
   @override
-  bool filter(Post post) => !denies(post);
+  bool filter(Post post) => allows(post);
+
+  bool allows(PostSummary post) => !denies(post);
 
   @override
   PostFilterValue get value => _value;
@@ -98,7 +100,7 @@ class PostFilter extends FilterController<Post>
     return counts;
   }
 
-  List<String> entriesFor(Post post) {
+  List<String> entriesFor(PostSummary post) {
     _evictStaleEntries();
 
     final cached = _filterCache[post.id];
@@ -127,12 +129,12 @@ class PostFilter extends FilterController<Post>
     _filterCache.removeWhere((_, entry) => entry.lastAccessed.isBefore(cutoff));
   }
 
-  bool blocks(Post post) {
+  bool blocks(PostSummary post) {
     if (!denying) return false;
     return entriesFor(post).any((entry) => !allowedEntries.contains(entry));
   }
 
-  bool denies(Post post) {
+  bool denies(PostSummary post) {
     if (allowedPosts.contains(post.id)) return false;
     return blocks(post);
   }
@@ -148,9 +150,9 @@ class FavoritePostFilter extends PostFilter {
   FavoritePostFilter(super.client, [super.value]);
 
   @override
-  bool filter(Post post) {
+  bool allows(PostSummary post) {
     if (post.isFavorited) return true;
-    return super.filter(post);
+    return super.allows(post);
   }
 }
 

@@ -132,6 +132,8 @@ void main() {
       // The gallery queries as it opens, so that request has to land before
       // the tree is torn down.
       await Future<void>.delayed(const Duration(milliseconds: 100));
+      await tester.pump();
+      await Future<void>.delayed(const Duration(milliseconds: 100));
     });
     await tester.pump();
   }

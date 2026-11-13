@@ -39,6 +39,7 @@ class FakeE621 {
     ..post('/favorites.json', _addFavorite)
     ..delete('/favorites/<id|[0-9]+>.json', _removeFavorite)
     ..get('/posts/<id|[0-9]+>.json', _showPost)
+    ..get('/posts/<id|[0-9]+>/similar/artist.json', _artistRecommendations)
     ..post('/posts/<id|[0-9]+>/votes.json', _votePost)
     ..get('/forum_posts.json', _listReplies)
     ..post('/forum_posts.json', _createReply)
@@ -354,25 +355,29 @@ class FakeE621 {
   }
 
   Map<String, Object?> _thumbnail(Map<String, Object?> post) {
-    final Map file = post['file']! as Map;
+    final Map files = post['files']! as Map;
+    final Map meta = files['meta']! as Map;
+    final Map original = files['original']! as Map;
+    final Map stats = post['stats']! as Map;
     final Map flags = (post['flags'] as Map?) ?? const {};
     final Map tags = (post['tags'] as Map?) ?? const {};
     return {
       'id': post['id'],
       'created_at': post['created_at'],
-      'file_ext': file['ext'],
-      'width': file['width'],
-      'height': file['height'],
-      'size': file['size'],
-      'preview_url': (post['preview'] as Map?)?['url'],
-      'sample_url': (post['sample'] as Map?)?['url'],
-      'file_url': file['url'],
+      'file_ext': meta['ext'],
+      'width': original['width'],
+      'height': original['height'],
+      'size': meta['size'],
+      'preview_url': (files['preview'] as Map?)?['jpg'],
+      'sample_url': (files['sample'] as Map?)?['jpg'],
+      'file_url': original['url'],
       'uploader_id': post['uploader_id'],
-      'score': (post['score'] as Map?)?['total'] ?? 0,
-      'fav_count': post['fav_count'],
-      'is_favorited': post['is_favorited'],
-      'vote': post['vote'] ?? 0,
-      'comment_count': post['comment_count'],
+      'uploader': post['uploader_name'],
+      'score': (stats['score'] as Map?)?['total'] ?? 0,
+      'fav_count': stats['fav_count'],
+      'is_favorited': stats['is_favorited'],
+      'vote': stats['vote'] ?? 0,
+      'comment_count': stats['comment_count'],
       'flags': [
         if (flags['pending'] == true) 'pending',
         if (flags['flagged'] == true) 'flagged',
@@ -418,6 +423,29 @@ class FakeE621 {
     final separator = decoded.indexOf(':');
     if (separator == -1) return null;
     return decoded.substring(0, separator);
+  }
+
+  Response _artistRecommendations(Request request, String id) {
+    final Map<String, Object?> post = _find(state.posts, id);
+    List<Object?> artists(Map<String, Object?> post) =>
+        ((post['tags'] as Map?)?['artist'] as List?) ?? const [];
+    final int limit = int.parse(request.url.queryParameters['limit'] ?? '6');
+    final List<Map<String, Object?>> similar = state.posts
+        .where((e) => e['id'] != post['id'])
+        .where((e) => artists(e).any(artists(post).contains))
+        .take(limit)
+        .toList();
+    return _json({
+      'post_id': post['id'],
+      'model_version': 'os.artist',
+      'results': [
+        for (final Map<String, Object?> e in similar)
+          {'post_id': e['id'], 'score': 1, 'explanation': null},
+      ],
+      'post_data': [
+        for (final Map<String, Object?> e in similar.reversed) _thumbnail(e),
+      ],
+    });
   }
 
   Response _showPost(Request request, String id) {
