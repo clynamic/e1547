@@ -77,6 +77,15 @@ class _PostPageTitle extends StatelessWidget {
       );
     }
 
+    final uploader = map['user'];
+    if (uploader != null) {
+      return Text(
+        uploader == client.identity.username
+            ? 'Uploads'
+            : "$uploader's Uploads",
+      );
+    }
+
     final fallback = tagToName(map.toString());
 
     final poolId = params.poolId;
