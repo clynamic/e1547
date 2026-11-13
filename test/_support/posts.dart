@@ -1,4 +1,6 @@
 import 'package:e1547/post/post.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 /// Builds a post with neutral values, so a test can vary only the fields it
 /// asserts on.
@@ -52,3 +54,11 @@ Post samplePost({
   pools: pools,
   relationships: relationships,
 );
+
+int shownPost(WidgetTester tester) {
+  final List<Element> pages = find.byType(PostDetail).evaluate().toList();
+  double away(Element page) =>
+      tester.getTopLeft(find.byWidget(page.widget)).dx.abs();
+  pages.sort((a, b) => away(a).compareTo(away(b)));
+  return (pages.first.widget as PostDetail).post.id;
+}

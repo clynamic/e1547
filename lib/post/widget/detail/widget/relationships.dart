@@ -31,8 +31,14 @@ class RelationshipDisplay extends StatelessWidget {
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: children.length,
-                itemBuilder: (context, index) =>
-                    PostRelationPreview(id: children[index]),
+                itemBuilder: (context, index) => PostRelationPreview(
+                  id: children[index],
+                  onTap: () => pushPostGallery(
+                    context,
+                    params: PostParams(tags: 'parent:${post.id} order:id'),
+                    initialPostId: children[index],
+                  ),
+                ),
               ),
             ),
           ),

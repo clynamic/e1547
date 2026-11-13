@@ -38,6 +38,10 @@ extension PostQuerying on PostClient {
       final poolId = int.tryParse(tags['pool'] ?? '');
       if (poolId != null) return useByPool(id: poolId);
     }
+    if (tags.length == 2 && order == 'id') {
+      final parentId = int.tryParse(tags['parent'] ?? '');
+      if (parentId != null) return useByParent(id: parentId);
+    }
     if (tags.length == 2 &&
         order == 'fav' &&
         username != null &&
@@ -103,6 +107,29 @@ extension PostQuerying on PostClient {
           return postCache.savePage(fetched);
         },
       );
+
+  static const int childPageLimit = 320;
+
+  InfiniteQuery<List<int>, int> useByParent({required int id}) {
+    final QueryMap query = {'tags': 'parent:$id order:id'};
+    final List<int> children =
+        postCache.get(id)?.relationships.children ?? const [];
+    return InfiniteQuery<List<int>, int>(
+      cache: queryCache,
+      key: [...queryKey, query],
+      getNextArg: (state) {
+        if (state == null || state.args.isEmpty) return 1;
+        if (children.isNotEmpty && children.length <= childPageLimit) {
+          return null;
+        }
+        return state.nextPage;
+      },
+      config: pagedIdConfig(),
+      queryFn: (page) => this
+          .page(page: page, limit: childPageLimit, query: query)
+          .then(postCache.savePage),
+    );
+  }
 
   InfiniteQuery<List<int>, int> useByTags({required List<String> tags}) =>
       InfiniteQuery<List<int>, int>(

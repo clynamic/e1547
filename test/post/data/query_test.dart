@@ -15,6 +15,27 @@ void main() {
 
   tearDown(() => env.dispose());
 
+  test('a parent that is not cached pages through all its children', () async {
+    final Map<String, Object?> recorded = env.fake.state.posts.first;
+    env.fake.state.posts.addAll([
+      for (int id = 10001; id <= 10321; id++)
+        {
+          ...recorded,
+          'id': id,
+          'relationships': {
+            ...(recorded['relationships']! as Map<String, Object?>),
+            'parent_id': 30,
+          },
+        },
+    ]);
+    final query = env.client.posts.useByParent(id: 30);
+
+    await query.fetch();
+    await query.getNextPage();
+
+    expect(query.state.data?.pages.expand((e) => e), hasLength(321));
+  });
+
   List<int> recordedIds() =>
       loadFixtureList('posts.json').map((e) => e['id']! as int).toList();
 
