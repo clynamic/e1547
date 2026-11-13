@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:e1547/client/client.dart';
 import 'package:e1547/logs/logs.dart';
+import 'package:e1547/post/post.dart';
+import 'package:e1547/query/query.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/task/task.dart';
@@ -253,26 +255,30 @@ class TasksController extends ChangeNotifier {
       case TaskAction.download:
         await _runDownload(task);
       case TaskAction.favorite:
-        await client.posts.addFavorite(task.postId);
+        if (await client.posts.useAddFavorite().mutate(task.postId)
+            case MutationError(:final error, :final stackTrace)) {
+          Error.throwWithStackTrace(error, stackTrace);
+        }
         if (settings.upvoteFavs.value) {
-          try {
-            await client.posts.vote(
-              id: task.postId,
-              upvote: true,
-              replace: true,
-            );
-          } on Object catch (e, s) {
-            // upvote is best-effort once the favorite succeeded
+          // upvote is best-effort once the favorite succeeded
+          if (await client.posts.useVote(id: task.postId).mutate((
+                upvote: true,
+                replace: true,
+              ))
+              case MutationError(:final error, :final stackTrace)) {
             _logger.warn(
               'Upvote after favorite failed for post {post}',
               {'post': task.postId},
-              e,
-              s,
+              error,
+              stackTrace,
             );
           }
         }
       case TaskAction.unfavorite:
-        await client.posts.removeFavorite(task.postId);
+        if (await client.posts.useRemoveFavorite().mutate(task.postId)
+            case MutationError(:final error, :final stackTrace)) {
+          Error.throwWithStackTrace(error, stackTrace);
+        }
     }
   }
 
