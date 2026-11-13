@@ -32,6 +32,7 @@ export 'scaffold.dart';
 export 'scroll.dart';
 export 'selection.dart';
 export 'snackbar.dart';
+export 'style.dart';
 export 'text_editor.dart';
 export 'tiles.dart';
 export 'video.dart';

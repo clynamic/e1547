@@ -1,3 +1,4 @@
+import 'package:e1547/shared/shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -103,6 +104,7 @@ extension M2ThemeData on ThemeData {
   }
 
   static ThemeData prepareTheme(ThemeData theme) => theme.copyWith(
+    extensions: [AppStyle.from(theme)],
     applyElevationOverlayColor: false,
     appBarTheme: theme.appBarTheme.copyWith(
       surfaceTintColor:
