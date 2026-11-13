@@ -40,39 +40,33 @@ class UserAvatar extends StatelessWidget {
   final bool hasCroppedAvatar;
   final double radius;
 
-  String? _resolve(Post? post) {
-    if (post == null) return null;
-    if (hasCroppedAvatar && !post.isDeleted) {
-      String? reference = post.sample ?? post.preview ?? post.file;
-      if (reference != null) {
-        String? url = croppedAvatarUrl(
-          reference: reference,
-          userId: userId,
-          avatarId: post.id,
-        );
-        if (url != null) return url;
-      }
-    }
-    return post.sample;
-  }
+  String? _cropped(int id, String? reference) =>
+      !hasCroppedAvatar || reference == null
+      ? null
+      : croppedAvatarUrl(reference: reference, userId: userId, avatarId: id);
 
   @override
   Widget build(BuildContext context) {
-    final id = this.id;
+    final int? id = this.id;
     if (id == null) {
       return EmptyAvatar(radius: radius);
     }
-    final client = context.watch<Client>();
+    void open() => pushPostLoadingPage(context, id);
+    final Client client = context.watch<Client>();
     return QueryBuilder(
       query: client.posts.useGet(id: id),
       builder: (context, state) {
-        final post = state.data;
+        final Post? post = state.data;
         return Avatar(
-          _resolve(post),
+          switch (post) {
+            null => null,
+            final post when !post.isDeleted =>
+              _cropped(id, post.sample ?? post.preview ?? post.file) ??
+                  post.sample,
+            final post => post.sample,
+          },
           radius: radius,
-          onTap: post == null
-              ? null
-              : () => pushPostLoadingPage(context, post.id),
+          onTap: post == null ? null : open,
         );
       },
     );
@@ -126,8 +120,7 @@ class Avatar extends StatelessWidget {
             fit: BoxFit.cover,
             cacheManager: context.read<BaseCacheManager>(),
             placeholder: (context, url) => EmptyAvatar(radius: radius),
-            errorWidget: (context, url, error) =>
-                const Center(child: Icon(Icons.warning_amber)),
+            errorWidget: (context, url, error) => EmptyAvatar(radius: radius),
             fadeInDuration: Duration.zero,
             fadeOutDuration: Duration.zero,
           ),
