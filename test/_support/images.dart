@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:typed_data';
 
+import 'package:file/file.dart';
+import 'package:file/memory.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 /// Cache manager that never yields an image.
@@ -60,4 +63,27 @@ class FailingImageCacheManager implements BaseCacheManager {
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnimplementedError('${invocation.memberName} holds no image');
+}
+
+class ServedImageCacheManager implements BaseCacheManager {
+  ServedImageCacheManager(this.bytes);
+
+  final Uint8List bytes;
+  final MemoryFileSystem _files = MemoryFileSystem();
+
+  @override
+  Stream<FileResponse> getFileStream(
+    String url, {
+    String? key,
+    Map<String, String>? headers,
+    bool? withProgress,
+  }) {
+    final File file = _files.file(url.hashCode.toString())
+      ..writeAsBytesSync(bytes);
+    return Stream.value(FileInfo(file, FileSource.Cache, DateTime(9999), url));
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('${invocation.memberName} only serves images');
 }

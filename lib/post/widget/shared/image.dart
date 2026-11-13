@@ -119,7 +119,7 @@ class PostImageWidget extends StatelessWidget {
   }
 }
 
-class RawPostImageWidget extends StatelessWidget {
+class RawPostImageWidget extends StatefulWidget {
   const RawPostImageWidget({
     super.key,
     required this.post,
@@ -142,9 +142,66 @@ class RawPostImageWidget extends StatelessWidget {
   final ImageLoadController? load;
 
   @override
+  State<RawPostImageWidget> createState() => _RawPostImageWidgetState();
+}
+
+class _RawPostImageWidgetState extends State<RawPostImageWidget> {
+  ImageProvider? _held;
+  ImageStream? _stream;
+  late final ImageStreamListener _listener = ImageStreamListener(
+    (image, synchronousCall) => image.dispose(),
+    onError: (error, stackTrace) {},
+  );
+
+  String get _url =>
+      switch (widget.size) {
+        PostImageSize.preview => widget.post.preview,
+        PostImageSize.sample => widget.post.sample,
+        PostImageSize.file => widget.post.file!,
+      } ??
+      widget.post.file!;
+
+  bool get _wide => widget.post.width > widget.post.height;
+
+  void _hold() {
+    final ImageProvider image = ResizeImage.resizeIfNeeded(
+      _wide ? null : widget.cacheSize,
+      _wide ? widget.cacheSize : null,
+      CachedNetworkImageProvider(
+        _url,
+        cacheManager: context.read<BaseCacheManager>(),
+      ),
+    );
+    if (image == _held) return;
+    _held = image;
+    _stream?.removeListener(_listener);
+    _stream = image.resolve(createLocalImageConfiguration(context))
+      ..addListener(_listener);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _hold();
+  }
+
+  @override
+  void didUpdateWidget(RawPostImageWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _hold();
+  }
+
+  @override
+  void dispose() {
+    _stream?.removeListener(_listener);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final ImageLoadController? load = this.load;
-    Duration fades = stacked
+    final ImageLoadController? load = widget.load;
+    final String url = _url;
+    final Duration fades = widget.stacked
         ? Duration.zero
         : const Duration(milliseconds: 500);
 
@@ -165,40 +222,20 @@ class RawPostImageWidget extends StatelessWidget {
       );
     }
 
-    String url =
-        switch (size) {
-          PostImageSize.preview => post.preview,
-          PostImageSize.sample => post.sample,
-          PostImageSize.file => post.file!,
-        } ??
-        post.file!;
-    Size dimensions = Size(post.width.toDouble(), post.height.toDouble());
-
-    double aspectRatio = dimensions.width / dimensions.height;
-
-    int? memCacheWidth;
-    int? memCacheHeight;
-
-    if (aspectRatio > 1) {
-      memCacheHeight = cacheSize;
-    } else {
-      memCacheWidth = cacheSize;
-    }
-
     return CachedNetworkImage(
-      fit: fit,
+      fit: widget.fit,
       fadeInDuration: fades,
       fadeOutDuration: fades,
       imageUrl: url,
       errorWidget: (context, url, error) {
         load?.report(url, ImageFailed(error));
-        if (!stacked) return const SizedBox.shrink();
+        if (!widget.stacked) return const SizedBox.shrink();
         return defaultErrorBuilder(context, url, error);
       },
-      progressIndicatorBuilder: showProgress || stacked
+      progressIndicatorBuilder: widget.showProgress || widget.stacked
           ? (context, url, progress) {
               load?.report(url, ImageLoading(progress.progress));
-              return (progressIndicatorBuilder ?? progressIndicator)(
+              return (widget.progressIndicatorBuilder ?? progressIndicator)(
                 context,
                 url,
                 progress,
@@ -208,11 +245,11 @@ class RawPostImageWidget extends StatelessWidget {
       imageBuilder: load != null
           ? (context, image) {
               load.report(url, const ImageLoaded());
-              return Image(image: image, fit: fit);
+              return Image(image: image, fit: widget.fit);
             }
           : null,
-      memCacheWidth: memCacheWidth,
-      memCacheHeight: memCacheHeight,
+      memCacheWidth: _wide ? null : widget.cacheSize,
+      memCacheHeight: _wide ? widget.cacheSize : null,
       cacheManager: context.read<BaseCacheManager>(),
     );
   }
