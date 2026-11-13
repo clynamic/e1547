@@ -18,14 +18,18 @@ class UserPage extends StatelessWidget {
   const UserPage({
     super.key,
     required this.user,
+    this.summary,
     this.initialPage = UserPageSection.favorites,
   });
 
   final User user;
+  final UserSummary? summary;
   final UserPageSection initialPage;
 
   @override
   Widget build(BuildContext context) {
+    final UserSummary header = summary ?? user;
+    final bool known = header is! Ghost;
     return UserHistoryConnector(
       user: user,
       child: SubValue.builder(
@@ -56,6 +60,7 @@ class UserPage extends StatelessWidget {
                     ),
                     sliver: UserSliverAppBar(
                       user: user,
+                      summary: summary,
                       tabs: tabs.keys.toList(),
                     ),
                   ),
@@ -116,10 +121,13 @@ class UserPage extends StatelessWidget {
                                 SizedBox(
                                   height: 100,
                                   width: 100,
-                                  child: UserAvatar(
-                                    id: user.avatarId,
-                                    userId: user.id,
-                                    hasCroppedAvatar: user.hasCroppedAvatar,
+                                  child: Skeleton.keep(
+                                    keep: known,
+                                    child: UserAvatar(
+                                      id: header.avatarId,
+                                      userId: header.id,
+                                      hasCroppedAvatar: header.hasCroppedAvatar,
+                                    ),
                                   ),
                                 ),
                                 Padding(
@@ -127,11 +135,14 @@ class UserPage extends StatelessWidget {
                                     top: 16,
                                     bottom: 32,
                                   ),
-                                  child: Text(
-                                    user.name,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleLarge,
+                                  child: Skeleton.keep(
+                                    keep: known,
+                                    child: Text(
+                                      header.name,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleLarge,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -227,13 +238,21 @@ class _UserPostsTab extends StatelessWidget {
 }
 
 class UserSliverAppBar extends StatelessWidget {
-  const UserSliverAppBar({super.key, required this.user, this.tabs});
+  const UserSliverAppBar({
+    super.key,
+    required this.user,
+    this.summary,
+    this.tabs,
+  });
 
   final User user;
+  final UserSummary? summary;
   final List<Widget>? tabs;
 
   @override
   Widget build(BuildContext context) {
+    final UserSummary header = summary ?? user;
+    final bool known = header is! Ghost;
     return DefaultSliverAppBar(
       pinned: true,
       expandedHeight: 250,
@@ -254,7 +273,7 @@ class UserSliverAppBar extends StatelessWidget {
             collapseMode: CollapseMode.pin,
             title: Opacity(
               opacity: 1 - (extension * 6).clamp(0, 1),
-              child: Text(user.name),
+              child: Skeleton.keep(keep: known, child: Text(header.name)),
             ),
             background: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -262,17 +281,23 @@ class UserSliverAppBar extends StatelessWidget {
                 SizedBox(
                   height: 100,
                   width: 100,
-                  child: UserAvatar(
-                    id: user.avatarId,
-                    userId: user.id,
-                    hasCroppedAvatar: user.hasCroppedAvatar,
+                  child: Skeleton.keep(
+                    keep: known,
+                    child: UserAvatar(
+                      id: header.avatarId,
+                      userId: header.id,
+                      hasCroppedAvatar: header.hasCroppedAvatar,
+                    ),
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 16, bottom: 32),
-                  child: Text(
-                    user.name,
-                    style: Theme.of(context).textTheme.titleLarge,
+                  child: Skeleton.keep(
+                    keep: known,
+                    child: Text(
+                      header.name,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
                   ),
                 ),
               ],
