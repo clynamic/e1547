@@ -22,6 +22,7 @@ export 'hero.dart';
 export 'hexagonal_loading.dart';
 export 'image_load.dart';
 export 'link.dart';
+export 'load_more.dart';
 export 'loading.dart';
 export 'multiselect.dart';
 export 'navigation.dart';

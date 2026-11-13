@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-enum HexagonState { tracing, armed, loading }
+enum HexagonState { tracing, armed, loading, failed, end }
 
 class HexagonalLoadingIndicator extends StatefulWidget {
   const HexagonalLoadingIndicator({
@@ -67,6 +67,7 @@ class _HexagonalLoadingIndicatorState extends State<HexagonalLoadingIndicator>
           phase: travel.value,
           accent: theme.colorScheme.primary,
           ink: theme.colorScheme.onSurface,
+          error: theme.colorScheme.error,
         ),
       ),
     );
@@ -80,6 +81,7 @@ class HexagonalLoadingPainter extends CustomPainter {
     required this.phase,
     required this.accent,
     required this.ink,
+    required this.error,
   });
 
   final HexagonState state;
@@ -87,6 +89,7 @@ class HexagonalLoadingPainter extends CustomPainter {
   final double phase;
   final Color accent;
   final Color ink;
+  final Color error;
 
   static Path hexagon(Size size) {
     final double s = size.width / 48;
@@ -141,6 +144,23 @@ class HexagonalLoadingPainter extends CustomPainter {
         if (end > edge.length) {
           canvas.drawPath(edge.extractPath(0, end - edge.length), segment);
         }
+      case HexagonState.failed:
+        final double unit = edge.length / 126;
+        final double s = size.width / 48;
+        final Paint broken = _stroke(error.withValues(alpha: 0.9), width);
+        canvas.drawPath(edge.extractPath(0, 70 * unit), broken);
+        canvas.drawPath(edge.extractPath(84 * unit, 126 * unit), broken);
+        canvas.drawPath(
+          Path()
+            ..moveTo(17.6 * s, 41.3 * s)
+            ..lineTo(19.4 * s, 36.2 * s)
+            ..lineTo(16.2 * s, 33.4 * s)
+            ..lineTo(20.6 * s, 28.2 * s),
+          broken..strokeWidth = 2.5 * s,
+        );
+      case HexagonState.end:
+        canvas.drawPath(shape, Paint()..color = ink.withValues(alpha: 0.14));
+        canvas.drawPath(shape, _stroke(ink.withValues(alpha: 0.2), width));
     }
   }
 
@@ -150,5 +170,6 @@ class HexagonalLoadingPainter extends CustomPainter {
       oldDelegate.progress != progress ||
       oldDelegate.phase != phase ||
       oldDelegate.accent != accent ||
-      oldDelegate.ink != ink;
+      oldDelegate.ink != ink ||
+      oldDelegate.error != error;
 }

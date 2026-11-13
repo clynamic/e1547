@@ -23,6 +23,7 @@ PagedChildBuilderDelegate<T> defaultPagedChildBuilderDelegate<T>({
   VoidCallback? onRetry,
   Widget? onEmpty,
   Widget? onError,
+  Widget? onEnd,
   Widget Function(BuildContext context, Widget child)? pageBuilder,
 }) {
   pageBuilder ??= (context, child) => child;
@@ -39,14 +40,7 @@ PagedChildBuilderDelegate<T> defaultPagedChildBuilderDelegate<T>({
     ),
     newPageProgressIndicatorBuilder: (context) => pageBuilder!(
       context,
-      const Material(
-        child: Center(
-          child: Padding(
-            padding: EdgeInsets.all(16),
-            child: HexagonalLoadingIndicator(),
-          ),
-        ),
-      ),
+      const LoadMoreFooter(state: HexagonState.loading),
     ),
     noItemsFoundIndicatorBuilder: (context) => pageBuilder!(
       context,
@@ -65,12 +59,17 @@ PagedChildBuilderDelegate<T> defaultPagedChildBuilderDelegate<T>({
     ),
     newPageErrorIndicatorBuilder: (context) => pageBuilder!(
       context,
-      IconMessage(
-        direction: Axis.horizontal,
-        icon: const Icon(Icons.warning_amber_outlined),
-        title: onError ?? const Text('Failed to load'),
-        action: PagedChildBuilderRetryButton(onRetry),
+      LoadMoreFooter(
+        state: HexagonState.failed,
+        label: onError ?? const Text('Failed to load'),
+        onRetry: onRetry,
       ),
     ),
+    noMoreItemsIndicatorBuilder: onEnd == null
+        ? null
+        : (context) => pageBuilder!(
+            context,
+            LoadMoreFooter(state: HexagonState.end, label: onEnd),
+          ),
   );
 }

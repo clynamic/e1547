@@ -69,6 +69,7 @@ class PostGridSliver extends StatelessWidget {
       onRetry: fetchNextPage,
       onEmpty: const Text('No posts'),
       onError: const Text('Failed to load posts'),
+      onEnd: const Text('No more posts'),
       itemBuilder: itemBuilder,
     );
 
@@ -137,6 +138,7 @@ class PostComicSliver extends StatelessWidget {
           onRetry: fetchNextPage,
           onEmpty: const Text('No posts'),
           onError: const Text('Failed to load posts'),
+          onEnd: const Text('No more posts'),
           itemBuilder: (context, item, index) => Padding(
             padding:
                 LimitedWidthLayout.maybeOf(context)?.padding ?? EdgeInsets.zero,
@@ -174,6 +176,7 @@ class PostTimelineSliver extends StatelessWidget {
           onRetry: fetchNextPage,
           onEmpty: const Text('No posts'),
           onError: const Text('Failed to load posts'),
+          onEnd: const Text('No more posts'),
           itemBuilder: (context, item, index) => Padding(
             padding:
                 LimitedWidthLayout.maybeOf(context)?.padding ?? EdgeInsets.zero,
