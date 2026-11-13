@@ -1,5 +1,8 @@
 import 'package:dio/dio.dart';
 
+// Server-side maximum id and page request size.
+const int maxPageLimit = 320;
+
 /// Unwraps ruby on rails API responses by removing the root wrapper.
 /// If the response is a map with exactly one key, that key's value is extracted.
 /// If the response is an empty object, it is replaced with an empty list.

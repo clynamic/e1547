@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cached_query_flutter/cached_query_flutter.dart';
+import 'package:e1547/query/data/loader.dart';
 import 'package:e1547/shared/shared.dart';
 export 'package:cached_query_flutter/cached_query_flutter.dart';
 
@@ -81,6 +82,14 @@ class QueryBridge<T, K> {
     }
     return items.map(getId).toList();
   }
+
+  QueryLoader<K, T> loader(
+    Future<List<T>> Function(List<K> ids) load, {
+    int? limit,
+  }) => QueryLoader(
+    (ids) async => {for (final T item in await load(ids)) getId(item): item},
+    limit: limit,
+  );
 
   Future<R> optimistic<R>(
     K id,
