@@ -1,6 +1,7 @@
 import 'package:e1547/post/post.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class PostList extends StatelessWidget {
@@ -10,8 +11,17 @@ class PostList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => PostPageQueryBuilder(
-    builder: (context, state, query) => PullToRefresh(
-      onRefresh: query.invalidate,
+    builder: (context, state, query) => PullToRefresh.noted(
+      onRefresh: () async {
+        final List<int>? before = query.state.data?.pages.firstOrNull;
+        await query.invalidate();
+        if (query.state.isError) return const RefreshNote('Failed to refresh');
+        if (before != null &&
+            listEquals(before, query.state.data?.pages.firstOrNull)) {
+          return const RefreshNote('Up to date');
+        }
+        return null;
+      },
       child: CustomScrollView(
         primary: true,
         slivers: [
