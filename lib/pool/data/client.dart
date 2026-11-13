@@ -28,4 +28,13 @@ class PoolClient {
             .map<Pool>((e) => E621Pool.fromJson(e))
             .toList(),
       );
+
+  Future<List<Pool>> byIds({
+    required List<int> ids,
+    CancelToken? cancelToken,
+  }) => page(
+    limit: ids.length,
+    query: {'search[id]': ids.join(',')},
+    cancelToken: cancelToken,
+  );
 }
