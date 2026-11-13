@@ -92,12 +92,15 @@ class PoolGrid extends StatelessWidget {
                     state: paging,
                     fetchNextPage: fetchNextPage,
                     crossAxisCount:
-                        (TileLayout.of(context).crossAxisCount * 0.5).round(),
+                        (TileLayout.of(context).crossAxisCount * 0.5)
+                            .round()
+                            .clamp(2, 8),
+                    crossAxisSpacing: 8,
                     builderDelegate: defaultPagedChildBuilderDelegate<Pool>(
                       onRetry: query.getNextPage,
                       itemBuilder: (context, item, index) =>
                           ImageCacheSizeProvider(
-                            size: TileLayout.of(context).tileSize * 4,
+                            size: TileLayout.of(context).tileSize * 2,
                             child: PoolTile(
                               pool: item,
                               onPressed: () => Navigator.of(context).push(
