@@ -621,14 +621,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.34"
-  flutter_screen_lock:
-    dependency: "direct main"
-    description:
-      name: flutter_screen_lock
-      sha256: "540fc2f02a5284ed6fb150b1e4c0ba0a74ed9777bc8a8208bb1a610396feb9a3"
-      url: "https://pub.dev"
-    source: hosted
-    version: "9.2.2+2"
   flutter_staggered_grid_view:
     dependency: "direct main"
     description:
@@ -912,7 +904,7 @@ packages:
     source: hosted
     version: "3.0.1"
   local_auth_android:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: local_auth_android
       sha256: b201c006fa769c23386f89aa6837ec0eb8179fcfb212eadcf87b422b3f9a6a78
@@ -928,7 +920,7 @@ packages:
     source: hosted
     version: "2.0.3"
   local_auth_platform_interface:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: local_auth_platform_interface
       sha256: f98b8e388588583d3f781f6806e4f4c9f9e189d898d27f0c249b93a1973dd122

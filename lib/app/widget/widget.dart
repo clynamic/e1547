@@ -6,5 +6,6 @@ export 'loading.dart';
 export 'lock.dart';
 export 'logging.dart';
 export 'notifications.dart';
+export 'pin.dart';
 export 'provider.dart';
 export 'window.dart';

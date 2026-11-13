@@ -336,7 +336,7 @@ class SettingsPage extends StatelessWidget {
                   value: value != null,
                   onChanged: (value) async {
                     if (value) {
-                      String? pin = await registerPin(context);
+                      String? pin = await choosePin(context);
                       if (pin != null) {
                         settings.appPin.value = pin;
                       }
