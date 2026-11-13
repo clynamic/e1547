@@ -13,7 +13,11 @@ class TagCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return ColoredCard(
       color:
-          (category != null ? TagCategory.byName(category!)?.color : null) ??
+          (category != null
+              ? TagCategory.byName(
+                  category!,
+                )?.colorFor(Theme.of(context).brightness)
+              : null) ??
           Colors.grey,
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(
@@ -45,7 +49,11 @@ class TagCounterCard extends StatelessWidget {
       onTap: () => showTagSearchPrompt(context: context, tag: tag),
       onLongPress: () => showTagSearchPrompt(context: context, tag: tag),
       onSecondaryTap: () => showTagSearchPrompt(context: context, tag: tag),
-      color: (category != null ? TagCategory.byName(category!)?.color : null),
+      color: (category != null
+          ? TagCategory.byName(
+              category!,
+            )?.colorFor(Theme.of(context).brightness)
+          : null),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
