@@ -123,18 +123,12 @@ class PostTileOverlay extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
-    if (post.isDeleted) {
-      return const Center(child: Text('deleted'));
-    }
-    if (post.type == PostType.unsupported) {
-      return const Center(child: Text('unsupported'));
-    }
-    if (post.file == null) {
-      return const Center(child: Text('unavailable'));
-    }
-    return child;
-  }
+  Widget build(BuildContext context) => switch (postFileIcon(context, post)) {
+    final IconData icon => Center(
+      child: Icon(icon, color: dimTextColor(context)),
+    ),
+    null => child,
+  };
 }
 
 class PostInfoBar extends StatelessWidget {
