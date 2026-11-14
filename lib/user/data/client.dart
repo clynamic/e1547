@@ -41,6 +41,19 @@ class UserClient {
     cancelToken: cancelToken,
   );
 
+  Future<List<PartialUser>> search({
+    required String name,
+    int? limit,
+    CancelToken? cancelToken,
+  }) => page(
+    limit: limit,
+    query: {
+      'search[name_matches]': '$name*',
+      'search[order]': 'post_upload_count',
+    },
+    cancelToken: cancelToken,
+  );
+
   Future<User> _get(String lookup, {CancelToken? cancelToken}) => dio
       .get('/users/$lookup.json', cancelToken: cancelToken)
       .then((response) => E621User.fromJson(response.data));

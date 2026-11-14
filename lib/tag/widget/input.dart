@@ -65,7 +65,7 @@ class TagInput extends StatelessWidget {
           return controller;
         },
         keys: [controller],
-        builder: (context, controller) => AutocompleteTextField<Tag>(
+        builder: (context, controller) => AutocompleteTextField<TagSuggestion>(
           controller: controller,
           submit: submit,
           direction: direction,
@@ -85,15 +85,9 @@ class TagInput extends StatelessWidget {
           onSelected: (suggestion) {
             List<String> tags = controller.text.split(' ');
             int selection = findTag(tags, controller.selection.extent.offset);
-            String tag = tags[selection];
-            String operator = tag[0];
-            if (['-', '~'].contains(operator)) {
-              tags[selection] = tag.substring(1);
-            } else {
-              operator = '';
-            }
-            tags[selection] = operator + suggestion.name;
-            controller.text = '${tags.join(' ')} ';
+            tags[selection] = suggestion.name;
+            final String text = tags.join(' ');
+            controller.text = suggestion.complete ? '$text ' : text;
             controller.setFocusToEnd();
           },
           itemBuilder: (context, value) => Row(
@@ -115,13 +109,14 @@ class TagInput extends StatelessWidget {
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  NumberFormat.compact().format(value.count),
-                  style: const TextStyle(fontSize: 16),
+              if (value.count case final int count)
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    NumberFormat.compact().format(count),
+                    style: const TextStyle(fontSize: 16),
+                  ),
                 ),
-              ),
             ],
           ),
           suggestionsCallback: (pattern) async {
@@ -130,11 +125,7 @@ class TagInput extends StatelessWidget {
             int selection = findTag(tags, controller.selection.extent.offset);
             String tag = tags[selection];
             if (tag.isEmpty) return [];
-            return client.tags.autocomplete(
-              search: tagToRaw(tags[selection]),
-              category: category,
-              limit: 3,
-            );
+            return suggestTerm(client, tag, category: category);
           },
         ),
       ),
