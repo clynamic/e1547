@@ -122,7 +122,7 @@ void main() {
 
     await doubleTap(tester, const Offset(300, 200));
 
-    expect(zoom.scale, closeTo(zoomStep, 0.001));
+    expect(zoom.scale, closeTo(2.5, 0.001));
     expect(under(const Offset(300, 200)).dx, closeTo(300, 1));
     expect(under(const Offset(300, 200)).dy, closeTo(200, 1));
   });
@@ -134,11 +134,11 @@ void main() {
 
     await doubleTap(tester, const Offset(40, 120));
 
-    expect(zoom.scale, closeTo(zoomStep, 0.001));
+    expect(zoom.scale, closeTo(2.5, 0.001));
     expect(under(const Offset(40, 120)).dx, closeTo(40, 1));
     expect(
       zoom.transformation.value.getTranslation().y,
-      closeTo(-100 * zoomStep, 0.01),
+      closeTo(-100 * 2.5, 0.01),
     );
   });
 
@@ -149,7 +149,7 @@ void main() {
 
     await doubleTap(tester, const Offset(300, 40));
 
-    expect(zoom.scale, closeTo(zoomStep, 0.001));
+    expect(zoom.scale, closeTo(2.5, 0.001));
     expect(under(const Offset(400, 300)).dx, closeTo(400, 1));
     expect(under(const Offset(400, 300)).dy, closeTo(300, 1));
   });
@@ -600,7 +600,7 @@ void main() {
       moveRight: const Offset(375, 0),
     );
 
-    expect(zoom.scale, closeTo(1.5 * zoomReach, 0.001));
+    expect(zoom.scale, closeTo(1.5 * 6, 0.001));
     await left.up();
     await right.up();
     await tester.pumpAndSettle();
@@ -619,7 +619,7 @@ void main() {
       moveRight: const Offset(-150, 0),
     );
 
-    expect(zoom.scale, zoomMin);
+    expect(zoom.scale, 1);
     await left.up();
     await right.up();
     await tester.pumpAndSettle();

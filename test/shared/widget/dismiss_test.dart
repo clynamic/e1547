@@ -312,7 +312,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final TestGesture finger = await pull(tester, find.byType(DragToDismiss));
-    expect(top.dragOffset, greaterThan(dismissThreshold));
+    expect(top.dragOffset, greaterThan(120));
     await finger.cancel();
     await tester.pumpAndSettle();
 
@@ -329,7 +329,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final TestGesture finger = await pull(tester, find.byType(ScrollToDismiss));
-    expect(top.dragOffset, greaterThan(dismissThreshold));
+    expect(top.dragOffset, greaterThan(120));
     await finger.cancel();
     await tester.pumpAndSettle();
 

@@ -2,18 +2,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-const double dismissThreshold = 120;
-const double dismissVelocity = 700;
-const double dismissTravel = 1000;
-const double dismissReach = 240;
-const double dismissMinScale = 0.72;
-const double dismissFadeRate = 2;
-const Duration dismissDuration = Duration(milliseconds: 300);
-const Color dismissBarrier = Color(0x8A000000);
-final SpringDescription dismissSpring = SpringDescription.withDampingRatio(
-  mass: 1,
-  stiffness: 150,
-);
+const double _dismissTravel = 1000;
+const double _dismissFadeRate = 2;
+const Duration _dismissDuration = Duration(milliseconds: 300);
 
 class DismissRoute<T> extends PageRoute<T> {
   DismissRoute({required this.builder, super.settings});
@@ -29,20 +20,20 @@ class DismissRoute<T> extends PageRoute<T> {
 
   AnimationController get driver => controller!;
 
-  double momentum(double velocity) => direction * velocity / dismissTravel;
+  double momentum(double velocity) => direction * velocity / _dismissTravel;
 
   bool get dismissible => isActive && !isFirst;
 
   bool get dragging => drag.value > 0;
 
-  double get dragOffset => direction * drag.value * dismissTravel;
+  double get dragOffset => direction * drag.value * _dismissTravel;
 
-  double get dragProgress => (dragOffset.abs() / dismissReach).clamp(0, 1);
+  double get dragProgress => (dragOffset.abs() / 240).clamp(0, 1);
 
   @override
   void install() {
     super.install();
-    drag = AnimationController(vsync: navigator!, duration: dismissDuration)
+    drag = AnimationController(vsync: navigator!, duration: _dismissDuration)
       ..addStatusListener(_onDrag)
       ..addListener(_onDragValue);
   }
@@ -65,7 +56,10 @@ class DismissRoute<T> extends PageRoute<T> {
     if (dragging) {
       drag.fling(
         velocity: max(0.001, momentum(released)),
-        springDescription: dismissSpring,
+        springDescription: SpringDescription.withDampingRatio(
+          mass: 1,
+          stiffness: 150,
+        ),
       );
     }
     return popped;
@@ -81,7 +75,7 @@ class DismissRoute<T> extends PageRoute<T> {
   bool get maintainState => true;
 
   @override
-  Duration get transitionDuration => dismissDuration;
+  Duration get transitionDuration => _dismissDuration;
 
   @override
   Widget buildPage(
@@ -104,8 +98,8 @@ class DismissRoute<T> extends PageRoute<T> {
         children: [
           IgnorePointer(
             child: ColoredBox(
-              color: dismissBarrier.withValues(
-                alpha: dismissBarrier.a * _scrim(animation),
+              color: Colors.black54.withValues(
+                alpha: Colors.black54.a * _scrim(animation),
               ),
             ),
           ),
@@ -150,7 +144,7 @@ class DismissController implements Listenable {
 
   double get progress => route.dragProgress;
 
-  double get scale => 1 - (1 - dismissMinScale) * progress;
+  double get scale => 1 - 0.28 * progress;
 
   bool get isDragging => route.dragging;
 
@@ -162,9 +156,9 @@ class DismissController implements Listenable {
 
   bool exceeds(double velocity) {
     final double reached = offset;
-    if (reached.abs() > dismissThreshold) return true;
+    if (reached.abs() > 120) return true;
     if (reached == 0) return false;
-    return velocity.sign == reached.sign && velocity.abs() > dismissVelocity;
+    return velocity.sign == reached.sign && velocity.abs() > 700;
   }
 
   void settle([double velocity = 0]) {
@@ -180,7 +174,7 @@ class DismissController implements Listenable {
     route.released = 0;
     if (!route.dragging) route.direction = delta.isNegative ? -1 : 1;
     final double next =
-        route.drag.value + delta * route.direction / dismissTravel;
+        route.drag.value + delta * route.direction / _dismissTravel;
     route.drag.value = next.clamp(0, 1);
   }
 
@@ -206,7 +200,7 @@ class DismissFade extends StatelessWidget {
   const DismissFade({
     super.key,
     required this.child,
-    this.rate = dismissFadeRate,
+    this.rate = _dismissFadeRate,
   });
 
   final Widget child;
@@ -231,7 +225,7 @@ class DismissSliverFade extends StatelessWidget {
   const DismissSliverFade({
     super.key,
     required this.sliver,
-    this.rate = dismissFadeRate,
+    this.rate = _dismissFadeRate,
   });
 
   final Widget sliver;

@@ -5,22 +5,19 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 
-const double zoomMin = 1;
-const double zoomReach = 6;
-const double zoomSnap = 0.08;
-const double zoomStep = 2.5;
-const double zoomWheel = kDefaultMouseScrollToScaleFactor;
-const double zoomFriction = 0.0000135;
-const double edgeSlack = 0.5;
+const double _zoomMin = 1;
+const double _zoomReach = 6;
+const double _zoomFriction = 0.0000135;
+const double _edgeSlack = 0.5;
 
 class ZoomController extends ChangeNotifier {
   final TransformationController transformation = TransformationController();
 
-  double _scale = zoomMin;
+  double _scale = _zoomMin;
 
   double get scale => _scale;
 
-  bool get isZoomed => _scale > zoomMin + zoomSnap;
+  bool get isZoomed => _scale > _zoomMin + 0.08;
 
   void _read() {
     final double next = transformation.value.getMaxScaleOnAxis();
@@ -131,7 +128,7 @@ class _ZoomableState extends State<Zoomable> with TickerProviderStateMixin {
 
   double _coverIn(Size viewport) {
     final Rect content = _contentIn(viewport);
-    if (content.isEmpty) return zoomMin;
+    if (content.isEmpty) return _zoomMin;
     return max(
       viewport.width / content.width,
       viewport.height / content.height,
@@ -170,7 +167,7 @@ class _ZoomableState extends State<Zoomable> with TickerProviderStateMixin {
     final Size viewport = _viewport;
     final Rect content = _contentIn(viewport);
     final double cover = _coverIn(viewport);
-    final double next = max(cover, zoomStep).clamp(zoomMin, cover * zoomReach);
+    final double next = max(cover, 2.5).clamp(_zoomMin, cover * _zoomReach);
     Offset focus = _lastTap?.localPosition ?? viewport.center(Offset.zero);
     if (!content.contains(focus)) focus = content.center;
     final Offset shift = focus * (1 - next);
@@ -192,8 +189,8 @@ class _ZoomableState extends State<Zoomable> with TickerProviderStateMixin {
   void _scaleBy(double change) {
     if (change == 1) return;
     final double current = transformation.value.getMaxScaleOnAxis();
-    final double limit = _coverIn(_viewport) * zoomReach;
-    final double by = (current * change).clamp(zoomMin, limit) / current;
+    final double limit = _coverIn(_viewport) * _zoomReach;
+    final double by = (current * change).clamp(_zoomMin, limit) / current;
     transformation.value = transformation.value.clone()
       ..scaleByDouble(by, by, by, 1);
   }
@@ -234,8 +231,8 @@ class _ZoomableState extends State<Zoomable> with TickerProviderStateMixin {
         viewport.height,
       ),
     };
-    if (leading) return shift >= -scale * begin - edgeSlack;
-    return shift <= extent - scale * end + edgeSlack;
+    if (leading) return shift >= -scale * begin - _edgeSlack;
+    return shift <= extent - scale * end + _edgeSlack;
   }
 
   void _onStart(ScaleStartDetails details) {
@@ -321,8 +318,8 @@ class _ZoomableState extends State<Zoomable> with TickerProviderStateMixin {
         if (velocity.distance < kMinFlingVelocity) return;
         final Offset from = _shift;
         final Offset to = Offset(
-          FrictionSimulation(zoomFriction, from.dx, velocity.dx).finalX,
-          FrictionSimulation(zoomFriction, from.dy, velocity.dy).finalX,
+          FrictionSimulation(_zoomFriction, from.dx, velocity.dx).finalX,
+          FrictionSimulation(_zoomFriction, from.dy, velocity.dy).finalX,
         );
         final Animation<Offset> drift = Tween<Offset>(
           begin: from,
@@ -342,7 +339,7 @@ class _ZoomableState extends State<Zoomable> with TickerProviderStateMixin {
         final Animation<double> swell = Tween<double>(
           begin: from,
           end: FrictionSimulation(
-            zoomFriction * zoomWheel,
+            _zoomFriction * kDefaultMouseScrollToScaleFactor,
             from,
             details.scaleVelocity / 10,
           ).x(time),
@@ -359,7 +356,7 @@ class _ZoomableState extends State<Zoomable> with TickerProviderStateMixin {
   }
 
   double _coastTime(double velocity, {double motionless = 10}) =>
-      log(motionless / velocity) / log(zoomFriction / 100);
+      log(motionless / velocity) / log(_zoomFriction / 100);
 
   void _glide(double seconds) {
     coast.duration = Duration(milliseconds: (seconds * 1000).round());
@@ -395,7 +392,7 @@ class _ZoomableState extends State<Zoomable> with TickerProviderStateMixin {
         return;
       case PointerScrollEvent(:final Offset scrollDelta):
         if (scrollDelta.dy == 0) return;
-        change = exp(-scrollDelta.dy / zoomWheel);
+        change = exp(-scrollDelta.dy / kDefaultMouseScrollToScaleFactor);
       case PointerScaleEvent(:final double scale):
         change = scale;
       default:
