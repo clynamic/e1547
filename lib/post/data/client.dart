@@ -78,31 +78,16 @@ class PostClient {
     CancelToken? cancelToken,
   }) async {
     if (ids.isEmpty) return [];
-
-    // Server-side maximum id and page request size.
-    const int chunkSize = 320;
-
-    List<List<int>> chunks = [];
-    for (int i = 0; i < ids.length; i += chunkSize) {
-      chunks.add(ids.sublist(i, min(i + chunkSize, ids.length)));
-    }
-
-    List<Post> result = [];
-    for (final chunk in chunks) {
-      String filter = 'id:${chunk.join(',')}';
-      if (hidden) filter = '$filter status:any';
-      List<Post> part = await (hidden ? _search : page)(
-        query: {'tags': filter},
-        limit: chunk.length,
-        cancelToken: cancelToken,
-      );
-      Map<int, Post> table = {for (Post e in part) e.id: e};
-      result.addAll(
-        (chunk.map((e) => table[e]).toList()..removeWhere((e) => e == null))
-            .cast<Post>(),
-      );
-    }
-    return result;
+    String filter = 'id:${ids.join(',')}';
+    if (hidden) filter = '$filter status:any';
+    List<Post> found = await _search(
+      query: {'tags': filter},
+      limit: min(ids.length, maxPageLimit),
+      cancelToken: cancelToken,
+    );
+    if (!hidden) found = _filter(found);
+    Map<int, Post> table = {for (Post e in found) e.id: e};
+    return ids.map((e) => table[e]).nonNulls.toList();
   }
 
   Future<List<PartialPost>> artistRecommendations({

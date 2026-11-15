@@ -136,17 +136,14 @@ void main() {
     expect(fake.requests.last.query['tags'], 'id:${ids.join(',')}');
   });
 
-  test('splits ids into chunks of 320', () async {
+  test('asks for more than 320 ids in one request limited to 320', () async {
     final ids = List.generate(321, (index) => index + 1);
 
     await client.byIds(ids: ids);
 
     final posts = fake.requests.where((e) => e.path == '/posts.json').toList();
-    expect(posts.length, 2);
-    expect(posts.first.query['tags'], 'id:${ids.take(320).join(',')}');
-    expect(posts.first.query['limit'], '320');
-    expect(posts.last.query['tags'], 'id:${ids.last}');
-    expect(posts.last.query['limit'], '1');
+    expect(posts.single.query['tags'], 'id:${ids.join(',')}');
+    expect(posts.single.query['limit'], '320');
   });
 
   test('restores the requested id order', () async {
