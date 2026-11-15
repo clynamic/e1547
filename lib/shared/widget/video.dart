@@ -64,6 +64,9 @@ class VideoPlayer extends Player {
     _failed = false;
     _hasParams = false;
     _update();
+    if (platform case NativePlayer native) {
+      await native.setProperty('stream-buffer-size', '32MiB');
+    }
     await open(Media(media), play: false);
   }
 
