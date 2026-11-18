@@ -10,7 +10,11 @@ import '../test/_support/fixtures.dart' show fixtureHost;
 const String host = 'https://e926.net';
 
 const List<Endpoint> endpoints = [
-  Endpoint('posts', '/posts.json', {'limit': '3', 'tags': 'order:score'}),
+  Endpoint('posts', '/posts.json', {
+    'limit': '3',
+    'tags': 'order:score',
+    'mode': 'extended',
+  }),
   Endpoint('comments', '/comments.json', {'limit': '3'}),
   Endpoint('topics', '/forum_topics.json', {'limit': '3'}),
   Endpoint('replies', '/forum_posts.json', {'limit': '3'}, query: repliesOf),

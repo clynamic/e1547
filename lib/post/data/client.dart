@@ -23,8 +23,11 @@ class PostClient {
   final Identity identity;
 
   Future<Post> get({required int id, CancelToken? cancelToken}) => dio
-      .get('/posts/$id.json', cancelToken: cancelToken)
-      .then(unwrapRailsArray)
+      .get(
+        '/posts/$id.json',
+        queryParameters: {'mode': 'extended'},
+        cancelToken: cancelToken,
+      )
       .then((response) => E621Post.fromJson(response.data));
 
   Future<List<Post>> page({
@@ -35,10 +38,14 @@ class PostClient {
   }) => dio
       .get(
         '/posts.json',
-        queryParameters: {'page': page, 'limit': limit, ...?query}.toQuery(),
+        queryParameters: {
+          'page': page,
+          'limit': limit,
+          'mode': 'extended',
+          ...?query,
+        }.toQuery(),
         cancelToken: cancelToken,
       )
-      .then(unwrapRailsArray)
       .then(
         (response) =>
             (response.data as List).map<Post>(E621Post.fromJson).toList(),
@@ -137,12 +144,12 @@ class PostClient {
         queryParameters: {
           'page': page,
           'limit': limit,
+          'mode': 'extended',
           // may not contain tags, or we get redirected to a html page
           ...?(query?..remove('tags')),
         },
         cancelToken: cancelToken,
       )
-      .then(unwrapRailsArray)
       .then(
         (response) => (response.data as List<dynamic>)
             .map<Post>(E621Post.fromJson)

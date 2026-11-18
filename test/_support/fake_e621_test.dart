@@ -20,8 +20,7 @@ void main() {
   Future<Response<Object?>> posts(Map<String, Object?> query) =>
       dio.get<Object?>('/posts.json', queryParameters: query);
 
-  List<Object?> postsOf(Response<Object?> response) =>
-      (response.data! as Map)['posts']! as List;
+  List<Object?> postsOf(Response<Object?> response) => response.data! as List;
 
   List<int> idsOf(List<Object?> posts) =>
       posts.map((e) => (e! as Map)['id']! as int).toList();
@@ -63,5 +62,14 @@ void main() {
 
   test('rejects a page beyond the last', () async {
     expect((await posts({'page': 751})).statusCode, 410);
+  });
+
+  test('serves tags grouped by category only in extended mode', () async {
+    final basic = postsOf(await posts({'limit': 1})).single! as Map;
+    final extended =
+        postsOf(await posts({'limit': 1, 'mode': 'extended'})).single! as Map;
+    final categories = extended['tags']! as Map;
+
+    expect(basic['tags'], categories.values.expand((e) => e as List).toList());
   });
 }

@@ -3,33 +3,78 @@
     "id": 1000,
     "created_at": "2023-10-09T04:17:41.599-04:00",
     "updated_at": "2026-08-12T17:37:58.349-04:00",
-    "file": {
-      "width": 2048,
-      "height": 1942,
-      "ext": "jpg",
-      "size": 288485,
-      "md5": "59806192859806192859806192859806",
-      "url": "{{host}}/data/59/80/59806192859806192859806192859806.jpg"
+    "change_seq": 78634850,
+    "files": {
+      "meta": {
+        "md5": "59806192859806192859806192859806",
+        "ext": "jpg",
+        "size": 288485,
+        "duration": null,
+        "has_sample": true
+      },
+      "original": {
+        "width": 2048,
+        "height": 1942,
+        "url": "{{host}}/data/59/80/59806192859806192859806192859806.jpg"
+      },
+      "preview": {
+        "width": 270,
+        "height": 256,
+        "jpg": "{{host}}/data/preview/59/80/59806192859806192859806192859806.jpg",
+        "webp": "{{host}}/data/preview/59/80/59806192859806192859806192859806.webp"
+      },
+      "sample": {
+        "width": 896,
+        "height": 850,
+        "jpg": "{{host}}/data/sample/59/80/59806192859806192859806192859806.jpg",
+        "webp": "{{host}}/data/sample/59/80/59806192859806192859806192859806.webp"
+      }
     },
-    "preview": {
-      "width": 270,
-      "height": 256,
-      "url": "{{host}}/data/preview/59/80/59806192859806192859806192859806.jpg",
-      "alt": "{{host}}/data/preview/59/80/59806192859806192859806192859806.webp"
+    "uploader_id": 1014,
+    "uploader_name": "user_5",
+    "approver_id": 1007,
+    "stats": {
+      "score": {
+        "up": 9063,
+        "down": -1359,
+        "total": 7704
+      },
+      "fav_count": 4056,
+      "is_favorited": false,
+      "vote": 0,
+      "comment_count": 450,
+      "hotness": 0.0
     },
-    "sample": {
-      "has": true,
-      "width": 896,
-      "height": 850,
-      "url": "{{host}}/data/sample/59/80/59806192859806192859806192859806.jpg",
-      "alt": "{{host}}/data/sample/59/80/59806192859806192859806192859806.webp",
-      "alternates": {}
+    "flags": {
+      "pending": false,
+      "flagged": false,
+      "note_locked": true,
+      "status_locked": false,
+      "rating_locked": true,
+      "deleted": false
     },
-    "score": {
-      "up": 9063,
-      "down": -1359,
-      "total": 7704
+    "has": {
+      "parent": false,
+      "children": false,
+      "active_children": false,
+      "notes": false,
+      "sample": true
     },
+    "relationships": {
+      "parent_id": null,
+      "children": []
+    },
+    "pools": [],
+    "rating": "s",
+    "locked_tags": [
+      "-pride_colors",
+      "-lgbt_pride"
+    ],
+    "sources": [
+      "https://x.com/user_1/user_2/123456",
+      "https://pbs.twimg.com/user_3/user_4?format=123456&name=123456"
+    ],
+    "description": "Recorded text with \"a link\":/posts/1000.",
     "tags": {
       "general": [
         "tag_1",
@@ -90,68 +135,39 @@
         "tag_46"
       ],
       "lore": []
-    },
-    "locked_tags": [
-      "-pride_colors",
-      "-lgbt_pride"
-    ],
-    "change_seq": 78634850,
-    "flags": {
-      "pending": false,
-      "flagged": false,
-      "note_locked": true,
-      "status_locked": false,
-      "rating_locked": true,
-      "deleted": false
-    },
-    "rating": "s",
-    "fav_count": 4056,
-    "sources": [
-      "https://x.com/user_1/user_2/123456",
-      "https://pbs.twimg.com/user_3/user_4?format=123456&name=123456"
-    ],
-    "pools": [],
-    "relationships": {
-      "parent_id": null,
-      "has_children": false,
-      "has_active_children": false,
-      "children": []
-    },
-    "approver_id": 1007,
-    "uploader_id": 1014,
-    "uploader_name": "user_5",
-    "description": "Recorded text with \"a link\":/posts/1000.",
-    "comment_count": 450,
-    "is_favorited": false,
-    "vote": 0,
-    "has_notes": false,
-    "duration": null
+    }
   },
   {
     "id": 1021,
     "created_at": "2021-10-15T20:26:25.188-04:00",
     "updated_at": "2026-08-12T13:25:59.429-04:00",
-    "file": {
-      "width": 640,
-      "height": 640,
-      "ext": "webm",
-      "size": 216387,
-      "md5": "95728357895728357895728357895728",
-      "url": "{{host}}/data/95/72/95728357895728357895728357895728.webm"
-    },
-    "preview": {
-      "width": 256,
-      "height": 256,
-      "url": "{{host}}/data/preview/95/72/95728357895728357895728357895728.jpg",
-      "alt": "{{host}}/data/preview/95/72/95728357895728357895728357895728.webp"
-    },
-    "sample": {
-      "has": true,
-      "width": 850,
-      "height": 850,
-      "url": "{{host}}/data/sample/95/72/95728357895728357895728357895728.jpg",
-      "alt": "{{host}}/data/sample/95/72/95728357895728357895728357895728.webp",
-      "alternates": {
+    "change_seq": 77547984,
+    "files": {
+      "meta": {
+        "md5": "95728357895728357895728357895728",
+        "ext": "webm",
+        "size": 216387,
+        "duration": 3.953,
+        "has_sample": true
+      },
+      "original": {
+        "width": 640,
+        "height": 640,
+        "url": "{{host}}/data/95/72/95728357895728357895728357895728.webm"
+      },
+      "preview": {
+        "width": 256,
+        "height": 256,
+        "jpg": "{{host}}/data/preview/95/72/95728357895728357895728357895728.jpg",
+        "webp": "{{host}}/data/preview/95/72/95728357895728357895728357895728.webp"
+      },
+      "sample": {
+        "width": 850,
+        "height": 850,
+        "jpg": "{{host}}/data/sample/95/72/95728357895728357895728357895728.jpg",
+        "webp": "{{host}}/data/sample/95/72/95728357895728357895728357895728.webp"
+      },
+      "video": {
         "has": true,
         "original": {
           "fps": 30.0,
@@ -183,11 +199,47 @@
         }
       }
     },
-    "score": {
-      "up": 6746,
-      "down": -280,
-      "total": 6466
+    "uploader_id": 1035,
+    "uploader_name": "user_7",
+    "approver_id": 1028,
+    "stats": {
+      "score": {
+        "up": 6746,
+        "down": -280,
+        "total": 6466
+      },
+      "fav_count": 4858,
+      "is_favorited": false,
+      "vote": 0,
+      "comment_count": 147,
+      "hotness": 0.0
     },
+    "flags": {
+      "pending": false,
+      "flagged": false,
+      "note_locked": false,
+      "status_locked": false,
+      "rating_locked": true,
+      "deleted": false
+    },
+    "has": {
+      "parent": false,
+      "children": false,
+      "active_children": false,
+      "notes": false,
+      "sample": true
+    },
+    "relationships": {
+      "parent_id": null,
+      "children": []
+    },
+    "pools": [],
+    "rating": "s",
+    "locked_tags": [],
+    "sources": [
+      "https://x.com/user_6/user_2/123456"
+    ],
+    "description": "Recorded text with \"a link\":/posts/1000.",
     "tags": {
       "general": [
         "tag_47",
@@ -278,64 +330,39 @@
       "lore": [
         "tag_113"
       ]
-    },
-    "locked_tags": [],
-    "change_seq": 77547984,
-    "flags": {
-      "pending": false,
-      "flagged": false,
-      "note_locked": false,
-      "status_locked": false,
-      "rating_locked": true,
-      "deleted": false
-    },
-    "rating": "s",
-    "fav_count": 4858,
-    "sources": [
-      "https://x.com/user_6/user_2/123456"
-    ],
-    "pools": [],
-    "relationships": {
-      "parent_id": null,
-      "has_children": false,
-      "has_active_children": false,
-      "children": []
-    },
-    "approver_id": 1028,
-    "uploader_id": 1035,
-    "uploader_name": "user_7",
-    "description": "Recorded text with \"a link\":/posts/1000.",
-    "comment_count": 147,
-    "is_favorited": false,
-    "vote": 0,
-    "has_notes": false,
-    "duration": 3.953
+    }
   },
   {
     "id": 1042,
     "created_at": "2023-09-25T01:28:59.929-04:00",
     "updated_at": "2026-08-12T17:05:40.803-04:00",
-    "file": {
-      "width": 1280,
-      "height": 720,
-      "ext": "webm",
-      "size": 385023,
-      "md5": "10159205461015920546101592054610",
-      "url": "{{host}}/data/10/15/10159205461015920546101592054610.webm"
-    },
-    "preview": {
-      "width": 455,
-      "height": 256,
-      "url": "{{host}}/data/preview/10/15/10159205461015920546101592054610.jpg",
-      "alt": "{{host}}/data/preview/10/15/10159205461015920546101592054610.webp"
-    },
-    "sample": {
-      "has": true,
-      "width": 1511,
-      "height": 850,
-      "url": "{{host}}/data/sample/10/15/10159205461015920546101592054610.jpg",
-      "alt": "{{host}}/data/sample/10/15/10159205461015920546101592054610.webp",
-      "alternates": {
+    "change_seq": 77602021,
+    "files": {
+      "meta": {
+        "md5": "10159205461015920546101592054610",
+        "ext": "webm",
+        "size": 385023,
+        "duration": 7.282,
+        "has_sample": true
+      },
+      "original": {
+        "width": 1280,
+        "height": 720,
+        "url": "{{host}}/data/10/15/10159205461015920546101592054610.webm"
+      },
+      "preview": {
+        "width": 455,
+        "height": 256,
+        "jpg": "{{host}}/data/preview/10/15/10159205461015920546101592054610.jpg",
+        "webp": "{{host}}/data/preview/10/15/10159205461015920546101592054610.webp"
+      },
+      "sample": {
+        "width": 1511,
+        "height": 850,
+        "jpg": "{{host}}/data/sample/10/15/10159205461015920546101592054610.jpg",
+        "webp": "{{host}}/data/sample/10/15/10159205461015920546101592054610.webp"
+      },
+      "video": {
         "has": true,
         "original": {
           "fps": 60.0,
@@ -367,11 +394,51 @@
         }
       }
     },
-    "score": {
-      "up": 5832,
-      "down": -144,
-      "total": 5688
+    "uploader_id": 1070,
+    "uploader_name": "user_14",
+    "approver_id": 1063,
+    "stats": {
+      "score": {
+        "up": 5832,
+        "down": -144,
+        "total": 5688
+      },
+      "fav_count": 7101,
+      "is_favorited": false,
+      "vote": 0,
+      "comment_count": 61,
+      "hotness": 0.0
     },
+    "flags": {
+      "pending": false,
+      "flagged": false,
+      "note_locked": false,
+      "status_locked": false,
+      "rating_locked": false,
+      "deleted": false
+    },
+    "has": {
+      "parent": false,
+      "children": true,
+      "active_children": true,
+      "notes": false,
+      "sample": true
+    },
+    "relationships": {
+      "parent_id": null,
+      "children": [
+        1049,
+        1056
+      ]
+    },
+    "pools": [],
+    "rating": "s",
+    "locked_tags": [],
+    "sources": [
+      "https://video.twimg.com/user_8/123456/user_9/user_10/user_11/user_12?tag=123456",
+      "https://x.com/user_13/user_2/123456"
+    ],
+    "description": "Recorded text with \"a link\":/posts/1000.",
     "tags": {
       "general": [
         "tag_47",
@@ -442,41 +509,6 @@
         "tag_146"
       ],
       "lore": []
-    },
-    "locked_tags": [],
-    "change_seq": 77602021,
-    "flags": {
-      "pending": false,
-      "flagged": false,
-      "note_locked": false,
-      "status_locked": false,
-      "rating_locked": false,
-      "deleted": false
-    },
-    "rating": "s",
-    "fav_count": 7101,
-    "sources": [
-      "https://video.twimg.com/user_8/123456/user_9/user_10/user_11/user_12?tag=123456",
-      "https://x.com/user_13/user_2/123456"
-    ],
-    "pools": [],
-    "relationships": {
-      "parent_id": null,
-      "has_children": true,
-      "has_active_children": true,
-      "children": [
-        1049,
-        1056
-      ]
-    },
-    "approver_id": 1063,
-    "uploader_id": 1070,
-    "uploader_name": "user_14",
-    "description": "Recorded text with \"a link\":/posts/1000.",
-    "comment_count": 61,
-    "is_favorited": false,
-    "vote": 0,
-    "has_notes": false,
-    "duration": 7.282
+    }
   }
 ]
