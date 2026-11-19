@@ -234,7 +234,7 @@ class SettingsPage extends StatelessWidget {
                   builder: (context, value, child) => ListTile(
                     title: const Text('Download location'),
                     subtitle: value != null
-                        ? Text(Uri.decodeComponent(Uri.parse(value).path))
+                        ? Text(FileDownloader.displayPath(value))
                         : null,
                     leading: const Icon(Icons.folder),
                     onTap: () async {

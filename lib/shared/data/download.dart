@@ -32,6 +32,23 @@ abstract final class FileDownloader {
     }
   }
 
+  static String displayPath(String directory) {
+    final Uri? uri = Uri.tryParse(directory);
+    if (uri == null || uri.scheme != 'content') return directory;
+    final List<String> segments = uri.pathSegments;
+    final int document = segments.lastIndexOf('document');
+    final int at = document >= 0 ? document : segments.indexOf('tree');
+    if (at < 0 || at + 1 >= segments.length) return directory;
+    final String id = segments[at + 1];
+    final int colon = id.indexOf(':');
+    if (colon < 0) return id;
+    final String volume = id.substring(0, colon);
+    final String path = id.substring(colon + 1);
+    if (volume == 'primary') return path.isEmpty ? 'Internal storage' : path;
+    if (volume == 'raw') return path;
+    return path.isEmpty ? volume : '$volume/$path';
+  }
+
   /// Releases permissions to a previously selected directory.
   static Future<void> forgetDirectory(String? directory) async {
     if (Platform.isAndroid && directory != null) {
