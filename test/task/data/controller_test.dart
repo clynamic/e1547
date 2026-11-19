@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:io' as io;
 
 import 'package:e1547/post/post.dart';
 import 'package:e1547/task/task.dart';
+import 'package:file/memory.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart';
 
 import '../../_support/environment.dart';
 import '../../_support/harness.dart';
@@ -11,6 +14,7 @@ import '../../_support/posts.dart';
 
 class HeldDownloads implements BaseCacheManager {
   final Map<String, StreamController<FileResponse>> transfers = {};
+  final MemoryFileSystem _files = MemoryFileSystem();
 
   @override
   Stream<FileResponse> getFileStream(
@@ -19,6 +23,20 @@ class HeldDownloads implements BaseCacheManager {
     Map<String, String>? headers,
     bool? withProgress,
   }) => (transfers[url] = StreamController<FileResponse>()).stream;
+
+  void report(String url, int received) =>
+      transfers[url]!.add(DownloadProgress(url, 3, received));
+
+  void finish(String url) => transfers[url]!
+    ..add(
+      FileInfo(
+        _files.file(url.hashCode.toString())..writeAsBytesSync([1, 2, 3]),
+        FileSource.Online,
+        DateTime(9999),
+        url,
+      ),
+    )
+    ..close();
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>
@@ -107,12 +125,69 @@ void main() {
   });
 
   group('downloads', () {
+    late io.Directory folder;
+
+    setUp(() {
+      folder = io.Directory.systemTemp.createTempSync('downloads');
+      env.settings.downloadPath.value = folder.path;
+    });
+
+    tearDown(() => folder.deleteSync(recursive: true));
+
     String urlOf(int id) => 'http://example.invalid/$id.png';
 
     TaskRequest download(int id) => TaskRequest(
       action: TaskAction.download,
       postId: id,
       metadata: TaskMetadata(fileUrl: urlOf(id), fileName: '$id.png'),
+    );
+
+    bool saved(int id) => io.File(join(folder.path, '$id.png')).existsSync();
+
+    test(
+      'a download canceled while it transfers stops and is not saved',
+      () async {
+        final Task task = await tasks.enqueue(download(1));
+        await until(() => downloads.transfers.length == 1);
+
+        await tasks.cancel(task.id);
+        downloads.report(urlOf(1), 1);
+        await until(() => !tasks.isRunning(task.id));
+
+        expect(downloads.transfers[urlOf(1)]!.hasListener, isFalse);
+        expect(saved(1), isFalse);
+      },
+    );
+
+    test('a download canceled as a worker picks it up is not saved', () async {
+      final Task task = await tasks.enqueue(download(1));
+      await tasks.cancel(task.id);
+      await until(() => downloads.transfers.length == 1);
+
+      downloads.finish(urlOf(1));
+      await until(() => !tasks.isRunning(task.id));
+
+      expect(saved(1), isFalse);
+    });
+
+    test(
+      'downloads canceled together as workers pick them up are not saved',
+      () async {
+        final List<Task> started = await tasks.enqueueAll([
+          download(1),
+          download(2),
+        ]);
+        await tasks.cancelAll();
+        await until(() => downloads.transfers.length == 2);
+
+        downloads
+          ..finish(urlOf(1))
+          ..finish(urlOf(2));
+        await until(() => started.every((e) => !tasks.isRunning(e.id)));
+
+        expect(saved(1), isFalse);
+        expect(saved(2), isFalse);
+      },
     );
 
     test('downloads added while one transfers start alongside it', () async {

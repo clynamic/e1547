@@ -44,6 +44,8 @@ class TasksController extends ChangeNotifier {
   final Set<int> _runningIds = {};
   bool isRunning(int taskId) => _runningIds.contains(taskId);
 
+  final Set<int> _canceledIds = {};
+
   /// Sum of in-flight progress across all running tasks (0..n), driving the
   /// aggregate bubble progress.
   final ValueNotifier<double> currentProgress = ValueNotifier(0);
@@ -239,6 +241,7 @@ class TasksController extends ChangeNotifier {
     } finally {
       _runningDone++;
       _runningIds.remove(task.id);
+      _canceledIds.remove(task.id);
       _progress.remove(task.id)?.dispose();
       _recomputeProgress();
       notifyListeners();
@@ -290,10 +293,12 @@ class TasksController extends ChangeNotifier {
       url,
       withProgress: true,
     )) {
+      if (_canceledIds.contains(task.id)) return;
       if (response is DownloadProgress) {
         progress?.value = (response.progress ?? 0).clamp(0, 1);
         _recomputeProgress();
       } else if (response is FileInfo) {
+        if (await repository.readStatus(task.id) != TaskStatus.running) return;
         try {
           await FileDownloader.downloadImage(
             file: response.file,
@@ -313,7 +318,10 @@ class TasksController extends ChangeNotifier {
     throw FileDownloadException('Download stream ended without file');
   }
 
-  Future<void> cancel(int taskId) => repository.markCanceled(taskId);
+  Future<void> cancel(int taskId) {
+    if (isRunning(taskId)) _canceledIds.add(taskId);
+    return repository.markCanceled(taskId);
+  }
 
   Future<void> dismiss(int taskId) => repository.remove(taskId);
 
@@ -331,7 +339,10 @@ class TasksController extends ChangeNotifier {
 
   /// Cancels every queued and in-progress task. Canceled tasks stay in the
   /// list and can be retried.
-  Future<void> cancelAll() => repository.cancelAll(identity: identity);
+  Future<void> cancelAll() {
+    _canceledIds.addAll(_runningIds);
+    return repository.cancelAll(identity: identity);
+  }
 
   /// Removes completed and canceled tasks. Failed tasks are kept so they stay
   /// visible for retry.
