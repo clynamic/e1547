@@ -97,7 +97,7 @@ The app is not available in the AppStore.
 
 or
 
-- Jailbreak your device and install the [IPA](https://github.com/clragon/clynamic/releases/latest) directly
+- Jailbreak your device and install the [IPA](https://github.com/clynamic/e1547/releases/latest) directly
 
 ## Compilation
 
