@@ -261,6 +261,18 @@ class SettingsPage extends StatelessWidget {
                 ),
               ),
               ValueListenableBuilder<bool>(
+                valueListenable: settings.swipeToClose,
+                builder: (context, value, child) => SwitchListTile(
+                  title: const Text('Swipe to close'),
+                  subtitle: Text(
+                    value ? 'drag down to close' : 'buttons and back gesture',
+                  ),
+                  secondary: const Icon(Icons.swipe_down),
+                  value: value,
+                  onChanged: (value) => settings.swipeToClose.value = value,
+                ),
+              ),
+              ValueListenableBuilder<bool>(
                 valueListenable: settings.muteVideos,
                 builder: (context, value, child) => SwitchListTile(
                   title: const Text('Video volume'),

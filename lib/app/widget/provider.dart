@@ -91,7 +91,10 @@ class SettingsProvider extends SubProvider<AppStorage, Settings> {
         create: (context, databases) => Settings(databases.preferences),
         builder: (context, child) => PrivateTextFields(
           child: HandednessScope(
-            child: builder?.call(context, child) ?? child!,
+            child: DismissScope(
+              enabled: context.watch<Settings>().swipeToClose,
+              child: builder?.call(context, child) ?? child!,
+            ),
           ),
         ),
       );

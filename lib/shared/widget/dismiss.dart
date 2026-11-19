@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 const double _dismissTravel = 1000;
@@ -129,16 +130,41 @@ class DismissRoute<T> extends PageRoute<T> {
   }
 }
 
+class DismissScope extends StatelessWidget {
+  const DismissScope({super.key, required this.enabled, required this.child});
+
+  final ValueListenable<bool> enabled;
+  final Widget child;
+
+  static bool of(BuildContext context) =>
+      context
+          .dependOnInheritedWidgetOfExactType<_DismissProvider>()
+          ?.notifier
+          ?.value ??
+      true;
+
+  @override
+  Widget build(BuildContext context) =>
+      _DismissProvider(notifier: enabled, child: child);
+}
+
+class _DismissProvider extends InheritedNotifier<ValueListenable<bool>> {
+  const _DismissProvider({required super.notifier, required super.child});
+}
+
 class DismissController implements Listenable {
-  const DismissController(this.route);
+  const DismissController(this.route, {required this.enabled});
 
   final DismissRoute<dynamic> route;
+  final bool enabled;
 
   static DismissController? maybeOf(BuildContext context) {
     final ModalRoute<dynamic>? route = ModalRoute.of(context);
     if (route is! DismissRoute<dynamic>) return null;
-    return DismissController(route);
+    return DismissController(route, enabled: DismissScope.of(context));
   }
+
+  bool get dismissible => enabled && route.dismissible;
 
   double get offset => route.dragOffset;
 
@@ -162,13 +188,13 @@ class DismissController implements Listenable {
   }
 
   void settle([double velocity = 0]) {
-    if (!route.dismissible || !route.dragging) return;
+    if (!dismissible || !route.dragging) return;
     route.settling = true;
     route.drag.fling(velocity: min(-0.001, route.momentum(velocity)));
   }
 
   void push(double delta) {
-    if (!route.dismissible || route.blocked) return;
+    if (!dismissible || route.blocked) return;
     if (!route.dragging && !route.driver.isCompleted) return;
     route.settling = false;
     route.released = 0;
@@ -179,7 +205,7 @@ class DismissController implements Listenable {
   }
 
   bool release(double velocity) {
-    if (!route.dismissible || !route.dragging || route.settling) return false;
+    if (!dismissible || !route.dragging || route.settling) return false;
     if (exceeds(velocity)) {
       route.released = velocity;
       return true;
@@ -315,6 +341,7 @@ class DismissScrollPhysics extends ScrollPhysics {
     }
     if (offset > 0 &&
         position.pixels <= position.minScrollExtent &&
+        controller.dismissible &&
         controller.fromEdge) {
       controller.push(offset);
       return 0;
