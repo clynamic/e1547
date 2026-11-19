@@ -50,4 +50,21 @@ void main() {
       expect(tester.widget<Icon>(find.byIcon(icon)).color, isNull);
     });
   }
+
+  displayTest('a comment vote waits for the last one to finish', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      env.app(Scaffold(body: CommentVotes(comment: comment))),
+    );
+    await tester.tap(find.byIcon(Icons.arrow_upward));
+    await tester.pump();
+    await tester.tap(find.byIcon(Icons.arrow_downward));
+    await env.settle(tester);
+
+    expect(
+      env.fake.requests.where((e) => e.path.endsWith('/votes.json')),
+      hasLength(1),
+    );
+  });
 }

@@ -140,7 +140,7 @@ class CommentVotes extends StatelessWidget {
     return MutationBuilder(
       mutation: client.comments.useVote(id: comment.id),
       builder: (context, state, mutate) {
-        final bool enabled = client.hasLogin || state.isLoading;
+        final bool enabled = client.hasLogin && !state.isLoading;
         return Dimmed(
           child: VoteDisplay(
             padding: EdgeInsets.zero,
