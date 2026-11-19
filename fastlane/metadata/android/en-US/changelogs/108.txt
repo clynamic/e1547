@@ -1,0 +1,6 @@
+### Added
+- Swipe to close setting
+- Metatag suggestions
+- Recommended posts
+- Dtext post thumbnails
+- Comment avatars
