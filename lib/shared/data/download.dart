@@ -49,6 +49,9 @@ abstract final class FileDownloader {
     return path.isEmpty ? volume : '$volume/$path';
   }
 
+  static bool _isPictures(String directory) =>
+      basename(displayPath(directory)) == 'Pictures';
+
   /// Releases permissions to a previously selected directory.
   static Future<void> forgetDirectory(String? directory) async {
     if (Platform.isAndroid && directory != null) {
@@ -92,8 +95,7 @@ abstract final class FileDownloader {
           target = directory;
         }
 
-        String lastSegment = Uri.parse(target).pathSegments.last;
-        if (folderName != null && lastSegment == 'Pictures') {
+        if (folderName != null && _isPictures(target)) {
           try {
             final targetDir = await SafUtil().mkdirp(target, [folderName]);
             target = targetDir.uri;
@@ -123,7 +125,7 @@ abstract final class FileDownloader {
 
         onDirectoryChanged?.call(directoryPath);
 
-        if (folderName != null && basename(directoryPath) == 'Pictures') {
+        if (folderName != null && _isPictures(directoryPath)) {
           directoryPath = join(directoryPath, folderName);
         }
 

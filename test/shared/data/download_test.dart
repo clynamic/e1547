@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:e1547/shared/shared.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart';
 
 void main() {
   test('a folder picked on internal storage reads as its path there', () {
@@ -57,4 +60,26 @@ void main() {
       expect(FileDownloader.displayPath(path), path);
     }
   });
+
+  test(
+    'a file saved into a Pictures folder lands in a folder of its own',
+    () async {
+      final Directory root = Directory.systemTemp.createTempSync('downloads');
+      addTearDown(() => root.deleteSync(recursive: true));
+      final File source = File(join(root.path, 'source'))
+        ..writeAsBytesSync([1]);
+
+      await FileDownloader.downloadFile(
+        file: source,
+        directory: join(root.path, 'Pictures'),
+        folderName: 'e1547',
+        fileName: 'post.png',
+      );
+
+      expect(
+        File(join(root.path, 'Pictures', 'e1547', 'post.png')).existsSync(),
+        isTrue,
+      );
+    },
+  );
 }
