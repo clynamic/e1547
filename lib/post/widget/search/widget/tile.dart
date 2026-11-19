@@ -315,9 +315,10 @@ class PostFeedTile extends StatelessWidget {
                   score: post.score,
                   onUpvote: enabled
                       ? (isLiked) async {
-                          mutate((upvote: true, replace: !isLiked)).catchError((
-                            error,
-                          ) {
+                          if ((await mutate((
+                            upvote: true,
+                            replace: !isLiked,
+                          ))).isError) {
                             messenger.showSnackBar(
                               SnackBar(
                                 duration: const Duration(seconds: 1),
@@ -326,26 +327,27 @@ class PostFeedTile extends StatelessWidget {
                                 ),
                               ),
                             );
-                            return error;
-                          });
+                            return isLiked;
+                          }
                           return !isLiked;
                         }
                       : null,
                   onDownvote: enabled
                       ? (isLiked) async {
-                          mutate((upvote: false, replace: !isLiked)).catchError(
-                            (error) {
-                              messenger.showSnackBar(
-                                SnackBar(
-                                  duration: const Duration(seconds: 1),
-                                  content: Text(
-                                    'Failed to downvote Post #${post.id}',
-                                  ),
+                          if ((await mutate((
+                            upvote: false,
+                            replace: !isLiked,
+                          ))).isError) {
+                            messenger.showSnackBar(
+                              SnackBar(
+                                duration: const Duration(seconds: 1),
+                                content: Text(
+                                  'Failed to downvote Post #${post.id}',
                                 ),
-                              );
-                              return error;
-                            },
-                          );
+                              ),
+                            );
+                            return isLiked;
+                          }
                           return !isLiked;
                         }
                       : null,

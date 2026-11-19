@@ -38,13 +38,10 @@ Future<bool> writeReply({
           final messenger = ScaffoldMessenger.of(context);
           final client = context.read<Client>();
           if (text.isNotEmpty) {
-            try {
-              if (reply == null) {
-                await client.replies.useCreate(topicId: topicId).mutate(text);
-              } else {
-                await client.replies.useUpdate(id: reply.id).mutate(text);
-              }
-            } on ClientException {
+            final mutation = reply == null
+                ? client.replies.useCreate(topicId: topicId)
+                : client.replies.useUpdate(id: reply.id);
+            if ((await mutation.mutate(text)).isError) {
               return 'Failed to send reply!';
             }
             sent = true;

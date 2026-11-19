@@ -148,9 +148,10 @@ class CommentVotes extends StatelessWidget {
             vote: comment.vote,
             onUpvote: enabled
                 ? (isLiked) async {
-                    mutate((upvote: true, replace: !isLiked)).catchError((
-                      error,
-                    ) {
+                    if ((await mutate((
+                      upvote: true,
+                      replace: !isLiked,
+                    ))).isError) {
                       messenger.showSnackBar(
                         SnackBar(
                           duration: const Duration(seconds: 1),
@@ -159,16 +160,17 @@ class CommentVotes extends StatelessWidget {
                           ),
                         ),
                       );
-                      return error;
-                    });
+                      return isLiked;
+                    }
                     return !isLiked;
                   }
                 : null,
             onDownvote: enabled
                 ? (isLiked) async {
-                    mutate((upvote: false, replace: !isLiked)).catchError((
-                      error,
-                    ) {
+                    if ((await mutate((
+                      upvote: false,
+                      replace: !isLiked,
+                    ))).isError) {
                       messenger.showSnackBar(
                         SnackBar(
                           duration: const Duration(seconds: 1),
@@ -177,8 +179,8 @@ class CommentVotes extends StatelessWidget {
                           ),
                         ),
                       );
-                      return error;
-                    });
+                      return isLiked;
+                    }
                     return !isLiked;
                   }
                 : null,

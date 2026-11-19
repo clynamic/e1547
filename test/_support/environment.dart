@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:drift/native.dart';
 import 'package:e1547/app/app.dart';
@@ -39,6 +41,7 @@ class TestEnvironment {
 
   static Future<TestEnvironment> start({
     List<String> denylist = const [],
+    Credentials? credentials,
   }) async {
     SharedPreferences.setMockInitialValues({});
     final AppDatabase sqlite = AppDatabase(NativeDatabase.memory());
@@ -59,15 +62,21 @@ class TestEnvironment {
       traits: traits,
       settings: Settings(await SharedPreferences.getInstance()),
     );
-    await env._connect();
+    await env._connect(credentials: credentials);
     return env;
   }
 
-  Future<void> _connect() async {
+  Future<void> _connect({Credentials? credentials}) async {
     client = Client(
-      identity: await IdentityRepository(
-        sqlite,
-      ).add(IdentityRequest(host: fake.url)),
+      identity: await IdentityRepository(sqlite).add(
+        IdentityRequest(
+          host: fake.url,
+          username: credentials?.username,
+          headers: credentials == null
+              ? null
+              : {HttpHeaders.authorizationHeader: credentials.basicAuth},
+        ),
+      ),
       traits: traits,
       storage: AppStorage(
         preferences: await SharedPreferences.getInstance(),

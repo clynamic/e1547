@@ -43,15 +43,10 @@ Future<bool> writeComment({
           final messenger = ScaffoldMessenger.of(context);
           final client = context.read<Client>();
           if (text.isNotEmpty) {
-            try {
-              if (comment == null) {
-                await client.comments.useCreate(postId: postId).mutate(text);
-              } else {
-                await client.comments
-                    .useUpdate(id: comment.id, postId: postId)
-                    .mutate(text);
-              }
-            } on ClientException {
+            final mutation = comment == null
+                ? client.comments.useCreate(postId: postId)
+                : client.comments.useUpdate(id: comment.id, postId: postId);
+            if ((await mutation.mutate(text)).isError) {
               return 'Failed to send comment!';
             }
             sent = true;
