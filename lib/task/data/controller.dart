@@ -56,7 +56,7 @@ class TasksController extends ChangeNotifier {
   StreamSubscription<List<Task>>? _activeSub;
   Timer? _hideTimer;
   bool _seeded = false;
-  bool _drainingDownloads = false;
+  int _downloadWorkers = 0;
   bool _drainingApi = false;
   bool _disposed = false;
 
@@ -176,19 +176,14 @@ class TasksController extends ChangeNotifier {
   }
 
   void _kick() {
-    unawaited(_drainDownloads());
+    _drainDownloads();
     unawaited(_drainApi());
   }
 
-  Future<void> _drainDownloads() async {
-    if (_drainingDownloads || _disposed) return;
-    _drainingDownloads = true;
-    try {
-      await Future.wait([
-        for (int i = 0; i < _maxConcurrentDownloads; i++) _downloadWorker(),
-      ]);
-    } finally {
-      _drainingDownloads = false;
+  void _drainDownloads() {
+    while (!_disposed && _downloadWorkers < _maxConcurrentDownloads) {
+      _downloadWorkers++;
+      unawaited(_downloadWorker().whenComplete(() => _downloadWorkers--));
     }
   }
 

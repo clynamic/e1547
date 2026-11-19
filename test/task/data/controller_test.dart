@@ -1,14 +1,33 @@
+import 'dart:async';
+
 import 'package:e1547/post/post.dart';
 import 'package:e1547/task/task.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../_support/environment.dart';
 import '../../_support/harness.dart';
-import '../../_support/images.dart';
 import '../../_support/posts.dart';
+
+class HeldDownloads implements BaseCacheManager {
+  final Map<String, StreamController<FileResponse>> transfers = {};
+
+  @override
+  Stream<FileResponse> getFileStream(
+    String url, {
+    String? key,
+    Map<String, String>? headers,
+    bool? withProgress,
+  }) => (transfers[url] = StreamController<FileResponse>()).stream;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('${invocation.memberName} only holds downloads');
+}
 
 void main() {
   late TestEnvironment env;
+  late HeldDownloads downloads;
   late TasksController tasks;
 
   setUpAll(initializeTestApp);
@@ -16,10 +35,11 @@ void main() {
   setUp(() async {
     env = await TestEnvironment.start();
     env.settings.upvoteFavs.value = false;
+    downloads = HeldDownloads();
     tasks = TasksController(
       repository: TaskRepository(database: env.sqlite),
       client: env.client,
-      cacheManager: const NoImageCacheManager(),
+      cacheManager: downloads,
       settings: env.settings,
       identity: env.client.identity.id,
     );
@@ -30,12 +50,18 @@ void main() {
     await env.dispose();
   });
 
-  Future<Post?> cachedAfter(int id, bool Function(Post post) done) async {
-    for (int i = 0; i < 40; i++) {
-      final Post? post = env.client.posts.postCache.get(id);
-      if (post != null && done(post)) return post;
+  Future<void> until(bool Function() done) async {
+    for (int i = 0; i < 40 && !done(); i++) {
       await Future<void>.delayed(const Duration(milliseconds: 50));
     }
+  }
+
+  Future<Post?> cachedAfter(int id, bool Function(Post post) done) async {
+    bool cached() => switch (env.client.posts.postCache.get(id)) {
+      final Post post => done(post),
+      null => false,
+    };
+    await until(cached);
     return env.client.posts.postCache.get(id);
   }
 
@@ -78,5 +104,25 @@ void main() {
 
     expect(voted?.vote, 1);
     expect(voted?.score, 6);
+  });
+
+  group('downloads', () {
+    String urlOf(int id) => 'http://example.invalid/$id.png';
+
+    TaskRequest download(int id) => TaskRequest(
+      action: TaskAction.download,
+      postId: id,
+      metadata: TaskMetadata(fileUrl: urlOf(id), fileName: '$id.png'),
+    );
+
+    test('downloads added while one transfers start alongside it', () async {
+      await tasks.enqueue(download(1));
+      await until(() => downloads.transfers.length == 1);
+
+      await tasks.enqueueAll([download(2), download(3), download(4)]);
+      await until(() => downloads.transfers.length == 4);
+
+      expect(downloads.transfers, hasLength(4));
+    });
   });
 }
