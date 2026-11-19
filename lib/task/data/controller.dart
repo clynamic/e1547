@@ -223,6 +223,7 @@ class TasksController extends ChangeNotifier {
     notifyListeners();
     try {
       await _runOne(task);
+      if (_disposed) return;
       final TaskStatus? current = await repository.readStatus(task.id);
       if (current == TaskStatus.running) {
         await repository.markCompleted(task.id);
@@ -234,17 +235,20 @@ class TasksController extends ChangeNotifier {
         e,
         s,
       );
+      if (_disposed) return;
       final TaskStatus? current = await repository.readStatus(task.id);
       if (current == TaskStatus.running) {
         await repository.markFailed(task.id, e.toString());
       }
     } finally {
-      _runningDone++;
       _runningIds.remove(task.id);
       _canceledIds.remove(task.id);
-      _progress.remove(task.id)?.dispose();
-      _recomputeProgress();
-      notifyListeners();
+      if (!_disposed) {
+        _runningDone++;
+        _progress.remove(task.id)?.dispose();
+        _recomputeProgress();
+        notifyListeners();
+      }
     }
   }
 
@@ -298,7 +302,10 @@ class TasksController extends ChangeNotifier {
         progress?.value = (response.progress ?? 0).clamp(0, 1);
         _recomputeProgress();
       } else if (response is FileInfo) {
-        if (await repository.readStatus(task.id) != TaskStatus.running) return;
+        if (await repository.readStatus(task.id) != TaskStatus.running ||
+            _canceledIds.contains(task.id)) {
+          return;
+        }
         progress?.value = null;
         _recomputeProgress();
         try {
@@ -356,6 +363,7 @@ class TasksController extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    _canceledIds.addAll(_runningIds);
     _activeSub?.cancel();
     _hideTimer?.cancel();
     for (final notifier in _progress.values) {

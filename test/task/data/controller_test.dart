@@ -7,6 +7,7 @@ import 'package:file/memory.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:logging/logging.dart';
 import 'package:path/path.dart';
 
 import '../../_support/environment.dart';
@@ -51,17 +52,19 @@ void main() {
 
   setUpAll(initializeTestApp);
 
+  TasksController controller() => TasksController(
+    repository: TaskRepository(database: env.sqlite),
+    client: env.client,
+    cacheManager: downloads,
+    settings: env.settings,
+    identity: env.client.identity.id,
+  );
+
   setUp(() async {
     env = await TestEnvironment.start();
     env.settings.upvoteFavs.value = false;
     downloads = HeldDownloads();
-    tasks = TasksController(
-      repository: TaskRepository(database: env.sqlite),
-      client: env.client,
-      cacheManager: downloads,
-      settings: env.settings,
-      identity: env.client.identity.id,
-    );
+    tasks = controller();
   });
 
   tearDown(() async {
@@ -225,6 +228,37 @@ void main() {
 
       expect(overall.take(2), [closeTo(1 / 3, 0.01), 1.0]);
     });
+
+    test(
+      'a replaced controller stops its downloads and the next one finishes them',
+      () async {
+        final Task task = await tasks.enqueue(download(1));
+        await until(() => downloads.transfers.length == 1);
+        final StreamController<FileResponse> replaced = downloads.transfers
+            .remove(urlOf(1))!;
+        addTearDown(replaced.close);
+
+        final List<LogRecord> warnings = [];
+        final StreamSubscription<LogRecord> logs = Logger.root.onRecord
+            .where((e) => e.level >= Level.WARNING)
+            .listen(warnings.add);
+        addTearDown(logs.cancel);
+        tasks.dispose();
+        tasks = controller();
+        await until(() => downloads.transfers.length == 1);
+        replaced.add(DownloadProgress(urlOf(1), 3, 1));
+        downloads.finish(urlOf(1));
+        await until(() => !tasks.isRunning(task.id));
+
+        expect(replaced.hasListener, isFalse);
+        expect(warnings, isEmpty);
+        expect(
+          await tasks.repository.readStatus(task.id),
+          TaskStatus.completed,
+        );
+        expect(saved(1), isTrue);
+      },
+    );
 
     test('downloads added while one transfers start alongside it', () async {
       await tasks.enqueue(download(1));
