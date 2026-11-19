@@ -201,10 +201,16 @@
     "avatar": "https://github.com/KOMBINE.png",
     "handles": {
       "e621": "SUDA_IDU",
-      "ko-fi": "\u0421\u0430\u0448\u0430 \u041c\u0430\u0437\u0443\u0440\u0435\u043d\u043a\u043e",
+      "ko-fi": "KOMBINE",
       "github": "KOMBINE"
     },
     "donations": [
+      {
+        "amount": 3.0,
+        "currency": "USD",
+        "date": "2026-11-18T16:18:00",
+        "platform": "ko-fi"
+      },
       {
         "amount": 3.0,
         "currency": "USD",
