@@ -147,7 +147,7 @@ class TaskThumbnail extends StatelessWidget {
           : placeholder,
     );
 
-    final ValueListenable<double>? progress = controller.progressOf(task.id);
+    final ValueListenable<double?>? progress = controller.progressOf(task.id);
     return SizedBox(
       width: 48,
       height: 48,
@@ -160,10 +160,10 @@ class TaskThumbnail extends StatelessWidget {
               left: 0,
               right: 0,
               bottom: 0,
-              child: ValueListenableBuilder<double>(
+              child: ValueListenableBuilder<double?>(
                 valueListenable: progress,
                 builder: (context, value, _) => LinearProgressIndicator(
-                  value: value > 0 ? value : null,
+                  value: value != null && value > 0 ? value : null,
                   minHeight: 3,
                   backgroundColor: Colors.black38,
                 ),

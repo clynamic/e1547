@@ -52,8 +52,8 @@ class TasksController extends ChangeNotifier {
 
   /// Per-task download progress, so each running tile updates on its own
   /// without rebuilding the others.
-  final Map<int, ValueNotifier<double>> _progress = {};
-  ValueListenable<double>? progressOf(int taskId) => _progress[taskId];
+  final Map<int, ValueNotifier<double?>> _progress = {};
+  ValueListenable<double?>? progressOf(int taskId) => _progress[taskId];
 
   StreamSubscription<List<Task>>? _activeSub;
   Timer? _hideTimer;
@@ -91,7 +91,7 @@ class TasksController extends ChangeNotifier {
   void _recomputeProgress() {
     double inFlight = 0;
     for (final notifier in _progress.values) {
-      inFlight += notifier.value;
+      inFlight += notifier.value ?? 1;
     }
     currentProgress.value = inFlight;
   }
@@ -219,7 +219,7 @@ class TasksController extends ChangeNotifier {
 
   Future<void> _process(Task task) async {
     _runningIds.add(task.id);
-    _progress[task.id] = ValueNotifier<double>(0);
+    _progress[task.id] = ValueNotifier<double?>(0);
     notifyListeners();
     try {
       await _runOne(task);
@@ -288,7 +288,7 @@ class TasksController extends ChangeNotifier {
         'Download task missing file metadata (post #${task.postId})',
       );
     }
-    final ValueNotifier<double>? progress = _progress[task.id];
+    final ValueNotifier<double?>? progress = _progress[task.id];
     await for (final response in cacheManager.getFileStream(
       url,
       withProgress: true,
@@ -299,6 +299,8 @@ class TasksController extends ChangeNotifier {
         _recomputeProgress();
       } else if (response is FileInfo) {
         if (await repository.readStatus(task.id) != TaskStatus.running) return;
+        progress?.value = null;
+        _recomputeProgress();
         try {
           await FileDownloader.downloadImage(
             file: response.file,

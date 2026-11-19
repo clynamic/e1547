@@ -4,6 +4,7 @@ import 'dart:io' as io;
 import 'package:e1547/post/post.dart';
 import 'package:e1547/task/task.dart';
 import 'package:file/memory.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart';
@@ -189,6 +190,41 @@ void main() {
         expect(saved(2), isFalse);
       },
     );
+
+    test(
+      'a finished transfer reports saving until the file is in place',
+      () async {
+        final Task task = await tasks.enqueue(download(1));
+        await until(() => downloads.transfers.length == 1);
+        final ValueListenable<double?> progress = tasks.progressOf(task.id)!;
+        final List<(double?, bool)> seen = [];
+        progress.addListener(() => seen.add((progress.value, saved(1))));
+
+        downloads
+          ..report(urlOf(1), 3)
+          ..finish(urlOf(1));
+        await until(() => !tasks.isRunning(task.id));
+
+        expect(seen, [(1.0, false), (null, false)]);
+        expect(saved(1), isTrue);
+      },
+    );
+
+    test('a saving download counts as fully transferred overall', () async {
+      final Task task = await tasks.enqueue(download(1));
+      await until(() => downloads.transfers.length == 1);
+      final List<double> overall = [];
+      tasks.currentProgress.addListener(
+        () => overall.add(tasks.currentProgress.value),
+      );
+
+      downloads.report(urlOf(1), 1);
+      await until(() => overall.isNotEmpty);
+      downloads.finish(urlOf(1));
+      await until(() => !tasks.isRunning(task.id));
+
+      expect(overall.take(2), [closeTo(1 / 3, 0.01), 1.0]);
+    });
 
     test('downloads added while one transfers start alongside it', () async {
       await tasks.enqueue(download(1));
