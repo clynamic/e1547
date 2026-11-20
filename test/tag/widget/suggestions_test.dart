@@ -68,8 +68,8 @@ void main() {
   });
 
   test('the pool metatag suggests pools by name', () async {
-    final String pool = env.fake.state.pools.first['name']! as String;
+    final String pool = env.fake.state.pools[1]['name']! as String;
 
-    expect(await names('pool:${pool.substring(0, 6)}'), contains('pool:$pool'));
+    expect(await names('pool:$pool'), ['pool:$pool']);
   });
 }
