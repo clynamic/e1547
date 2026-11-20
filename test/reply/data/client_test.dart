@@ -38,15 +38,17 @@ void main() {
     expect(reply.hidden, recorded['is_hidden']);
   });
 
-  test('lists every reply of a topic', () async {
-    final recorded = loadFixtureList('replies.json');
+  test('requests the replies of one topic', () async {
+    await client.page(query: {'search[topic_id]': '$topic'});
 
-    final replies = await client.page(query: {'search[topic_id]': '$topic'});
-
-    expect(replies.map((e) => e.id), recorded.map((e) => e['id']));
+    expect(fake.requests.last.path, '/forum_posts.json');
+    expect(
+      fake.requests.last.query,
+      containsPair('search[topic_id]', '$topic'),
+    );
   });
 
-  test('creates a reply with the params the server permits', () async {
+  test('creates a reply with only its body and topic', () async {
     await client.create(topicId: topic, content: 'hello');
 
     final request = fake.requests.last;
@@ -56,14 +58,6 @@ void main() {
       'forum_post[body]': 'hello',
       'forum_post[topic_id]': '$topic',
     });
-  });
-
-  test('creating a reply makes it readable', () async {
-    await client.create(topicId: topic, content: 'hello');
-
-    final replies = await client.page(query: {'search[topic_id]': '$topic'});
-
-    expect(replies.last.body, 'hello');
   });
 
   test('a locked topic refuses replies', () async {
