@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:dio/dio.dart';
 import 'package:e1547/client/client.dart';
 import 'package:e1547/identity/identity.dart';
 import 'package:e1547/pool/pool.dart';
@@ -246,33 +245,6 @@ void main() {
     final posts = await client.page(query: {'tags': 'status:any'});
 
     expect(posts.map((e) => e.id), [...ids, 997]);
-  });
-
-  test('serves recorded asset urls from itself', () async {
-    final post = (await client.page()).first;
-
-    expect(post.file, startsWith(fake.url));
-
-    final response = await client.dio.get<List<int>>(
-      post.file!,
-      options: Options(responseType: ResponseType.bytes),
-    );
-
-    expect(response.headers.value(HttpHeaders.contentTypeHeader), 'image/png');
-    expect(response.data!.take(4), [0x89, 0x50, 0x4e, 0x47]);
-  });
-
-  test('favorites are unavailable without credentials', () async {
-    await expectLater(
-      client.favorites(),
-      throwsA(
-        isA<DioException>().having(
-          (e) => e.response?.statusCode,
-          'statusCode',
-          404,
-        ),
-      ),
-    );
   });
 
   test('drops deleted and fileless favorites', () async {

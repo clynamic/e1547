@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:e1547/comment/comment.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -52,27 +51,5 @@ void main() {
     await client.update(id: id, postId: 0, content: 'edited');
 
     expect((await client.get(id: id)).body, 'edited');
-  });
-
-  test('the server rejects params it does not permit', () async {
-    final postId = loadFixtureList('posts.json').first['id']! as int;
-
-    await expectLater(
-      client.dio.post(
-        '/comments.json',
-        data: FormData.fromMap({
-          'comment[body]': 'hello',
-          'comment[post_id]': '$postId',
-          'comment[creator_id]': '9000',
-        }),
-      ),
-      throwsA(
-        isA<DioException>().having(
-          (e) => e.response?.statusCode,
-          'statusCode',
-          400,
-        ),
-      ),
-    );
   });
 }

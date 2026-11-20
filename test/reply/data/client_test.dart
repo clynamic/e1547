@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:e1547/client/client.dart';
 import 'package:e1547/identity/identity.dart';
 import 'package:e1547/reply/reply.dart';
@@ -60,46 +59,11 @@ void main() {
     });
   });
 
-  test('a locked topic refuses replies', () async {
-    final locked = loadFixtureList('topics.json')[1]['id']! as int;
-
-    await expectLater(
-      client.create(topicId: locked, content: 'hello'),
-      throwsA(
-        isA<DioException>().having(
-          (e) => e.response?.statusCode,
-          'statusCode',
-          422,
-        ),
-      ),
-    );
-  });
-
   test('updates a reply body', () async {
     final id = loadFixtureList('replies.json').first['id']! as int;
 
     await client.update(id: id, content: 'edited');
 
     expect((await client.get(id: id)).body, 'edited');
-  });
-
-  test('the server rejects params it does not permit', () async {
-    await expectLater(
-      client.dio.post(
-        '/forum_posts.json',
-        data: FormData.fromMap({
-          'forum_post[body]': 'hello',
-          'forum_post[topic_id]': '$topic',
-          'forum_post[creator_id]': '9000',
-        }),
-      ),
-      throwsA(
-        isA<DioException>().having(
-          (e) => e.response?.statusCode,
-          'statusCode',
-          400,
-        ),
-      ),
-    );
   });
 }

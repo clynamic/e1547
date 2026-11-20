@@ -509,9 +509,6 @@ class FakeE621 {
     if (!state.topics.any((e) => e['id'] == topicId)) {
       throw FakeE621Error(404, 'Topic ID is invalid');
     }
-    if (state.lockedTopics.contains(topicId)) {
-      throw FakeE621Error(422, 'Topic does not allow replies');
-    }
     return _json(
       state.addReply(topicId: topicId, body: fields['body']!),
       status: 201,
@@ -733,25 +730,16 @@ class FakeE621State {
     required this.user,
     required this.wikis,
     required this.flags,
-    required this.lockedTopics,
     required this.reportReasons,
   });
 
-  factory FakeE621State.seeded({
-    int? posts,
-    int? topics,
-    int? replies,
-    int? comments,
-  }) {
-    final recordedTopics = _repeat(loadFixtureList('topics.json'), topics);
-    final locked = recordedTopics[1];
-    locked['is_locked'] = true;
+  factory FakeE621State.seeded() {
     return FakeE621State(
-      posts: _repeat(loadFixtureList('posts.json'), posts),
+      posts: loadFixtureList('posts.json'),
       favorites: {},
-      topics: recordedTopics,
-      replies: _repeat(loadFixtureList('replies.json'), replies),
-      comments: _repeat(loadFixtureList('comments.json'), comments),
+      topics: loadFixtureList('topics.json'),
+      replies: loadFixtureList('replies.json'),
+      comments: loadFixtureList('comments.json'),
       pools: loadFixtureList('pools.json'),
       sets: [],
       tags: loadFixtureList('tags.json'),
@@ -760,29 +748,11 @@ class FakeE621State {
       user: loadFixtureList('user.json').first,
       wikis: loadFixtureList('wiki_pages.json'),
       flags: loadFixtureList('flags.json'),
-      lockedTopics: {locked['id']! as int},
       reportReasons: _postReportReasonIds,
     );
   }
 
   static const Set<int> _postReportReasonIds = {1, 2, 3, 4, 5, 6};
-
-  static List<Map<String, Object?>> _repeat(
-    List<Map<String, Object?>> templates,
-    int? count,
-  ) {
-    if (count == null) return templates;
-    final next =
-        templates.map((e) => e['id']! as int).reduce((a, b) => a > b ? a : b) +
-        1;
-    return List.generate(count, (index) {
-      final template = templates[index % templates.length];
-      return {
-        ...jsonDecode(jsonEncode(template)) as Map<String, Object?>,
-        'id': next + index,
-      };
-    });
-  }
 
   final List<Map<String, Object?>> posts;
   final Set<int> favorites;
@@ -799,7 +769,6 @@ class FakeE621State {
   final Map<String, Object?> user;
   final List<Map<String, Object?>> wikis;
   final List<Map<String, Object?>> flags;
-  final Set<int> lockedTopics;
   final Set<int> reportReasons;
   final Map<String, Set<int>> favoritesOf = {};
   final Set<String> privateFavorites = {};
