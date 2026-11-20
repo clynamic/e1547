@@ -89,7 +89,7 @@ class AppInfoClient {
     if (info.source.isFromStore) {
       versions.removeWhere(
         (e) =>
-            (e.date?.isBefore(
+            (e.date?.isAfter(
               DateTime.now().subtract(const Duration(days: 7)),
             )) ??
             false,
