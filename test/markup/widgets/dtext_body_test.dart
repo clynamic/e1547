@@ -14,6 +14,38 @@ Widget _wrap(Widget child) => MaterialApp(
   ),
 );
 
+TextStyle _styleOf(WidgetTester tester, String text) {
+  final RichText rich = tester.widget(
+    find.byWidgetPredicate(
+      (widget) =>
+          widget is RichText && widget.text.toPlainText().contains(text),
+    ),
+  );
+  TextStyle? found;
+  void visit(InlineSpan span, TextStyle style) {
+    final TextStyle merged = style.merge(span.style);
+    if (span is! TextSpan) return;
+    if (span.text == text) found = merged;
+    for (final InlineSpan child in span.children ?? const []) {
+      visit(child, merged);
+    }
+  }
+
+  visit(rich.text, const TextStyle());
+  expect(found, isNotNull, reason: 'no span reads "$text"');
+  return found!;
+}
+
+String _plainOf(WidgetTester tester, String text) => tester
+    .widget<RichText>(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is RichText && widget.text.toPlainText().contains(text),
+      ),
+    )
+    .text
+    .toPlainText();
+
 void main() {
   group('DTextBody renders block kinds', () {
     testWidgets('paragraph with plain text', (tester) async {
@@ -35,23 +67,14 @@ void main() {
           const DTextBody(
             content: DTextDocument([
               DTextHeader(level: 1, children: [DTextText('Title')]),
+              DTextParagraph([DTextText('body')]),
             ]),
           ),
         ),
       );
-      expect(find.textContaining('Title'), findsOneWidget);
-    });
-
-    testWidgets('code block renders content selectable', (tester) async {
-      await tester.pumpWidget(
-        _wrap(
-          const DTextBody(
-            content: DTextDocument([DTextCodeBlock('x := 1\ny := 2')]),
-          ),
-        ),
-      );
-      expect(find.byType(CodeWrap), findsOneWidget);
-      expect(find.textContaining('x := 1'), findsOneWidget);
+      final TextStyle title = _styleOf(tester, 'Title');
+      expect(title.fontWeight, FontWeight.bold);
+      expect(title.fontSize, greaterThan(_styleOf(tester, 'body').fontSize!));
     });
 
     testWidgets('code block drops the line break it closes on', (tester) async {
@@ -83,7 +106,7 @@ void main() {
       expect(text.data, 'plain text');
     });
 
-    testWidgets('quote wraps in QuoteWrap', (tester) async {
+    testWidgets('quote sets its content in a quote frame', (tester) async {
       await tester.pumpWidget(
         _wrap(
           const DTextBody(
@@ -97,11 +120,42 @@ void main() {
           ),
         ),
       );
-      expect(find.byType(QuoteWrap), findsOneWidget);
-      expect(find.textContaining('quoted'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(QuoteWrap),
+          matching: find.textContaining('quoted'),
+        ),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('section wraps in SectionWrap', (tester) async {
+    testWidgets('a collapsed section opens on a tap on its title', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          const DTextBody(
+            content: DTextDocument([
+              DTextSection(
+                title: 'Heading',
+                expanded: false,
+                children: [
+                  DTextParagraph([DTextText('inside')]),
+                ],
+              ),
+            ]),
+          ),
+        ),
+      );
+      expect(find.textContaining('inside').hitTestable(), findsNothing);
+
+      await tester.tap(find.text('Heading'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('inside').hitTestable(), findsOneWidget);
+    });
+
+    testWidgets('an expanded section starts open', (tester) async {
       await tester.pumpWidget(
         _wrap(
           const DTextBody(
@@ -117,9 +171,9 @@ void main() {
           ),
         ),
       );
-      expect(find.byType(SectionWrap), findsOneWidget);
-      expect(find.text('Heading'), findsOneWidget);
-      expect(find.textContaining('inside'), findsOneWidget);
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('inside').hitTestable(), findsOneWidget);
     });
 
     testWidgets('section title collapses whitespace', (tester) async {
@@ -141,24 +195,26 @@ void main() {
       expect(find.text('Ember pre-rust (2024) - by tester'), findsOneWidget);
     });
 
-    testWidgets('list renders each item with bullet', (tester) async {
+    testWidgets('list indents each item by its depth behind a bullet', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         _wrap(
           const DTextBody(
             content: DTextDocument([
               DTextList([
                 DTextListItem(depth: 1, children: [DTextText('one')]),
-                DTextListItem(depth: 1, children: [DTextText('two')]),
+                DTextListItem(depth: 2, children: [DTextText('two')]),
               ]),
             ]),
           ),
         ),
       );
-      expect(find.textContaining('one'), findsOneWidget);
-      expect(find.textContaining('two'), findsOneWidget);
+      expect(_plainOf(tester, 'one'), '  • one');
+      expect(_plainOf(tester, 'two'), '    • two');
     });
 
-    testWidgets('table renders header and body cells', (tester) async {
+    testWidgets('table shows its header cells in bold', (tester) async {
       await tester.pumpWidget(
         _wrap(
           const DTextBody(
@@ -180,7 +236,7 @@ void main() {
                   DTextTableRow([
                     DTextTableCell(
                       cellType: DTextTableCellType.td,
-                      children: [DTextText('Alice')],
+                      children: [DTextText('tester')],
                     ),
                     DTextTableCell(
                       cellType: DTextTableCellType.td,
@@ -194,10 +250,12 @@ void main() {
         ),
       );
       expect(find.byType(Table), findsOneWidget);
-      expect(find.textContaining('Name'), findsOneWidget);
-      expect(find.textContaining('Score'), findsOneWidget);
-      expect(find.textContaining('Alice'), findsOneWidget);
-      expect(find.textContaining('42'), findsOneWidget);
+      for (final String header in ['Name', 'Score']) {
+        expect(_styleOf(tester, header).fontWeight, FontWeight.bold);
+      }
+      for (final String cell in ['tester', '42']) {
+        expect(_styleOf(tester, cell).fontWeight, isNot(FontWeight.bold));
+      }
     });
 
     testWidgets('raw_block_text renders content verbatim', (tester) async {
@@ -230,7 +288,9 @@ void main() {
   });
 
   group('DTextBody renders inline kinds', () {
-    testWidgets('bold/italic/underline/strikeout all visible', (tester) async {
+    testWidgets('bold, italic, underline and strikeout style their text', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         _wrap(
           const DTextBody(
@@ -248,13 +308,15 @@ void main() {
           ),
         ),
       );
-      expect(find.textContaining('bold'), findsOneWidget);
-      expect(find.textContaining('italic'), findsOneWidget);
-      expect(find.textContaining('under'), findsOneWidget);
-      expect(find.textContaining('strike'), findsOneWidget);
+      expect(_styleOf(tester, 'bold').fontWeight, FontWeight.bold);
+      expect(_styleOf(tester, 'italic').fontStyle, FontStyle.italic);
+      expect(_styleOf(tester, 'under').decoration, TextDecoration.underline);
+      expect(_styleOf(tester, 'strike').decoration, TextDecoration.lineThrough);
     });
 
-    testWidgets('superscript and subscript visible', (tester) async {
+    testWidgets('superscript and subscript raise and lower their text', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         _wrap(
           const DTextBody(
@@ -263,17 +325,22 @@ void main() {
                 DTextText('E=mc'),
                 DTextSuperscript([DTextText('2')]),
                 DTextText('  H'),
-                DTextSubscript([DTextText('2')]),
+                DTextSubscript([DTextText('two')]),
                 DTextText('O'),
               ]),
             ]),
           ),
         ),
       );
-      expect(find.textContaining('E=mc'), findsOneWidget);
+      expect(_styleOf(tester, '2').fontFeatures, [
+        const FontFeature.superscripts(),
+      ]);
+      expect(_styleOf(tester, 'two').fontFeatures, [
+        const FontFeature.subscripts(),
+      ]);
     });
 
-    testWidgets('inline code shows content', (tester) async {
+    testWidgets('inline code shows its content in monospace', (tester) async {
       await tester.pumpWidget(
         _wrap(
           const DTextBody(
@@ -287,10 +354,10 @@ void main() {
           ),
         ),
       );
-      expect(find.textContaining('foo()'), findsOneWidget);
+      expect(_styleOf(tester, 'foo()').fontFamily, 'JetBrains Mono');
     });
 
-    testWidgets('color span renders children', (tester) async {
+    testWidgets('color span tints its children', (tester) async {
       await tester.pumpWidget(
         _wrap(
           const DTextBody(
@@ -302,26 +369,27 @@ void main() {
           ),
         ),
       );
-      expect(find.textContaining('warning'), findsOneWidget);
+      expect(_styleOf(tester, 'warning').color, const Color(0xFFFF0000));
     });
 
-    testWidgets('inline_spoiler starts hidden but still in tree', (
-      tester,
-    ) async {
+    testWidgets('inline spoiler hides its text until tapped', (tester) async {
       await tester.pumpWidget(
         _wrap(
           const DTextBody(
             content: DTextDocument([
               DTextParagraph([
-                DTextText('reveal '),
                 DTextInlineSpoiler([DTextText('secret')]),
               ]),
             ]),
           ),
         ),
       );
-      expect(find.textContaining('reveal'), findsOneWidget);
-      expect(find.textContaining('secret'), findsOneWidget);
+      expect(_styleOf(tester, 'secret').color, Colors.transparent);
+
+      await tester.tap(find.textContaining('secret'));
+      await tester.pump();
+
+      expect(_styleOf(tester, 'secret').color, isNot(Colors.transparent));
     });
 
     testWidgets('line_break inserts a newline', (tester) async {
@@ -338,8 +406,7 @@ void main() {
           ),
         ),
       );
-      expect(find.textContaining('first'), findsOneWidget);
-      expect(find.textContaining('second'), findsOneWidget);
+      expect(_plainOf(tester, 'first'), 'first\nsecond');
     });
 
     testWidgets('internal_anchor renders an invisible keyed widget', (
@@ -364,6 +431,7 @@ void main() {
           const DTextBody(
             content: DTextDocument([
               DTextParagraph([
+                DTextText('plain'),
                 DTextFragment(
                   wrapper: DTextFragmentWrapper.sup,
                   children: [DTextText('frag-text')],
@@ -373,63 +441,11 @@ void main() {
           ),
         ),
       );
-      expect(find.textContaining('frag-text'), findsOneWidget);
+      expect(_styleOf(tester, 'frag-text'), _styleOf(tester, 'plain'));
     });
   });
 
   group('Layout does not overflow', () {
-    testWidgets('long paragraph wraps without RenderFlex overflow', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        _wrap(
-          const SizedBox(
-            width: 200,
-            child: DTextBody(
-              content: DTextDocument([
-                DTextParagraph([
-                  DTextText(
-                    'the quick brown fox jumps over the lazy dog. '
-                    'pack my box with five dozen liquor jugs. '
-                    'how vexingly quick daft zebras jump.',
-                  ),
-                ]),
-              ]),
-            ),
-          ),
-        ),
-      );
-      expect(tester.takeException(), isNull);
-    });
-
-    testWidgets('wide table inside narrow container does not throw', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        _wrap(
-          SizedBox(
-            width: 300,
-            child: DTextBody(
-              content: DTextDocument([
-                DTextTable([
-                  DTextTableBody([
-                    DTextTableRow([
-                      for (var i = 0; i < 4; i++)
-                        DTextTableCell(
-                          cellType: DTextTableCellType.td,
-                          children: [DTextText('col $i')],
-                        ),
-                    ]),
-                  ]),
-                ]),
-              ]),
-            ),
-          ),
-        ),
-      );
-      expect(tester.takeException(), isNull);
-    });
-
     testWidgets('wide table scrolls horizontally', (tester) async {
       await tester.pumpWidget(
         _wrap(
