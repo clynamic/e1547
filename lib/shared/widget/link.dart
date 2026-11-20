@@ -24,16 +24,17 @@ class LinkPreviewProvider extends StatefulWidget {
 
 class LinkPreviewProviderState extends State<LinkPreviewProvider> {
   final ValueNotifier<String?> _linkNotifier = ValueNotifier<String?>(null);
+  OverlayEntry? _overlayEntry;
 
   @override
   void initState() {
     super.initState();
-    OverlayEntry overlayEntry = OverlayEntry(
-      builder: (context) => LinkOverlay(notifier: _linkNotifier),
-    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      Overlay.of(context).insert(overlayEntry);
+      _overlayEntry = OverlayEntry(
+        builder: (context) => LinkOverlay(notifier: _linkNotifier),
+      );
+      Overlay.of(context).insert(_overlayEntry!);
     });
   }
 
@@ -46,6 +47,9 @@ class LinkPreviewProviderState extends State<LinkPreviewProvider> {
 
   @override
   void dispose() {
+    _overlayEntry
+      ?..remove()
+      ..dispose();
     _linkNotifier.dispose();
     super.dispose();
   }
