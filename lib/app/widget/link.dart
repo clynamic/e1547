@@ -23,6 +23,7 @@ class AppLinkHandler extends StatefulWidget {
 class _AppLinkHandlerState extends State<AppLinkHandler> {
   late AppLinks appLinks;
   StreamSubscription<Uri>? linkListener;
+  bool initialLinkHandled = false;
 
   Future<void> onInitialLink(Uri? url) async {
     if (url != null) {
@@ -55,8 +56,14 @@ class _AppLinkHandlerState extends State<AppLinkHandler> {
     super.initState();
     if (PlatformCapabilities.hasDeepLinks) {
       appLinks = AppLinks();
-      appLinks.getInitialLink().then(onInitialLink);
-      linkListener = appLinks.uriLinkStream.listen(onLink);
+      final Future<Uri?> initialLink = appLinks.getInitialLink();
+      linkListener = appLinks.uriLinkStream.listen((url) async {
+        if (!initialLinkHandled && url == await initialLink) {
+          initialLinkHandled = true;
+          return onInitialLink(url);
+        }
+        return onLink(url);
+      });
     }
   }
 
