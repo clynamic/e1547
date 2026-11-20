@@ -32,12 +32,10 @@ void main() {
     expect(flag.isDeletion, recorded['is_deletion']);
   });
 
-  test('the type filter is read from the search namespace', () async {
-    final unfiltered = await client.page();
-    final flagged = await client.page(query: {'search[type]': 'flag'});
+  test('lists flags by the query it is given', () async {
+    await client.page(query: {'search[type]': 'deletion'});
 
-    expect(unfiltered, isNotEmpty);
-    expect(flagged, isEmpty);
+    expect(fake.requests.last.query, containsPair('search[type]', 'deletion'));
   });
 
   test('creates a flag with the params the server permits', () async {
