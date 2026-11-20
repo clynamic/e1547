@@ -73,7 +73,7 @@ void main() {
     expect(post.rating.name, recorded['rating']);
     expect(post.score, (stats['score']! as Map)['total']);
     expect(post.isDeleted, (recorded['flags']! as Map)['deleted']);
-    expect(post.tags.keys, (recorded['tags']! as Map).keys);
+    expect(post.tags, recorded['tags']);
   });
 
   test('leaves the sample empty when the post has none', () async {
@@ -105,12 +105,21 @@ void main() {
   });
 
   test('folds video samples into variants', () async {
-    final posts = await client.page();
-    final video = posts.firstWhere((e) => e.ext == 'webm');
+    final recorded = loadFixtureList(
+      'posts.json',
+    ).firstWhere((e) => (e['files']! as Map)['meta']['ext'] == 'webm');
+    final video = (recorded['files']! as Map)['video'] as Map;
+    final original = video['original'] as Map;
+    final sample = (video['samples'] as Map)['480p'] as Map;
 
-    expect(video.variants, isNotNull);
-    expect(video.variants!.keys, isNotEmpty);
-    expect(video.variants!.keys, everyElement(matches(RegExp(r'^\d+x\d+$'))));
+    final posts = await client.page();
+
+    expect(posts.firstWhere((e) => e.id == recorded['id']).variants, {
+      '${original['width']}x${original['height']}': served(
+        original['url'] as String,
+      ),
+      '${sample['width']}x${sample['height']}': served(sample['url'] as String),
+    });
   });
 
   test('parses child relationships', () async {
@@ -194,22 +203,49 @@ void main() {
   );
 
   test('drops posts that cannot be displayed', () async {
-    fake.state.posts.add({
-      ...fake.state.posts.first,
-      'id': 999,
-      'files': {
-        ...(fake.state.posts.first['files']! as Map<String, Object?>),
-        'original': {
-          ...((fake.state.posts.first['files']! as Map)['original']!
-              as Map<String, Object?>),
-          'url': null,
+    final ids = loadFixtureList('posts.json').map((e) => e['id']).toList();
+    final recorded = fake.state.posts.first;
+    final files = recorded['files']! as Map<String, Object?>;
+    fake.state.posts.addAll([
+      {
+        ...recorded,
+        'id': 997,
+        'flags': {
+          ...(recorded['flags']! as Map<String, Object?>),
+          'deleted': true,
+        },
+        'files': {
+          ...files,
+          'original': {
+            ...(files['original']! as Map<String, Object?>),
+            'url': null,
+          },
         },
       },
-    });
+      {
+        ...recorded,
+        'id': 998,
+        'files': {
+          ...files,
+          'meta': {...(files['meta']! as Map<String, Object?>), 'ext': 'swf'},
+        },
+      },
+      {
+        ...recorded,
+        'id': 999,
+        'files': {
+          ...files,
+          'original': {
+            ...(files['original']! as Map<String, Object?>),
+            'url': null,
+          },
+        },
+      },
+    ]);
 
-    final posts = await client.page();
+    final posts = await client.page(query: {'tags': 'status:any'});
 
-    expect(posts.map((e) => e.id), isNot(contains(999)));
+    expect(posts.map((e) => e.id), [...ids, 997]);
   });
 
   test('serves recorded asset urls from itself', () async {
@@ -239,9 +275,32 @@ void main() {
     );
   });
 
-  test('favorites are served to a signed in user', () async {
+  test('drops deleted and fileless favorites', () async {
     final id = loadFixtureList('posts.json').first['id']! as int;
-    fake.state.favorites.add(id);
+    final recorded = fake.state.posts.first;
+    final files = recorded['files']! as Map<String, Object?>;
+    fake.state.posts.addAll([
+      {
+        ...recorded,
+        'id': 998,
+        'flags': {
+          ...(recorded['flags']! as Map<String, Object?>),
+          'deleted': true,
+        },
+      },
+      {
+        ...recorded,
+        'id': 999,
+        'files': {
+          ...files,
+          'original': {
+            ...(files['original']! as Map<String, Object?>),
+            'url': null,
+          },
+        },
+      },
+    ]);
+    fake.state.favorites.addAll([id, 998, 999]);
     final signedIn = PostClient(
       dio: createDefaultDio(
         Identity(
@@ -266,12 +325,16 @@ void main() {
     expect(posts.map((e) => e.id), [id]);
   });
 
-  test('sends a vote the way the server expects', () async {
+  test('sends a vote as a score and whether it replaces the last', () async {
     final id = loadFixtureList('posts.json').first['id']! as int;
 
     await client.vote(id: id, upvote: true, replace: true);
 
     expect(fake.requests.last.path, '/posts/$id/votes.json');
     expect(fake.requests.last.query, {'score': '1', 'no_unvote': 'true'});
+
+    await client.vote(id: id, upvote: false, replace: false);
+
+    expect(fake.requests.last.query, {'score': '-1', 'no_unvote': 'false'});
   });
 }
