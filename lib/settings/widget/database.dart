@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:drift/drift.dart' show driftRuntimeOptions;
-import 'package:drift_flutter/drift_flutter.dart';
 import 'package:e1547/app/app.dart';
 import 'package:e1547/app/widget/initialize.dart';
 import 'package:e1547/logs/logs.dart';
@@ -222,30 +220,15 @@ class DatabaseImportTile extends StatelessWidget {
       );
 
       try {
-        driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
-        final importDb = AppDatabase(
-          driftDatabase(
-            name: 'import',
-            native: DriftNativeOptions(databasePath: () async => path),
-          ),
-        );
-        await importDb.customSelect('SELECT 1').get();
-        await importDb.close();
-      } on Exception catch (e) {
+        await stageDbImport(path, '${await getAppDatabasePath()}.new');
+      } on DatabaseImportException catch (e) {
         navigator.pop();
         messenger.showSnackBar(
-          SnackBar(content: Text('Invalid database file: $e')),
+          SnackBar(content: Text('Invalid database file: ${e.inner}')),
         );
-        _logger.warn('Database validation failed', null, e);
+        _logger.warn('Database validation failed', null, e.inner);
         return;
-      } finally {
-        driftRuntimeOptions.dontWarnAboutMultipleDatabases = false;
       }
-
-      final importFile = File(path);
-      final dbPath = await getAppDatabasePath();
-      final newDbPath = '$dbPath.new';
-      await importFile.copy(newDbPath);
 
       navigator.pop();
       if (context.mounted) {

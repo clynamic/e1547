@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:drift/drift.dart' show driftRuntimeOptions;
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
@@ -157,6 +158,37 @@ Future<void> backfillOnboardingSeen(AppStorage storage) async {
   if (existing) {
     await storage.preferences.setBool('onboardingSeen', true);
   }
+}
+
+class DatabaseImportException implements Exception {
+  DatabaseImportException.from(this.inner);
+
+  final Object inner;
+
+  @override
+  String toString() => '$runtimeType: $inner';
+}
+
+Future<void> stageDbImport(String source, String target) async {
+  final File copy = await File(source).copy('$target.tmp');
+  driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+  final AppDatabase staged = AppDatabase(
+    driftDatabase(
+      name: 'import',
+      native: DriftNativeOptions(databasePath: () async => copy.path),
+    ),
+  );
+  try {
+    await staged.customSelect('SELECT 1').get();
+  } on Exception catch (e) {
+    await staged.close();
+    await copy.delete();
+    throw DatabaseImportException.from(e);
+  } finally {
+    driftRuntimeOptions.dontWarnAboutMultipleDatabases = false;
+  }
+  await staged.close();
+  await copy.rename(target);
 }
 
 Future<void> completeDbImport() async {
