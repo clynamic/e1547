@@ -20,7 +20,10 @@ class TicketClient {
         'ticket[reason]': reason,
         if (postReportType != null) 'ticket[report_reason]': postReportType.id,
       },
-      options: Options(validateStatus: (status) => status == 302),
+      options: Options(
+        followRedirects: false,
+        validateStatus: (status) => status == 302,
+      ),
     );
   }
 }

@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 class CapturingAdapter implements HttpClientAdapter {
   RequestOptions? captured;
+  int status = 302;
 
   @override
   Future<ResponseBody> fetch(
@@ -15,7 +16,10 @@ class CapturingAdapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     captured = options;
-    return ResponseBody.fromString('', 302);
+    if (status == 302 && options.followRedirects) {
+      return ResponseBody.fromString('', 200);
+    }
+    return ResponseBody.fromString('', status);
   }
 
   @override
@@ -37,6 +41,24 @@ void main() {
   QueryMap sent() => adapter.captured!.queryParameters.map(
     (key, value) => MapEntry(key, value.toString()),
   );
+
+  test('treats a redirect as a created ticket', () async {
+    adapter.status = 302;
+
+    await expectLater(
+      client.create(type: TicketType.post, item: 123, reason: 'spam'),
+      completes,
+    );
+  });
+
+  test('treats a form page as a failed ticket', () async {
+    adapter.status = 200;
+
+    await expectLater(
+      client.create(type: TicketType.post, item: 123, reason: 'spam'),
+      throwsA(isA<DioException>()),
+    );
+  });
 
   test('sends the ticket type and item', () async {
     await client.create(type: TicketType.forum, item: 123, reason: 'spam');
