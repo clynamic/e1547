@@ -180,7 +180,7 @@ class FollowRepository extends DatabaseAccessor<GeneratedDatabase>
         identity: identity,
       )..where((tbl) => tbl.updated.isNull())).watch().future;
 
-  Future<void> add(FollowRequest item, int identity) async {
+  Future<void> add(FollowRequest item, int identity) => transaction(() async {
     Follow follow;
     Follow? existing = await _querySelect(
       identity: identity,
@@ -210,7 +210,7 @@ class FollowRepository extends DatabaseAccessor<GeneratedDatabase>
         ),
       );
     }
-  }
+  });
 
   Future<void> markAllSeen({List<int>? ids, int? identity}) =>
       (update(followsTable)
