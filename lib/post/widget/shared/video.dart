@@ -130,6 +130,21 @@ class _VideoBarState extends State<VideoBar> {
   @override
   void initState() {
     super.initState();
+    _subscribe();
+  }
+
+  @override
+  void didUpdateWidget(covariant VideoBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.player == widget.player) return;
+    for (final s in subscriptions) {
+      s.cancel();
+    }
+    subscriptions.clear();
+    _subscribe();
+  }
+
+  void _subscribe() {
     playing = widget.player.state.playing;
     position = widget.player.state.position;
     duration = widget.player.state.duration;
@@ -442,17 +457,18 @@ class PostVideoRouteState extends State<PostVideoRoute> {
   void keepPlaying() => _keepPlaying = true;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _wasPlaying = player?.state.playing ?? false;
-    });
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _lease();
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
+  void didUpdateWidget(covariant PostVideoRoute oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.post != widget.post) _lease();
+  }
+
+  void _lease() {
     VideoPlayer? next = widget.post.getVideo(context);
     if (next == player) return;
     if (player case VideoPlayer previous) {
@@ -461,9 +477,13 @@ class PostVideoRouteState extends State<PostVideoRoute> {
       _videos?.release(previous);
     }
     player = next;
+    _wasPlaying = false;
     if (next != null) {
       _videos = context.read<VideoService>();
       _videos!.acquire(next);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && player == next) _wasPlaying = next.state.playing;
+      });
     }
   }
 
@@ -483,7 +503,8 @@ class PostVideoRouteState extends State<PostVideoRoute> {
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) =>
+      KeyedSubtree(key: ValueKey(widget.post.id), child: widget.child);
 }
 
 class PostVideoWidget extends StatelessWidget {

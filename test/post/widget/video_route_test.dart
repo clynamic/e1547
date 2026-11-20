@@ -143,4 +143,76 @@ void main() {
 
     expect(player.state.playing, isTrue);
   });
+
+  testWidgets('a route rebuilt with another post leases that post\'s video', (
+    tester,
+  ) async {
+    await tester.pumpWidget(app(fullscreen(first)));
+    final VideoPlayer previous = playerOf(tester, first);
+
+    await tester.pumpWidget(app(fullscreen(second)));
+    await tester.pump();
+
+    final VideoPlayer current = playerOf(tester, second);
+    expect(current, same(videos.getVideo(second.file!)));
+    expect(current, isNot(same(previous)));
+    expect(previous.isLeased, isFalse);
+  });
+
+  testWidgets('a route rebuilt with another post stops that video on close', (
+    tester,
+  ) async {
+    Widget routes({required Post? leased}) => app(
+      Column(
+        children: [
+          if (leased != null)
+            PostVideoRoute(
+              key: const ValueKey('leased'),
+              post: leased,
+              child: const SizedBox(),
+            ),
+          PostVideoRoute(
+            key: const ValueKey('holder'),
+            post: second,
+            stopOnDispose: false,
+            child: const SizedBox(),
+          ),
+        ],
+      ),
+    );
+    await videos.getVideo(first.file!).play();
+    await tester.pumpWidget(routes(leased: first));
+    await tester.pump();
+
+    await tester.pumpWidget(routes(leased: second));
+    await tester.pump();
+    final VideoPlayer player = videos.getVideo(second.file!);
+    await player.play();
+
+    await tester.pumpWidget(routes(leased: null));
+    await tester.pump();
+
+    expect(player.state.playing, isFalse);
+  });
+
+  testWidgets('a route builds its page anew only for another post', (
+    tester,
+  ) async {
+    Future<State> pageOf(Post post) async {
+      await tester.pumpWidget(
+        app(
+          PostVideoRoute(
+            post: post,
+            child: const Material(child: TextField()),
+          ),
+        ),
+      );
+      return tester.state(find.byType(EditableText));
+    }
+
+    final State page = await pageOf(first);
+
+    expect(await pageOf(first.copyWith(score: first.score + 1)), same(page));
+    expect(await pageOf(second), isNot(same(page)));
+  });
 }

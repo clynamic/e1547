@@ -1,5 +1,9 @@
 import 'package:e1547/post/post.dart';
+import 'package:e1547/shared/shared.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../_support/video.dart';
 
 void main() {
   const duration = Duration(minutes: 1);
@@ -51,5 +55,45 @@ void main() {
         '1:02:03',
       );
     });
+  });
+
+  testWidgets('a video bar rebuilt with another player shows that player', (
+    tester,
+  ) async {
+    final VideoService videos = fakeVideoService();
+    final VideoPlayer first = VideoPlayer(platformPlayer: FakePlatformPlayer());
+    final VideoPlayer second = VideoPlayer(
+      platformPlayer: FakePlatformPlayer(),
+    );
+    addTearDown(() async {
+      await first.dispose();
+      await second.dispose();
+      videos.dispose();
+    });
+    await second.seek(const Duration(seconds: 5));
+
+    Widget bar(VideoPlayer player) => ChangeNotifierProvider.value(
+      value: videos,
+      child: MaterialApp(
+        home: Scaffold(body: VideoBar(player: player)),
+      ),
+    );
+
+    await tester.pumpWidget(bar(first));
+    expect(find.text('00:05'), findsNothing);
+
+    await tester.pumpWidget(bar(second));
+
+    expect(find.text('00:05'), findsOneWidget);
+
+    await first.seek(const Duration(seconds: 9));
+    await tester.pump();
+
+    expect(find.text('00:05'), findsOneWidget);
+
+    await second.seek(const Duration(seconds: 7));
+    await tester.pump();
+
+    expect(find.text('00:07'), findsOneWidget);
   });
 }
