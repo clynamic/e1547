@@ -14,6 +14,7 @@ class HistoriesPage extends StatelessWidget {
       child: HistoryPageQueryBuilder(
         builder: (context, state, query) => SelectionLayout<History>(
           items: state.data?.pages.expand((p) => p).toList(),
+          keyOf: (history) => history.id,
           child: const AdaptiveScaffold(
             appBar: HistoryAppBar(),
             floatingActionButton: HistorySearchFab(),

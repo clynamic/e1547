@@ -39,6 +39,7 @@ class PoolPage extends StatelessWidget {
               child: PostPageQueryBuilder(
                 builder: (context, state, query) => SelectionLayout<Post>(
                   items: state.data?.pages.expand((p) => p).toList(),
+                  keyOf: (post) => post.id,
                   child: AdaptiveScaffold(
                     appBar: PostSelectionAppBar(
                       child: DefaultAppBar(

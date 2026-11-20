@@ -23,6 +23,7 @@ class TasksPage extends StatelessWidget {
             controller: controller,
             child: SelectionLayout<Task>(
               items: items,
+              keyOf: (task) => task.id,
               child: AdaptiveScaffold(
                 appBar: SelectionAppBar<Task>(
                   titleBuilder: (context, layoutData) =>

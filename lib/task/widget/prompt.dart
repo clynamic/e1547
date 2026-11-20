@@ -8,6 +8,7 @@ Future<void> showTasksPrompt(BuildContext context) => showSliverPrompt<void>(
     child: Consumer<TasksListController>(
       builder: (context, listController, _) => SelectionLayout<Task>(
         items: listController.items ?? const [],
+        keyOf: (task) => task.id,
         child: child,
       ),
     ),

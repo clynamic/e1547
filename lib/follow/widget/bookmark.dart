@@ -26,6 +26,7 @@ class FollowsBookmarkPage extends StatelessWidget {
           child: FollowPageQueryBuilder(
             builder: (context, state, query) => SelectionLayout<Follow>(
               items: state.data?.pages.expand((p) => p).toList(),
+              keyOf: (follow) => follow.id,
               child: PromptActions(
                 child: AdaptiveScaffold(
                   appBar: const FollowSelectionAppBar(

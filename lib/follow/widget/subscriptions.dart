@@ -45,6 +45,7 @@ class FollowsSubscriptionsPage extends StatelessWidget {
               }
               return SelectionLayout<Follow>(
                 items: state.data?.pages.expand((p) => p).toList(),
+                keyOf: (follow) => follow.id,
                 child: PromptActions(
                   child: AdaptiveScaffold(
                     appBar: const FollowSelectionAppBar(

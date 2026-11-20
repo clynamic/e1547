@@ -95,6 +95,7 @@ class _LogFileListState extends State<LogFileList> {
               .toList();
           return SelectionLayout<LogFileInfo>(
             items: files,
+            keyOf: (file) => file.path,
             child: Scaffold(
               appBar: LogFileSelectionAppBar(
                 child: const DefaultAppBar(title: Text('Log Files')),
@@ -316,6 +317,7 @@ class _LogPageState extends State<LogPage> {
       final DateTime? date = widget.source.date;
       return SelectionLayout<LogEntry>(
         items: items,
+        keyOf: (item) => item.id ?? item,
         child: Expandables(
           child: Scaffold(
             appBar: LogSelectionAppBar(

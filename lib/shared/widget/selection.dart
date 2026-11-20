@@ -81,6 +81,7 @@ class SelectionLayout<T> extends StatefulWidget {
     super.key,
     required this.child,
     required this.items,
+    required this.keyOf,
     this.enabled = true,
   });
 
@@ -89,6 +90,8 @@ class SelectionLayout<T> extends StatefulWidget {
 
   /// All items which can be selected.
   final List<T>? items;
+
+  final Object Function(T item) keyOf;
 
   /// Whether items can currently be selected.
   final bool enabled;
@@ -113,11 +116,13 @@ class _SelectionLayoutState<T> extends State<SelectionLayout<T>> {
   void didUpdateWidget(covariant SelectionLayout<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.items != widget.items) {
-      Set<T> updated = Set.from(selections);
-      updated.removeWhere(
-        (element) => !(widget.items?.contains(element) ?? false),
-      );
-      onSelectionChanged(updated);
+      final Set<Object> kept = selections.map(widget.keyOf).toSet();
+      final Map<Object, T> updated = {};
+      for (final T item in widget.items ?? const []) {
+        final Object key = widget.keyOf(item);
+        if (kept.contains(key)) updated.putIfAbsent(key, () => item);
+      }
+      onSelectionChanged(updated.values.toSet());
     }
   }
 
