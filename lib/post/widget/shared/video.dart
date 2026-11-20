@@ -186,7 +186,7 @@ class _VideoBarState extends State<VideoBar> {
                 children: [
                   const VideoServiceVolumeControl(),
                   const SizedBox(width: 4),
-                  Text(position.toString().substring(2, 7)),
+                  Text(videoTime(position)),
                   Flexible(
                     child: Slider(
                       max: duration.inMilliseconds.toDouble(),
@@ -219,7 +219,7 @@ class _VideoBarState extends State<VideoBar> {
                       },
                     ),
                   ),
-                  Text(duration.toString().substring(2, 7)),
+                  Text(videoTime(duration)),
                   const SizedBox(width: 4),
                   InkWell(
                     onTap: Navigator.of(context).maybePop,
@@ -253,6 +253,19 @@ Duration videoSeekTarget({
   if (target < Duration.zero) return Duration.zero;
   if (duration > Duration.zero && target > duration) return duration;
   return target;
+}
+
+String videoTime(Duration duration) {
+  final String minutes = duration.inMinutes
+      .remainder(60)
+      .toString()
+      .padLeft(2, '0');
+  final String seconds = duration.inSeconds
+      .remainder(60)
+      .toString()
+      .padLeft(2, '0');
+  if (duration.inHours > 0) return '${duration.inHours}:$minutes:$seconds';
+  return '$minutes:$seconds';
 }
 
 class VideoGesture extends StatefulWidget {

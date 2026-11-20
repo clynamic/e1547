@@ -39,4 +39,17 @@ void main() {
       expect(seek(step, step, total: Duration.zero), step * 2);
     });
   });
+
+  group('videoTime', () {
+    test('shows minutes and seconds below an hour', () {
+      expect(videoTime(const Duration(minutes: 4, seconds: 5)), '04:05');
+    });
+
+    test('shows hours for an hour and longer', () {
+      expect(
+        videoTime(const Duration(hours: 1, minutes: 2, seconds: 3)),
+        '1:02:03',
+      );
+    });
+  });
 }
