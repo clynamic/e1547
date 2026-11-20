@@ -67,26 +67,33 @@ class App extends StatelessWidget {
                           child: SecureDisplay(
                             child: LockScreen(
                               child: LoadingShell(
-                                child: MultiProvider(
-                                  providers: [
-                                    IdentityClientProvider(),
-                                    TraitsClientProvider(),
-                                    ClientProvider(),
-                                    FileCacheProvider(),
-                                    TasksControllerProvider(),
-                                  ],
-                                  child: LoadingCore(
-                                    child: OnboardingGate(
-                                      child: AccountConnector(
-                                        navigatorKey: navigatorKey,
-                                        child: FollowConnector(
-                                          child: AppLinkHandler(
+                                child: IdentityClientProvider(
+                                  child: NotificationHandler(
+                                    child: MultiProvider(
+                                      providers: [
+                                        TraitsClientProvider(),
+                                        ClientProvider(),
+                                        FileCacheProvider(),
+                                        TasksControllerProvider(),
+                                      ],
+                                      child: LoadingCore(
+                                        child: OnboardingGate(
+                                          child: AccountConnector(
                                             navigatorKey: navigatorKey,
-                                            child: NotificationHandler(
-                                              navigatorKey: navigatorKey,
-                                              child: AppBubbleOverlay(
+                                            child: FollowConnector(
+                                              child: AppLinkHandler(
                                                 navigatorKey: navigatorKey,
-                                                child: child!,
+                                                child: NotificationOpener(
+                                                  navigatorKey: navigatorKey,
+                                                  child:
+                                                      FollowNotificationConnector(
+                                                        child: AppBubbleOverlay(
+                                                          navigatorKey:
+                                                              navigatorKey,
+                                                          child: child!,
+                                                        ),
+                                                      ),
+                                                ),
                                               ),
                                             ),
                                           ),

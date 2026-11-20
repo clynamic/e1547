@@ -3,40 +3,43 @@ import 'dart:convert';
 
 import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
-import 'package:e1547/follow/follow.dart';
+import 'package:e1547/identity/identity.dart';
 import 'package:e1547/logs/logs.dart';
 import 'package:e1547/pool/pool.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_sub/flutter_sub.dart';
 
 class NotificationHandler extends StatefulWidget {
-  const NotificationHandler({
-    super.key,
-    required this.child,
-    required this.navigatorKey,
-  });
+  const NotificationHandler({super.key, required this.child});
 
   final Widget child;
-  final GlobalKey<NavigatorState> navigatorKey;
+
+  static NotificationHandlerState of(BuildContext context) =>
+      context.findAncestorStateOfType<NotificationHandlerState>()!;
 
   @override
-  State<NotificationHandler> createState() => _NotificationHandlerState();
+  State<NotificationHandler> createState() => NotificationHandlerState();
 }
 
-class _NotificationHandlerState extends State<NotificationHandler> {
+class NotificationHandlerState extends State<NotificationHandler> {
   late Future<FlutterLocalNotificationsPlugin> notifications =
       initializeNotifications(onDidReceiveNotificationResponse: handle);
-  List<Follow>? previousFollows;
   Logger logger = Logger('NotificationRouter');
+  final ValueNotifier<NotificationPayload?> pending = ValueNotifier(null);
 
   @override
   void initState() {
     super.initState();
     initialize();
+  }
+
+  @override
+  void dispose() {
+    pending.dispose();
+    super.dispose();
   }
 
   Future<void> initialize() async {
@@ -48,47 +51,6 @@ class _NotificationHandlerState extends State<NotificationHandler> {
       if (response != null) {
         handle(response);
       }
-    }
-  }
-
-  Future<void> setupFollowBackground(List<Follow> follows) async {
-    if (!PlatformCapabilities.hasNotifications) return;
-    bool wasNotifying =
-        previousFollows != null &&
-        previousFollows!.where((e) => e.type == FollowType.notify).isNotEmpty;
-    bool isNotifying = follows
-        .where((e) => e.type == FollowType.notify)
-        .isNotEmpty;
-    if (wasNotifying == isNotifying) return;
-
-    if (isNotifying) {
-      bool? result;
-      result = await (await notifications)
-          .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin
-          >()
-          ?.requestPermissions(alert: true, badge: true, sound: true);
-      result = await (await notifications)
-          .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >()
-          ?.requestNotificationsPermission();
-      if (!(result ?? true)) return;
-    }
-    registerFollowBackgroundTask(follows);
-  }
-
-  Future<void> sendNotifications(List<Follow> follows, int identity) async {
-    if (!PlatformCapabilities.hasNotifications) return;
-    if (previousFollows != null) {
-      final BaseCacheManager cache = context.read<BaseCacheManager>();
-      await updateFollowNotifications(
-        identity: identity,
-        previous: previousFollows!,
-        updated: follows,
-        notifications: await notifications,
-        cache: cache,
-      );
     }
   }
 
@@ -104,18 +66,25 @@ class _NotificationHandlerState extends State<NotificationHandler> {
       return;
     }
 
+    final IdentityClient identities = context.read<IdentityClient>();
+    if (identities.identity.id != notification.identity) {
+      if (await identities.getOrNull(notification.identity) == null) return;
+      await identities.activate(notification.identity);
+    }
+    if (!mounted) return;
+    pending.value = notification;
+  }
+
+  void open(NavigatorState navigator, NotificationPayload notification) {
     switch (notification.type) {
       case 'follow':
-        widget.navigatorKey.currentState!.pushNamedAndRemoveUntil(
-          '/subscriptions',
-          (_) => false,
-        );
+        navigator.pushNamedAndRemoveUntil('/subscriptions', (_) => false);
         if (notification.query != null) {
           final String? tags = notification.query!['tags'];
           final poolId = tags != null
               ? poolRegex().firstMatch(tags)?.namedGroup('id')
               : null;
-          widget.navigatorKey.currentState!.push(
+          navigator.push(
             MaterialPageRoute(
               builder: (context) => poolId != null
                   ? PoolLoadingPage(int.parse(poolId), orderByOldest: false)
@@ -124,9 +93,9 @@ class _NotificationHandlerState extends State<NotificationHandler> {
           );
         }
         if (notification.id != null) {
-          widget.navigatorKey.currentState!.push(
+          navigator.push(
             MaterialPageRoute(
-              builder: (context) => PostLoadingPage(notification!.id!),
+              builder: (context) => PostLoadingPage(notification.id!),
             ),
           );
         }
@@ -140,21 +109,38 @@ class _NotificationHandlerState extends State<NotificationHandler> {
   }
 
   @override
+  Widget build(BuildContext context) => widget.child;
+}
+
+class NotificationOpener extends StatelessWidget {
+  const NotificationOpener({
+    super.key,
+    required this.child,
+    required this.navigatorKey,
+  });
+
+  final Widget child;
+  final GlobalKey<NavigatorState> navigatorKey;
+
+  @override
   Widget build(BuildContext context) {
-    final client = context.watch<Client>();
-    return SubStream<List<Follow>>(
-      create: () => client.follows
-          .all(query: FollowsQuery(types: [FollowType.notify]))
-          .streamed,
-      keys: [client],
-      listener: (event) async {
-        await Future.wait([
-          setupFollowBackground(event),
-          sendNotifications(event, client.identity.id),
-        ]);
-        previousFollows = event;
+    final NotificationHandlerState handler = NotificationHandler.of(context);
+    final Client client = context.watch<Client>();
+    void take() => WidgetsBinding.instance.addPostFrameCallback((_) {
+      final NotificationPayload? notification = handler.pending.value;
+      final NavigatorState? navigator = navigatorKey.currentState;
+      if (notification == null || navigator == null) return;
+      if (notification.identity != client.identity.id) return;
+      handler.pending.value = null;
+      handler.open(navigator, notification);
+    });
+    return SubListener(
+      listenable: handler.pending,
+      listener: take,
+      builder: (context) {
+        take();
+        return child;
       },
-      builder: (context, stream) => widget.child,
     );
   }
 }
