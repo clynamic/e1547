@@ -4,6 +4,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  Future<void> frames(WidgetTester tester, int count) async {
+    for (int i = 0; i < count; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+  }
+
   testWidgets('a refreshing list shows the travelling hexagon above it', (
     tester,
   ) async {
@@ -28,18 +34,18 @@ void main() {
     );
 
     await tester.sendKeyEvent(LogicalKeyboardKey.f5);
-    for (int i = 0; i < 8; i++) {
-      await tester.pump(const Duration(milliseconds: 50));
-    }
+    await frames(tester, 15);
 
     expect(refreshes, 1);
+    final Finder hexagon = find.byType(HexagonalLoadingIndicator);
     expect(
-      tester
-          .widget<HexagonalLoadingIndicator>(
-            find.byType(HexagonalLoadingIndicator, skipOffstage: false),
-          )
-          .state,
+      tester.widget<HexagonalLoadingIndicator>(hexagon).state,
       HexagonState.loading,
+    );
+    expect(tester.getRect(hexagon).top, greaterThanOrEqualTo(0));
+    expect(
+      tester.getRect(hexagon).bottom,
+      lessThanOrEqualTo(tester.getRect(find.text('line 0')).top),
     );
 
     await tester.pump(const Duration(seconds: 3));
@@ -69,18 +75,23 @@ void main() {
       );
 
       await tester.sendKeyEvent(LogicalKeyboardKey.f5);
-      for (int i = 0; i < 8; i++) {
-        await tester.pump(const Duration(milliseconds: 50));
-      }
-      final Finder note = find.text('Up to date', skipOffstage: false);
+      await frames(tester, 30);
+      final Finder note = find.text('Up to date');
+      final Rect rested = tester.getRect(note);
 
-      expect(note, findsOneWidget);
+    expect(rested.top, greaterThanOrEqualTo(0));
+    expect(
+      rested.bottom,
+      lessThanOrEqualTo(tester.getRect(find.text('line 0')).top),
+    );
 
-      for (int i = 0; i < 20; i++) {
-        await tester.pump(const Duration(milliseconds: 50));
-      }
+    await frames(tester, 82);
 
-      expect(note, findsOneWidget);
+    expect(tester.getRect(note), rested);
+
+    await frames(tester, 20);
+
+    expect(note, findsNothing);
 
       await tester.pump(const Duration(seconds: 3));
       await tester.pump(const Duration(seconds: 1));
