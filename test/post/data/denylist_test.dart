@@ -216,9 +216,13 @@ void main() {
 
     test('comparisons apply to every numeric metatag', () {
       expect(samplePost(favCount: 5).isDeniedBy(['favcount:>3']), true);
+      expect(samplePost(favCount: 3).isDeniedBy(['favcount:>3']), false);
       expect(samplePost(width: 800).isDeniedBy(['width:>=800']), true);
+      expect(samplePost(width: 799).isDeniedBy(['width:>=800']), false);
       expect(samplePost(height: 600).isDeniedBy(['height:<700']), true);
+      expect(samplePost(height: 700).isDeniedBy(['height:<700']), false);
       expect(samplePost(size: 2048).isDeniedBy(['filesize:>1024']), true);
+      expect(samplePost(size: 1024).isDeniedBy(['filesize:>1024']), false);
     });
 
     test('a range includes its bounds', () {
@@ -293,9 +297,9 @@ void main() {
     });
 
     test('user matches the uploader name, or an id behind a bang', () {
-      final post = samplePost(uploaderId: 5, uploaderName: 'albert');
-      expect(post.isDeniedBy(['user:albert']), true);
-      expect(post.isDeniedBy(['username:albert']), true);
+      final post = samplePost(uploaderId: 5, uploaderName: 'tester');
+      expect(post.isDeniedBy(['user:tester']), true);
+      expect(post.isDeniedBy(['username:tester']), true);
       expect(post.isDeniedBy(['user:!5']), true);
       expect(post.isDeniedBy(['user:someone']), false);
     });
