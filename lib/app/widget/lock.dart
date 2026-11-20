@@ -1,4 +1,5 @@
 import 'package:animations/animations.dart';
+import 'package:clock/clock.dart';
 import 'package:e1547/app/app.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
@@ -91,12 +92,12 @@ class _LockScreenState extends State<LockScreen> {
   void initState() {
     super.initState();
     _lifecycle = AppLifecycleListener(
-      onHide: () => _hiddenAt = DateTime.now(),
+      onHide: () => _hiddenAt = clock.now(),
       onShow: () {
         final DateTime? hiddenAt = _hiddenAt;
         _hiddenAt = null;
         if (hiddenAt == null || locked || !enabled) return;
-        if (DateTime.now().difference(hiddenAt) >= widget.relockAfter) lock();
+        if (clock.now().difference(hiddenAt) >= widget.relockAfter) lock();
       },
     );
   }

@@ -268,11 +268,16 @@ void main() {
     expect(inside(), findsOneWidget);
   });
 
-  Future<void> away(WidgetTester tester) async {
+  Future<void> away(WidgetTester tester, Duration gone) async {
     for (final AppLifecycleState state in const [
       AppLifecycleState.inactive,
       AppLifecycleState.hidden,
       AppLifecycleState.paused,
+    ]) {
+      tester.binding.handleAppLifecycleStateChanged(state);
+    }
+    await tester.pump(gone);
+    for (final AppLifecycleState state in const [
       AppLifecycleState.hidden,
       AppLifecycleState.inactive,
       AppLifecycleState.resumed,
@@ -286,11 +291,11 @@ void main() {
     tester,
   ) async {
     settings.appPin.value = '1234';
-    await show(tester, relockAfter: Duration.zero);
+    await show(tester, relockAfter: const Duration(minutes: 1));
     await type(tester, '1234');
     expect(inside(), findsOneWidget);
 
-    await away(tester);
+    await away(tester, const Duration(minutes: 1));
 
     expect(inside(), findsNothing);
     expect(find.text('Enter your PIN'), findsOneWidget);
@@ -300,10 +305,10 @@ void main() {
     tester,
   ) async {
     settings.appPin.value = '1234';
-    await show(tester, relockAfter: const Duration(hours: 1));
+    await show(tester, relockAfter: const Duration(minutes: 1));
     await type(tester, '1234');
 
-    await away(tester);
+    await away(tester, const Duration(seconds: 59));
 
     expect(inside(), findsOneWidget);
   });
