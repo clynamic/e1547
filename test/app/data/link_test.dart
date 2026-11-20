@@ -28,7 +28,9 @@ void main() {
     });
 
     test('leaves the query empty when there is none', () {
-      expect(parse('/posts')?.query, null);
+      final link = parse('/posts');
+      expect(link?.type, LinkType.post);
+      expect(link?.query, null);
     });
   });
 
@@ -51,9 +53,9 @@ void main() {
 
   group('users', () {
     test('reads a name', () {
-      final link = parse('/users/albert');
+      final link = parse('/users/tester');
       expect(link?.type, LinkType.user);
-      expect(link?.id, 'albert');
+      expect(link?.id, 'tester');
     });
 
     test('reads an id as a number', () {
@@ -144,8 +146,11 @@ void main() {
       expect(link?.id, 'cat');
     });
 
-    test('does not read a wiki collection path as a title', () {
-      expect(parse('/wiki_pages/search?title=cat')?.id, isNot('search'));
+    test('parses the wiki search path as a search', () {
+      final link = parse('/wiki_pages/search?title=cat');
+      expect(link?.type, LinkType.wiki);
+      expect(link?.id, null);
+      expect(link?.query, {'title': 'cat'});
     });
 
     test('ignores a trailing slash', () {
