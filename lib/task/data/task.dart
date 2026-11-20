@@ -40,6 +40,13 @@ abstract class TaskMetadata with _$TaskMetadata {
 
 enum TaskAction { download, favorite, unfavorite }
 
+typedef TaskLane = ({int postId, bool download});
+
+extension TaskActionX on TaskAction {
+  TaskLane laneOf(int postId) =>
+      (postId: postId, download: this == TaskAction.download);
+}
+
 enum TaskStatus { pending, running, completed, failed, canceled }
 
 extension TaskStatusX on TaskStatus {

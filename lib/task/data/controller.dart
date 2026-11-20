@@ -155,25 +155,31 @@ class TasksController extends ChangeNotifier {
     }
   }
 
-  Future<Task> enqueue(TaskRequest request) async {
-    _hideTimer?.cancel();
-    _hideTimer = null;
-    final task = await repository.add(request, identity);
-    _runningTotal++;
-    notifyListeners();
-    _kick();
-    return task;
-  }
-
   Future<List<Task>> enqueueAll(Iterable<TaskRequest> requests) async {
     final List<TaskRequest> list = requests.toList();
     if (list.isEmpty) return const [];
     if (!await _prepareDownloads(list.map((e) => e.action))) {
       return const [];
     }
+    return _add(list);
+  }
+
+  Future<List<Task>> _add(List<TaskRequest> list) async {
     _hideTimer?.cancel();
     _hideTimer = null;
-    final List<Task> created = await repository.addAll(list, identity);
+    final List<Task> created = await repository.transaction(() async {
+      final Map<TaskLane, TaskAction> queued = await repository.queuedActions(
+        identity: identity,
+      );
+      final List<TaskRequest> fresh = [];
+      for (final request in list) {
+        final TaskLane lane = request.action.laneOf(request.postId);
+        if (queued[lane] == request.action) continue;
+        queued[lane] = request.action;
+        fresh.add(request);
+      }
+      return repository.addAll(fresh, identity);
+    });
     _runningTotal += created.length;
     notifyListeners();
     _kick();
@@ -344,17 +350,22 @@ class TasksController extends ChangeNotifier {
 
   Future<void> dismiss(int taskId) => repository.remove(taskId);
 
-  Future<void> retry(int taskId) async {
-    final Task task = await repository.get(taskId);
-    if (!await _prepareDownloads([task.action])) return;
-    await repository.remove(taskId);
-    await enqueue(
-      TaskRequest(
-        action: task.action,
-        postId: task.postId,
-        metadata: task.metadata,
-      ),
-    );
+  Future<void> retryAll(Iterable<int> taskIds) async {
+    final List<Task> retried = [
+      for (final id in taskIds) await repository.get(id),
+    ];
+    if (!await _prepareDownloads(retried.map((e) => e.action))) return;
+    for (final task in retried) {
+      await repository.remove(task.id);
+    }
+    await _add([
+      for (final task in retried)
+        TaskRequest(
+          action: task.action,
+          postId: task.postId,
+          metadata: task.metadata,
+        ),
+    ]);
   }
 
   /// Cancels every queued and in-progress task. Canceled tasks stay in the

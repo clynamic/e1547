@@ -30,6 +30,10 @@ class HeldDownloads implements BaseCacheManager {
   void report(String url, int received) =>
       transfers[url]!.add(DownloadProgress(url, 3, received));
 
+  void fail(String url) => transfers[url]!
+    ..addError(const io.SocketException('lost'))
+    ..close();
+
   void finish(String url) => transfers[url]!
     ..add(
       FileInfo(
@@ -147,6 +151,27 @@ void main() {
     expect(voted?.score, 6);
   });
 
+  test('queues a favorite that reverses the one queued before it', () async {
+    final List<Task> queued = await tasks.enqueueAll(const [
+      TaskRequest(action: TaskAction.favorite, postId: 1000),
+      TaskRequest(action: TaskAction.unfavorite, postId: 1000),
+      TaskRequest(action: TaskAction.favorite, postId: 1000),
+    ]);
+    final TaskRepository repository = TaskRepository(database: env.sqlite);
+    while (await repository.length(
+          statuses: {TaskStatus.pending, TaskStatus.running},
+        ) >
+        0) {
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    }
+
+    expect(queued.map((e) => e.action), [
+      TaskAction.favorite,
+      TaskAction.unfavorite,
+      TaskAction.favorite,
+    ]);
+  });
+
   group('downloads', () {
     late io.Directory folder;
 
@@ -170,7 +195,7 @@ void main() {
     test(
       'a download canceled while it transfers stops and is not saved',
       () async {
-        final Task task = await tasks.enqueue(download(1));
+        final Task task = (await tasks.enqueueAll([download(1)])).single;
         await until(() => downloads.transfers.length == 1);
 
         await tasks.cancel(task.id);
@@ -183,7 +208,7 @@ void main() {
     );
 
     test('a download canceled as a worker picks it up is not saved', () async {
-      final Task task = await tasks.enqueue(download(1));
+      final Task task = (await tasks.enqueueAll([download(1)])).single;
       await tasks.cancel(task.id);
       await until(() => downloads.transfers.length == 1);
 
@@ -223,6 +248,47 @@ void main() {
       expect(await TaskRepository(database: env.sqlite).length(), 0);
     });
 
+    test('queues a download once while the same one is queued', () async {
+      final Task failed = (await tasks.enqueueAll([download(1)])).single;
+      await until(() => downloads.transfers.length == 1);
+      downloads.fail(urlOf(1));
+      await until(() => !tasks.isRunning(failed.id));
+
+      await tasks.enqueueAll([
+        download(1),
+        const TaskRequest(action: TaskAction.favorite, postId: 1),
+        download(1),
+      ]);
+      await tasks.enqueueAll([download(1)]);
+      await tasks.retryAll([failed.id]);
+
+      expect(
+        await TaskRepository(
+          database: env.sqlite,
+        ).length(actions: {TaskAction.download}),
+        1,
+      );
+    });
+
+    test('asks for a download folder once for a retried batch', () async {
+      final List<Task> failed = await tasks.enqueueAll([
+        download(1),
+        download(2),
+      ]);
+      await until(() => downloads.transfers.length == 2);
+      downloads
+        ..fail(urlOf(1))
+        ..fail(urlOf(2));
+      await until(() => failed.every((e) => !tasks.isRunning(e.id)));
+      final CountingFolderPicker picker = CountingFolderPicker(null);
+      FilePicker.platform = picker;
+      env.settings.downloadPath.value = null;
+
+      await tasks.retryAll(failed.map((e) => e.id));
+
+      expect(picker.asked, 1);
+    });
+
     test(
       'downloads canceled together as workers pick them up are not saved',
       () async {
@@ -246,7 +312,7 @@ void main() {
     test(
       'a finished transfer reports saving until the file is in place',
       () async {
-        final Task task = await tasks.enqueue(download(1));
+        final Task task = (await tasks.enqueueAll([download(1)])).single;
         await until(() => downloads.transfers.length == 1);
         final ValueListenable<double?> progress = tasks.progressOf(task.id)!;
         final List<(double?, bool)> seen = [];
@@ -263,7 +329,7 @@ void main() {
     );
 
     test('a saving download counts as fully transferred overall', () async {
-      final Task task = await tasks.enqueue(download(1));
+      final Task task = (await tasks.enqueueAll([download(1)])).single;
       await until(() => downloads.transfers.length == 1);
       final List<double> overall = [];
       tasks.currentProgress.addListener(
@@ -281,7 +347,7 @@ void main() {
     test(
       'a replaced controller stops its downloads and the next one finishes them',
       () async {
-        final Task task = await tasks.enqueue(download(1));
+        final Task task = (await tasks.enqueueAll([download(1)])).single;
         await until(() => downloads.transfers.length == 1);
         final StreamController<FileResponse> replaced = downloads.transfers
             .remove(urlOf(1))!;
@@ -310,7 +376,7 @@ void main() {
     );
 
     test('downloads added while one transfers start alongside it', () async {
-      await tasks.enqueue(download(1));
+      await tasks.enqueueAll([download(1)]);
       await until(() => downloads.transfers.length == 1);
 
       await tasks.enqueueAll([download(2), download(3), download(4)]);

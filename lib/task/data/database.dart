@@ -150,6 +150,17 @@ class TaskRepository extends DatabaseAccessor<GeneratedDatabase>
     return task;
   }
 
+  Future<Map<TaskLane, TaskAction>> queuedActions({int? identity}) async {
+    final List<Task> active = await _querySelect(
+      identity: identity,
+      statuses: {TaskStatus.pending, TaskStatus.running},
+    ).get();
+    active.sort((a, b) => a.id.compareTo(b.id));
+    return {
+      for (final task in active) task.action.laneOf(task.postId): task.action,
+    };
+  }
+
   Future<List<Task>> addAll(Iterable<TaskRequest> items, int identity) =>
       transaction(() async {
         final DateTime now = DateTime.now();

@@ -31,12 +31,15 @@ List<Widget> taskBulkActions(
         tooltip: 'retry',
         icon: const Icon(Icons.refresh),
         onPressed: () async {
-          for (final t in selected) {
-            if (t.status == TaskStatus.failed ||
-                t.status == TaskStatus.canceled) {
-              await controller.retry(t.id);
-            }
-          }
+          await controller.retryAll(
+            selected
+                .where(
+                  (t) =>
+                      t.status == TaskStatus.failed ||
+                      t.status == TaskStatus.canceled,
+                )
+                .map((t) => t.id),
+          );
           layoutData.clear();
         },
       ),
