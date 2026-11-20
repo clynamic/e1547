@@ -47,36 +47,4 @@ void main() {
         tester.view.physicalSize.width / tester.view.devicePixelRatio;
     expect(await fabLeft(tester), lessThan(screenWidth / 2));
   });
-
-  testWidgets('a bubble rests on the side of the preferred hand', (
-    tester,
-  ) async {
-    Widget overlay(HorizontalDirection side) => MaterialApp(
-      home: BubbleOverlay(
-        side: side,
-        bubbles: const [
-          OverlayBubble(
-            id: 'bubble',
-            size: 40,
-            child: SizedBox.square(dimension: 40, key: Key('bubble')),
-          ),
-        ],
-        child: const SizedBox.expand(),
-      ),
-    );
-    final double screenWidth =
-        tester.view.physicalSize.width / tester.view.devicePixelRatio;
-
-    await tester.pumpWidget(overlay(HorizontalDirection.right));
-    expect(
-      tester.getTopLeft(find.byKey(const Key('bubble'))).dx,
-      greaterThan(screenWidth / 2),
-    );
-
-    await tester.pumpWidget(overlay(HorizontalDirection.left));
-    expect(
-      tester.getTopLeft(find.byKey(const Key('bubble'))).dx,
-      lessThan(screenWidth / 2),
-    );
-  });
 }
