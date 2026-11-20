@@ -32,7 +32,6 @@ class FakeE621 {
   Future<void> stop() => _server.close(force: true);
 
   late final Router _router = Router()
-    ..get('/status.json', (Request request) => _json({'online': true}))
     ..get('/data/<path|.*>', _serveImage)
     ..get('/posts.json', _listPosts)
     ..get('/favorites.json', _listFavorites)
