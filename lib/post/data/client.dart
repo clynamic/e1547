@@ -123,7 +123,7 @@ class PostClient {
     CancelToken? cancelToken,
   }) async {
     page ??= 1;
-    tags.removeWhere((e) => e.contains(' ') || e.contains(':'));
+    tags = tags.where((e) => !e.contains(' ') && !e.contains(':')).toList();
     if (tags.isEmpty) return [];
     int max = 40;
     int pages = (tags.length / max).ceil();

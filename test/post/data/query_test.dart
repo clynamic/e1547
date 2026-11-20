@@ -62,4 +62,24 @@ void main() {
     expect(post?.preview, 'kept');
     expect(env.fake.requests, isEmpty);
   });
+
+  test('requests followed tags with a pool once', () async {
+    final List<String> tags = ['tag_1', 'pool:1'];
+    env.fake.requests.clear();
+
+    await env.client.posts.useByTags(tags: tags).fetch();
+    await env.client.posts.useByTags(tags: tags).fetch();
+
+    expect(env.fake.requests.map((e) => e.path), ['/posts.json']);
+  });
+
+  test('requests followed tags without their metatags', () async {
+    env.fake.requests.clear();
+
+    await env.client.posts
+        .useByTags(tags: ['tag_1', 'pool:1', 'two words'])
+        .fetch();
+
+    expect(env.fake.requests.single.query['tags'], '~tag_1');
+  });
 }
