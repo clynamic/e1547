@@ -34,7 +34,8 @@ class PullToRefresh extends StatelessWidget {
           effect: () {
             bool handler(KeyEvent event) {
               if (event is KeyDownEvent &&
-                  event.logicalKey == LogicalKeyboardKey.f5) {
+                  event.logicalKey == LogicalKeyboardKey.f5 &&
+                  (ModalRoute.isCurrentOf(context) ?? true)) {
                 refreshController.requestRefresh(
                   duration: const Duration(milliseconds: 100),
                 );
