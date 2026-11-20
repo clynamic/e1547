@@ -30,7 +30,7 @@ void main() {
   });
 
   test('reads a wiki page by title', () async {
-    final recorded = loadFixtureList('wiki_pages.json').first;
+    final recorded = loadFixtureList('wiki_pages.json').last;
 
     final wiki = await client.getByTitle(title: recorded['title']! as String);
 

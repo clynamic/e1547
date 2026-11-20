@@ -34,7 +34,7 @@ void main() {
   });
 
   test('reads a topic by id', () async {
-    final recorded = loadFixtureList('topics.json').first;
+    final recorded = loadFixtureList('topics.json').last;
 
     final topic = await client.get(id: recorded['id']! as int);
 

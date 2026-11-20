@@ -33,7 +33,7 @@ void main() {
   });
 
   test('reads a pool by id', () async {
-    final recorded = loadFixtureList('pools.json').first;
+    final recorded = loadFixtureList('pools.json').last;
 
     final pool = await client.get(id: recorded['id']! as int);
 
