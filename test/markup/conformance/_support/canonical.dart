@@ -5,13 +5,6 @@
 // encoding here means: recursive alpha-sort of object keys, lists preserved
 // positionally, and a compact one-line representation so byte-for-byte
 // string equality is a safe equivalence check.
-//
-// Parse-failure note: when dmark cannot parse a fragment its oracle pipeline
-// may emit an HTML fallback rather than a tree of AST nodes. Those cases
-// are stripped from the strict corpus rather than translated, and land in a
-// separate "graceful failure" suite that only asserts this parser did not
-// crash and produced a renderable AST. So `canonicalize` here does NOT need
-// a fallback rewriter.
 
 import 'dart:convert';
 
@@ -33,8 +26,3 @@ Object? canonicalTree(Object? node) {
 
 /// Canonical compact JSON string. Use for direct equality assertions.
 String canonicalize(Object? node) => json.encode(canonicalTree(node));
-
-/// Canonical pretty-printed JSON. Use when writing frozen expected fixtures
-/// or printing a failing diff so a human can read it.
-String canonicalizePretty(Object? node) =>
-    const JsonEncoder.withIndent('  ').convert(canonicalTree(node));
