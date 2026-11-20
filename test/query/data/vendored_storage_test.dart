@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   late AppDatabase sqlite;
   late CachedQuery cache;
+  int fetches = 0;
 
   setUp(() {
     sqlite = AppDatabase(NativeDatabase.memory());
@@ -22,13 +23,21 @@ void main() {
     await sqlite.close();
   });
 
-  Query<Map<String, dynamic>> build({required bool vendored, int fetches = 0}) {
+  Query<Map<String, dynamic>> build({
+    required bool vendored,
+    bool offline = false,
+  }) {
     return Query<Map<String, dynamic>>(
       cache: cache,
       key: const ['ident', 1, 'posts', 5],
-      queryFn: () async => {'id': 5, 'source': 'network'},
+      queryFn: () async {
+        fetches++;
+        if (offline) throw StateError('network is unavailable');
+        return {'id': 5, 'source': 'network'};
+      },
       config: QueryConfig(
         shouldFetch: QueryBridge.vendorFetch<Map<String, dynamic>>(vendored),
+        staleDuration: Duration.zero,
         storeQuery: true,
         storageDuration: const Duration(days: 1),
         storageDeserializer: (json) => (json as Map).cast<String, dynamic>(),
@@ -47,12 +56,12 @@ void main() {
         ),
       );
 
-    final restored = build(vendored: false);
+    final restored = build(vendored: false, offline: true);
     await restored.fetch();
-    expect(restored.state.data, isNotNull);
+    expect(restored.state.data, {'id': 5, 'source': 'network'});
   });
 
-  test('a vendored query restores from storage', () async {
+  test('a vendored query restores from storage without fetching', () async {
     await build(vendored: false).fetch();
     await cache.dispose();
 
@@ -63,13 +72,11 @@ void main() {
         ),
       );
 
-    final restored = build(vendored: true);
+    fetches = 0;
+    final restored = build(vendored: true, offline: true);
     await restored.fetch();
-    expect(
-      restored.state.data,
-      isNotNull,
-      reason: 'a vendored query must still read local storage',
-    );
+    expect(restored.state.data, {'id': 5, 'source': 'network'});
+    expect(fetches, 0);
   });
 
   test('an infinite query restores its pages from storage', () async {
@@ -132,10 +139,6 @@ void main() {
 
     final storage = cache.storage!;
     final stored = await storage.get('["ident",1,"posts",5]');
-    expect(
-      stored,
-      isNotNull,
-      reason: 'vendored items must reach storage to survive a restart',
-    );
+    expect(stored?.data, {'id': 5, 'source': 'vendored'});
   });
 }

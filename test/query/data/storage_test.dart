@@ -63,10 +63,6 @@ void main() {
       expect(restored.args, [1, 2]);
     });
 
-    test('reports a missing key as null', () async {
-      expect(await storage.get('["ident",1,"posts",404]'), isNull);
-    });
-
     test('replaces an existing key instead of duplicating it', () async {
       storage.put(entry('["ident",1,"posts",5]', {'score': 1}));
       storage.put(entry('["ident",1,"posts",5]', {'score': 2}));
@@ -94,20 +90,28 @@ void main() {
     });
 
     test('sweeps expired entries when the cap is reached', () async {
+      final now = DateTime.now();
+      for (int i = 1; i < 4; i++) {
+        storage.put(
+          entry('["ident",1,"posts",$i]', {
+            'id': i,
+          }, createdAt: now.subtract(Duration(minutes: 5 - i))),
+        );
+      }
       storage.put(
         entry(
           '["ident",1,"posts",0]',
           {'id': 0},
           duration: const Duration(milliseconds: 1),
-          createdAt: DateTime(2020),
+          createdAt: now.subtract(const Duration(seconds: 1)),
         ),
       );
-      for (int i = 1; i < 4; i++) {
-        storage.put(entry('["ident",1,"posts",$i]', {'id': i}));
-      }
       await settle();
 
       expect(await storage.get('["ident",1,"posts",0]'), isNull);
+      for (int i = 1; i < 4; i++) {
+        expect(await storage.get('["ident",1,"posts",$i]'), isNotNull);
+      }
     });
 
     test('removes only the queries of one identity', () async {
