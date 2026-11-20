@@ -51,9 +51,7 @@ void main() {
     });
   }
 
-  displayTest('a comment vote waits for the last one to finish', (
-    tester,
-  ) async {
+  displayTest('drops a comment vote while another is pending', (tester) async {
     await tester.pumpWidget(
       env.app(Scaffold(body: CommentVotes(comment: comment))),
     );
@@ -63,8 +61,10 @@ void main() {
     await env.settle(tester);
 
     expect(
-      env.fake.requests.where((e) => e.path.endsWith('/votes.json')),
-      hasLength(1),
+      env.fake.requests
+          .where((e) => e.path.endsWith('/votes.json'))
+          .map((e) => e.query['score']),
+      ['1'],
     );
   });
 }
