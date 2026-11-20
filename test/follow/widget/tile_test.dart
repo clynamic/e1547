@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:drift/native.dart';
 import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
@@ -95,8 +96,12 @@ void main() {
     displayTest('shows the thumbnail when it has one', (tester) async {
       await show(tester, sampleFollow(latest: 10, thumbnail: '/preview/10'));
 
-      expect(find.byIcon(Icons.image_not_supported_outlined), findsNothing);
-      expect(find.byType(Hero), findsOneWidget);
+      expect(
+        tester
+            .widget<CachedNetworkImage>(find.byType(CachedNetworkImage))
+            .imageUrl,
+        '/preview/10',
+      );
     });
   });
 }

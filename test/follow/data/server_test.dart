@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:drift/native.dart';
 import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
@@ -93,10 +94,25 @@ void main() {
   });
 
   test('a cancelled sync ends and lets the next one run', () async {
+    await client.follows.create(tags: 'tag_1', type: FollowType.update);
+    final follow = (await client.follows.getByTags(tags: 'tag_1'))!;
+    addTearDown(() => client.follows.delete(follow.id));
+    final Completer<void> server = Completer();
+    addTearDown(() => server.isCompleted ? null : server.complete());
+    client.dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          await server.future;
+          handler.next(options);
+        },
+      ),
+    );
+
     final first = client.followServer.sync(force: true);
     final cancelled = client.followServer.currentSync!..cancel();
     await first.timeout(const Duration(seconds: 2));
 
+    server.complete();
     final next = client.followServer.sync(force: true);
     expect(client.followServer.currentSync, isNot(same(cancelled)));
     await next.timeout(const Duration(seconds: 2));
