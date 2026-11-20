@@ -30,17 +30,23 @@ void main() {
     expect(tag.category, recorded['category']);
   });
 
-  test('resolves an alias to its consequent', () async {
-    final recorded = loadFixtureList(
-      'tag_aliases.json',
-    ).firstWhere((e) => e['status'] != 'deleted');
+  test('skips a deleted alias for its consequent', () async {
+    final recorded = loadFixtureList('tag_aliases.json').first;
+    fake.state.tagAliases.insert(0, {
+      ...recorded,
+      'consequent_name': 'tag_gone',
+      'status': 'deleted',
+    });
+    final String antecedent = recorded['antecedent_name']! as String;
 
     final alias = await client.aliases(
-      query: {
-        'search[antecedent_name]': recorded['antecedent_name']! as String,
-      },
+      query: {'search[antecedent_name]': antecedent},
     );
 
     expect(alias, recorded['consequent_name']);
+    expect(
+      fake.requests.last.query,
+      containsPair('search[antecedent_name]', antecedent),
+    );
   });
 }
