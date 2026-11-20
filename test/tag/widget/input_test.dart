@@ -45,4 +45,10 @@ void main() {
 
     expect(controller.text, 'tag_1 -order:score_asc ');
   });
+
+  test('finds the term at the cursor when an earlier term is the same', () {
+    const TagInput input = TagInput(controller: null);
+
+    expect(input.findTag(['ca', 'dog', 'ca'], 9), 2);
+  });
 }

@@ -42,10 +42,10 @@ class TagInput extends StatelessWidget {
 
   int findTag(List<String> tags, int offset) {
     List<String> before = [];
-    for (final tag in tags) {
+    for (final (index, tag) in tags.indexed) {
       before.add(tag);
       if (before.join(' ').length >= offset) {
-        return tags.indexOf(tag);
+        return index;
       }
     }
     return tags.length - 1;
