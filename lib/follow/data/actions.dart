@@ -96,6 +96,3 @@ extension Updating on Follow {
     return updated.withTimestamp();
   }
 }
-
-Duration getFollowRefreshRate(int items) =>
-    Duration(minutes: ((items * 0.04).clamp(0.5, 4) * 60).round());

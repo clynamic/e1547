@@ -76,19 +76,6 @@ AppBarLeadingConfiguration getLeadingConfiguration({
   );
 }
 
-IconData getPlatformBackIcon(BuildContext context) {
-  switch (Theme.of(context).platform) {
-    case TargetPlatform.android:
-    case TargetPlatform.fuchsia:
-    case TargetPlatform.linux:
-    case TargetPlatform.windows:
-      return Icons.arrow_back;
-    case TargetPlatform.iOS:
-    case TargetPlatform.macOS:
-      return Icons.arrow_back_ios;
-  }
-}
-
 class DefaultAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// A preconfigured appbar.
   ///

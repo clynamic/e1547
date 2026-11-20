@@ -1,5 +1,4 @@
 export 'actions.dart';
-export 'bridge.dart';
 export 'client.dart';
 export 'credentials.dart';
 export 'dio.dart';
