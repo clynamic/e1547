@@ -16,7 +16,7 @@ void main() {
 
   tearDown(() => env.dispose());
 
-  displayTest('the first ten thumbs show their posts, the rest stay links', (
+  displayTest('the first ten thumbs become thumbnails, the rest stay links', (
     tester,
   ) async {
     await tester.runAsync(
