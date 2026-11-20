@@ -153,22 +153,29 @@ class _RawPostImageWidgetState extends State<RawPostImageWidget> {
     onError: (error, stackTrace) {},
   );
 
-  String get _url =>
+  String? get _url =>
       switch (widget.size) {
         PostImageSize.preview => widget.post.preview,
         PostImageSize.sample => widget.post.sample,
-        PostImageSize.file => widget.post.file!,
+        PostImageSize.file => widget.post.file,
       } ??
-      widget.post.file!;
+      widget.post.file;
 
   bool get _wide => widget.post.width > widget.post.height;
 
   void _hold() {
+    final String? url = _url;
+    if (url == null) {
+      _stream?.removeListener(_listener);
+      _stream = null;
+      _held = null;
+      return;
+    }
     final ImageProvider image = ResizeImage.resizeIfNeeded(
       _wide ? null : widget.cacheSize,
       _wide ? widget.cacheSize : null,
       CachedNetworkImageProvider(
-        _url,
+        url,
         cacheManager: context.read<BaseCacheManager>(),
       ),
     );
@@ -200,7 +207,8 @@ class _RawPostImageWidgetState extends State<RawPostImageWidget> {
   @override
   Widget build(BuildContext context) {
     final ImageLoadController? load = widget.load;
-    final String url = _url;
+    final String? url = _url;
+    if (url == null) return const SizedBox.shrink();
     final Duration fades = widget.stacked
         ? Duration.zero
         : const Duration(milliseconds: 500);

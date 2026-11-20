@@ -12,20 +12,23 @@ import '../../_support/images.dart';
 import '../../_support/posts.dart';
 
 void main() {
+  Future<Uint8List> pngOf(WidgetTester tester) async =>
+      (await tester.runAsync(() async {
+        final ui.PictureRecorder recorder = ui.PictureRecorder();
+        Canvas(recorder).drawRect(
+          const Rect.fromLTWH(0, 0, 4, 4),
+          Paint()..color = const Color(0xFFFF0000),
+        );
+        final ui.Image image = await recorder.endRecording().toImage(4, 4);
+        final ByteData? data = await image.toByteData(
+          format: ui.ImageByteFormat.png,
+        );
+        return data!.buffer.asUint8List();
+      }))!;
+
   testWidgets('a post image under a page is drawn at once by a hero flight '
       'back after the app was hidden through memory pressure', (tester) async {
-    final Uint8List png = (await tester.runAsync(() async {
-      final ui.PictureRecorder recorder = ui.PictureRecorder();
-      Canvas(recorder).drawRect(
-        const Rect.fromLTWH(0, 0, 4, 4),
-        Paint()..color = const Color(0xFFFF0000),
-      );
-      final ui.Image image = await recorder.endRecording().toImage(4, 4);
-      final ByteData? data = await image.toByteData(
-        format: ui.ImageByteFormat.png,
-      );
-      return data!.buffer.asUint8List();
-    }))!;
+    final Uint8List png = await pngOf(tester);
     const String url = 'http://example.invalid/post.png';
     final ServedImageCacheManager images = ServedImageCacheManager(png);
     final ValueNotifier<bool> hidden = ValueNotifier(false);
@@ -103,5 +106,47 @@ void main() {
     );
     expect(flight.image, isNotNull);
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('shows no image for a post without files', (tester) async {
+    await tester.pumpWidget(
+      Provider<BaseCacheManager>.value(
+        value: ServedImageCacheManager(Uint8List(0)),
+        child: MaterialApp(
+          home: PostImageWidget(post: samplePost(), size: PostImageSize.sample),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(CachedNetworkImage), findsNothing);
+  });
+
+  testWidgets('releases the image of a post whose files are removed', (
+    tester,
+  ) async {
+    const String url = 'http://example.invalid/post.png';
+    final ServedImageCacheManager images = ServedImageCacheManager(
+      await pngOf(tester),
+    );
+    Future<void> show(Post post) async {
+      await tester.pumpWidget(
+        Provider<BaseCacheManager>.value(
+          value: images,
+          child: MaterialApp(
+            home: RawPostImageWidget(post: post, size: PostImageSize.file),
+          ),
+        ),
+      );
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.pumpAndSettle();
+    }
+
+    await show(samplePost(file: url));
+    expect(imageCache.liveImageCount, greaterThan(0));
+
+    await show(samplePost());
+
+    expect(imageCache.liveImageCount, 0);
   });
 }
