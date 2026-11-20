@@ -168,6 +168,9 @@ class TasksController extends ChangeNotifier {
   Future<List<Task>> enqueueAll(Iterable<TaskRequest> requests) async {
     final List<TaskRequest> list = requests.toList();
     if (list.isEmpty) return const [];
+    if (!await _prepareDownloads(list.map((e) => e.action))) {
+      return const [];
+    }
     _hideTimer?.cancel();
     _hideTimer = null;
     final List<Task> created = await repository.addAll(list, identity);
@@ -176,6 +179,13 @@ class TasksController extends ChangeNotifier {
     _kick();
     return created;
   }
+
+  Future<bool> _prepareDownloads(Iterable<TaskAction> actions) async =>
+      !actions.contains(TaskAction.download) ||
+      await FileDownloader.prepareDirectory(
+        directory: settings.downloadPath.value,
+        onDirectoryChanged: (p) => settings.downloadPath.value = p,
+      );
 
   void _kick() {
     _drainDownloads();
@@ -336,6 +346,7 @@ class TasksController extends ChangeNotifier {
 
   Future<void> retry(int taskId) async {
     final Task task = await repository.get(taskId);
+    if (!await _prepareDownloads([task.action])) return;
     await repository.remove(taskId);
     await enqueue(
       TaskRequest(

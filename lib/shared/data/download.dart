@@ -32,6 +32,31 @@ abstract final class FileDownloader {
     }
   }
 
+  static Future<bool> prepareDirectory({
+    required String? directory,
+    required void Function(String dir) onDirectoryChanged,
+  }) async {
+    if (Platform.isIOS) return true;
+    final String? resolved = await _resolveDirectory(directory);
+    if (resolved == null) return false;
+    onDirectoryChanged(resolved);
+    return true;
+  }
+
+  static Future<String?> _resolveDirectory(String? directory) async {
+    if (Platform.isAndroid) {
+      if (directory?.contains('/storage/emulated/') ?? false) {
+        directory = null;
+      }
+      if (directory != null &&
+          await SafUtil().hasPersistedPermission(directory, checkWrite: true)) {
+        return directory;
+      }
+      return pickDirectory(initial: directory);
+    }
+    return directory ?? await pickDirectory();
+  }
+
   static String displayPath(String directory) {
     final Uri? uri = Uri.tryParse(directory);
     if (uri == null || uri.scheme != 'content') return directory;
@@ -77,23 +102,10 @@ abstract final class FileDownloader {
           'Generic file downloading is not supported on iOS',
         );
       } else if (Platform.isAndroid) {
-        if (directory?.contains('/storage/emulated/') ?? false) {
-          directory = null;
-        }
-
-        String target;
-        if (directory == null ||
-            !await SafUtil().hasPersistedPermission(
-              directory,
-              checkWrite: true,
-            )) {
-          target = await _throwOnNull(
-            pickDirectory(initial: directory),
-            'No directory was selected.',
-          );
-        } else {
-          target = directory;
-        }
+        String target = await _throwOnNull(
+          _resolveDirectory(directory),
+          'No directory was selected.',
+        );
 
         if (folderName != null && _isPictures(target)) {
           try {
@@ -119,9 +131,10 @@ abstract final class FileDownloader {
         // This should probably only happen in [downloadImage].
         await MediaScanner.loadMedia(path: target);
       } else {
-        String directoryPath =
-            directory ??
-            await _throwOnNull(pickDirectory(), 'No directory was selected.');
+        String directoryPath = await _throwOnNull(
+          _resolveDirectory(directory),
+          'No directory was selected.',
+        );
 
         onDirectoryChanged?.call(directoryPath);
 

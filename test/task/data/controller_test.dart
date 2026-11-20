@@ -4,6 +4,7 @@ import 'dart:io' as io;
 import 'package:e1547/post/post.dart';
 import 'package:e1547/task/task.dart';
 import 'package:file/memory.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -43,6 +44,24 @@ class HeldDownloads implements BaseCacheManager {
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnimplementedError('${invocation.memberName} only holds downloads');
+}
+
+class CountingFolderPicker extends FilePicker {
+  CountingFolderPicker(this.folder);
+
+  final String? folder;
+  int asked = 0;
+
+  @override
+  Future<String?> getDirectoryPath({
+    String? dialogTitle,
+    bool lockParentWindow = false,
+    String? initialDirectory,
+  }) async {
+    asked++;
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    return folder;
+  }
 }
 
 void main() {
@@ -172,6 +191,36 @@ void main() {
       await until(() => !tasks.isRunning(task.id));
 
       expect(saved(1), isFalse);
+    });
+
+    test('asks for a download folder once for a whole batch', () async {
+      final CountingFolderPicker picker = CountingFolderPicker(folder.path);
+      FilePicker.platform = picker;
+      env.settings.downloadPath.value = null;
+
+      await tasks.enqueueAll([download(1), download(2), download(3)]);
+      await until(() => downloads.transfers.length == 3);
+      downloads
+        ..finish(urlOf(1))
+        ..finish(urlOf(2))
+        ..finish(urlOf(3));
+      await until(() => [1, 2, 3].every(saved));
+
+      expect([1, 2, 3].every(saved), isTrue);
+      expect(picker.asked, 1);
+    });
+
+    test('queues no downloads when no folder is picked', () async {
+      FilePicker.platform = CountingFolderPicker(null);
+      env.settings.downloadPath.value = null;
+
+      final List<Task> queued = await tasks.enqueueAll([
+        download(1),
+        download(2),
+      ]);
+
+      expect(queued, isEmpty);
+      expect(await TaskRepository(database: env.sqlite).length(), 0);
     });
 
     test(
