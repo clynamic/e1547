@@ -279,6 +279,13 @@ class _VideoGestureState extends State<VideoGesture>
   Timer? comboReset;
 
   @override
+  void dispose() {
+    comboReset?.cancel();
+    animationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
