@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:e1547/app/app.dart';
 import 'package:e1547/post/post.dart';
 import 'package:e1547/settings/settings.dart';
 import 'package:e1547/shared/shared.dart';
+import 'package:e1547/tag/tag.dart';
 import 'package:flutter/material.dart';
 
 extension PostTagging on PostSummary {
@@ -209,6 +212,17 @@ extension PostVideoPlaying on Post {
       return service.getVideo(closestUrl);
     }
     return null;
+  }
+}
+
+extension PostDownloading on Post {
+  String get downloadFileName {
+    final String file = '$id.$ext';
+    final List<String> artists = filterArtists(tags['artist'] ?? const []);
+    if (artists.isEmpty) return file;
+    final String named = '${artists.join(', ')} - $file';
+    if (utf8.encode(named).length > 255) return file;
+    return named;
   }
 }
 

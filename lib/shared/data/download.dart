@@ -96,6 +96,10 @@ abstract final class FileDownloader {
     String? fileName,
     void Function(String dir)? onDirectoryChanged,
   }) async {
+    final String name = (fileName ?? basename(file.path)).replaceAll(
+      RegExp(r'[\\/:*?"<>|\x00-\x1F]'),
+      '_',
+    );
     try {
       if (Platform.isIOS) {
         throw UnsupportedError(
@@ -118,13 +122,11 @@ abstract final class FileDownloader {
 
         onDirectoryChanged?.call(target);
         final safStream = SafStream();
-        final mimeType =
-            lookupMimeType(fileName ?? basename(file.path)) ??
-            'application/octet-stream';
+        final mimeType = lookupMimeType(name) ?? 'application/octet-stream';
         await safStream.pasteLocalFile(
           file.path,
           target,
-          fileName ?? basename(file.path),
+          name,
           mimeType,
           overwrite: true,
         );
@@ -147,9 +149,7 @@ abstract final class FileDownloader {
           await targetDir.create(recursive: true);
         }
 
-        final targetFile = File(
-          join(directoryPath, fileName ?? basename(file.path)),
-        );
+        final targetFile = File(join(directoryPath, name));
         await targetFile.writeAsBytes(await file.readAsBytes());
       }
     } on Exception catch (e) {

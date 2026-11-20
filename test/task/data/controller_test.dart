@@ -235,6 +235,27 @@ void main() {
       expect(picker.asked, 1);
     });
 
+    test('replaces characters file names do not allow in downloads', () async {
+      await tasks.enqueueAll([
+        TaskRequest(
+          action: TaskAction.download,
+          postId: 1,
+          metadata: TaskMetadata(
+            fileUrl: urlOf(1),
+            fileName: '340m/sec, back\\slash: "a*b?" <c>|d\x01 - 1.png',
+          ),
+        ),
+      ]);
+      await until(() => downloads.transfers.length == 1);
+      downloads.finish(urlOf(1));
+      final io.File file = io.File(
+        join(folder.path, '340m_sec, back_slash_ _a_b__ _c__d_ - 1.png'),
+      );
+      await until(file.existsSync);
+
+      expect(file.existsSync(), isTrue);
+    });
+
     test('queues no downloads when no folder is picked', () async {
       FilePicker.platform = CountingFolderPicker(null);
       env.settings.downloadPath.value = null;
