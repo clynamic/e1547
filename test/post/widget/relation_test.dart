@@ -226,13 +226,16 @@ void main() {
       expect(find.text('3 posts'), findsOneWidget);
     });
 
-    displayTest('falls back to the id while a pool resolves', (tester) async {
+    displayTest('shows a pool that cannot be loaded by its id with a warning', (
+      tester,
+    ) async {
       await show(
         tester,
         PoolDisplay(post: samplePost(id: 10, pools: const [30])),
       );
 
       expect(find.text('#30'), findsOneWidget);
+      expect(find.byIcon(Icons.warning_amber_outlined), findsOneWidget);
     });
 
     displayTest('shows nothing when a post has no pools', (tester) async {
