@@ -9,6 +9,7 @@ void main() {
           home: LoadingPage(
             isLoading: !loaded,
             isEmpty: !loaded,
+            onRetry: null,
             child: (context) => const Scaffold(body: Text('content')),
           ),
         ),

@@ -14,8 +14,9 @@ class ReplyLoadingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final client = context.watch<Client>();
+    final query = client.replies.useGet(id: id);
     return QueryBuilder(
-      query: client.replies.useGet(id: id),
+      query: query,
       builder: (context, state) => LoadingPage(
         isLoading: state.isLoading || state.isInitial,
         isError: state.isError,
@@ -32,6 +33,7 @@ class ReplyLoadingPage extends StatelessWidget {
           orderByOldest: orderByOldest,
         ),
         onError: const Text('Failed to load reply'),
+        onRetry: query.invalidate,
         onEmpty: const Text('Reply not found'),
         child: (context) =>
             TopicLoadingPage(state.data!.topicId, orderByOldest: orderByOldest),

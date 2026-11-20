@@ -64,6 +64,7 @@ class LoadingPage extends StatelessWidget {
     this.skeleton,
     this.onEmpty,
     this.onError,
+    required this.onRetry,
   });
 
   final WidgetBuilder child;
@@ -77,6 +78,8 @@ class LoadingPage extends StatelessWidget {
 
   /// Title shown inside the failed state's [IconMessage].
   final Widget? onError;
+
+  final VoidCallback? onRetry;
   final bool isLoading;
   final bool isEmpty;
   final bool isError;
@@ -109,6 +112,7 @@ class LoadingPage extends StatelessWidget {
           return IconMessage(
             icon: const Icon(Icons.warning_amber_outlined),
             title: onError ?? const Text('Failed to load'),
+            action: PagedChildBuilderRetryButton(onRetry),
           );
         case LoadingPageState.empty:
           return IconMessage(
@@ -176,6 +180,7 @@ class AsyncLoadingPage<T> extends StatelessWidget {
       isBuilt: isBuilt,
       onEmpty: onEmpty,
       onError: onError,
+      onRetry: null,
     );
   }
 }

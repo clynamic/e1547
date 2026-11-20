@@ -13,8 +13,9 @@ class PoolLoadingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final client = context.watch<Client>();
+    final query = client.pools.useGet(id: id);
     return QueryBuilder(
-      query: client.pools.useGet(id: id),
+      query: query,
       builder: (context, state) => LoadingPage(
         isLoading: state.isLoading || state.isInitial,
         isError: state.isError,
@@ -29,6 +30,7 @@ class PoolLoadingPage extends StatelessWidget {
         skeleton: (context) =>
             PoolPage(pool: const PoolGhost(), orderByOldest: orderByOldest),
         onError: const Text('Failed to load pool'),
+        onRetry: query.invalidate,
         onEmpty: const Text('Pool not found'),
         child: (context) =>
             PoolPage(pool: state.data!, orderByOldest: orderByOldest),

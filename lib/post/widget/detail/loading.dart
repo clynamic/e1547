@@ -12,8 +12,9 @@ class PostLoadingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final client = context.watch<Client>();
+    final query = client.posts.useGet(id: id);
     final Widget page = QueryBuilder(
-      query: client.posts.useGet(id: id),
+      query: query,
       builder: (context, state) => LoadingPage(
         isLoading: state.isLoading || state.isInitial,
         isError: state.isError,
@@ -23,6 +24,7 @@ class PostLoadingPage extends StatelessWidget {
           summary: client.posts.partialPostCache.get(id),
         ),
         onError: const Text('Failed to load post'),
+        onRetry: query.invalidate,
         onEmpty: const Text('Post not found'),
         child: (context) => PostDetail(post: state.data!),
       ),

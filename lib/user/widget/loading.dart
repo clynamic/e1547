@@ -16,10 +16,11 @@ class UserLoadingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final users = context.watch<Client>().users;
     final id = this.id;
+    final query = id != null
+        ? users.useGet(id: id)
+        : users.useGetByName(name: name!);
     return QueryBuilder(
-      query: id != null
-          ? users.useGet(id: id)
-          : users.useGetByName(name: name!),
+      query: query,
       builder: (context, state) => LoadingPage(
         isLoading: state.isLoading || state.isInitial,
         isError: state.isError,
@@ -36,6 +37,7 @@ class UserLoadingPage extends StatelessWidget {
           summary: id == null ? null : users.partialUserCache.get(id),
         ),
         onError: const Text('Failed to load user'),
+        onRetry: query.invalidate,
         onEmpty: const Text('User not found'),
         child: (context) => UserPage(user: state.data!),
       ),
