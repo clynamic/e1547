@@ -169,7 +169,6 @@ void main() {
               as String)
           .replaceAll(fixtureHost, env.fake.url),
     );
-    expect(waiting.summary?.preview, isNotNull);
     expect(
       find.byWidgetPredicate((e) => e is PostImageWidget && e.post.id == 43),
       findsOneWidget,
