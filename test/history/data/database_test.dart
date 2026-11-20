@@ -50,4 +50,22 @@ void main() {
       expect(remaining.map((e) => e.link), [entries.last.link]);
     });
   });
+
+  group('HistoryRepository.isDuplicate', () {
+    test('counts a recent visit only for its own identity', () async {
+      final int other = (await IdentityRepository(
+        sqlite,
+      ).add(const IdentityRequest(host: 'e926.net', username: 'tester'))).id;
+      final HistoryRequest request = HistoryRequest(
+        visitedAt: DateTime.now(),
+        link: '/posts/1',
+        category: HistoryCategory.items,
+        type: HistoryType.posts,
+      );
+      await repository.add(request, identity);
+
+      expect(await repository.isDuplicate(request, identity), isTrue);
+      expect(await repository.isDuplicate(request, other), isFalse);
+    });
+  });
 }

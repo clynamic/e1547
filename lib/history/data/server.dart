@@ -58,7 +58,7 @@ class HistoryServer with Disposable {
 
     await repository.transaction(() async {
       // TODO: replace this with a Provider above an Area that caches history in memory in the UI
-      if (await repository.isDuplicate(request)) return;
+      if (await repository.isDuplicate(request, identity.id)) return;
       await repository.add(request, identity.id);
     });
 

@@ -181,8 +181,12 @@ class HistoryRepository extends DatabaseAccessor<GeneratedDatabase>
         .future;
   }
 
-  Future<bool> isDuplicate(HistoryRequest item) =>
-      (_querySelect(limit: 1, maxAge: const Duration(minutes: 3))
+  Future<bool> isDuplicate(HistoryRequest item, int identity) =>
+      (_querySelect(
+              identity: identity,
+              limit: 1,
+              maxAge: const Duration(minutes: 3),
+            )
             ..where((tbl) => tbl.link.equals(item.link))
             ..where((tbl) => tbl.title.equalsNullable(item.title))
             ..where((tbl) => tbl.category.equals(item.category.name))
