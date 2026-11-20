@@ -62,22 +62,28 @@ void main() {
   });
 
   test(
-    'a file saved into a Pictures folder lands in a folder of its own',
+    'only a file saved into a Pictures folder is put in a folder of its own',
     () async {
       final Directory root = Directory.systemTemp.createTempSync('downloads');
       addTearDown(() => root.deleteSync(recursive: true));
       final File source = File(join(root.path, 'source'))
         ..writeAsBytesSync([1]);
 
-      await FileDownloader.downloadFile(
-        file: source,
-        directory: join(root.path, 'Pictures'),
-        folderName: 'e1547',
-        fileName: 'post.png',
-      );
+      for (final String folder in ['Pictures', 'Downloads']) {
+        await FileDownloader.downloadFile(
+          file: source,
+          directory: join(root.path, folder),
+          folderName: 'e1547',
+          fileName: 'post.png',
+        );
+      }
 
       expect(
         File(join(root.path, 'Pictures', 'e1547', 'post.png')).existsSync(),
+        isTrue,
+      );
+      expect(
+        File(join(root.path, 'Downloads', 'post.png')).existsSync(),
         isTrue,
       );
     },
