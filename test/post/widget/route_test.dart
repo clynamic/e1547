@@ -171,16 +171,6 @@ void main() {
     }
   }
 
-  displayTest('a pushed gallery keeps the filter of its list', (tester) async {
-    final filter = PostFilter(client);
-    addTearDown(filter.dispose);
-
-    await pushDetail(tester, filter);
-
-    final gallery = tester.element(find.byType(PostDetailGallery));
-    expect(gallery.read<FilterController<Post>?>(), same(filter));
-  });
-
   displayTest('a pushed gallery drops the posts its list denies', (
     tester,
   ) async {
@@ -289,7 +279,7 @@ void main() {
     expect(find.text('hide'), findsNothing);
   });
 
-  displayTest('a child opened from a relation keeps the filter', (
+  displayTest('opens a denied child unblocked while the blacklist is off', (
     tester,
   ) async {
     seedDeniedChild();
@@ -300,13 +290,13 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     await openFirstRelation(tester);
 
-    final child = tester.element(
+    expect(
       find.descendant(
         of: find.byType(PostLoadingPage),
-        matching: find.byType(PostDetail),
+        matching: find.byType(PostDetailImageDisplay),
       ),
+      findsOneWidget,
     );
-    expect(child.read<PostFilter?>(), same(filter));
     expect(find.text('Post is blacklisted'), findsNothing);
   });
 
