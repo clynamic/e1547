@@ -70,15 +70,19 @@ void main() {
       source.dispose();
     });
 
-    test('identifies entries by ascending byte offset', () async {
-      await write(20);
+    test('identifies each entry by its byte offset', () async {
+      await write(400);
       final source = LogFileSource(file, pageBytes: 2048);
       await source.load();
 
-      final ids = [for (final entry in source.entries) entry.id!];
-      expect(ids.first, 0);
-      expect(ids, orderedEquals(List.of(ids)..sort()));
-      expect(ids.toSet().length, ids.length);
+      final List<int> offsets = [0];
+      for (int i = 0; i < 400; i++) {
+        offsets.add(offsets.last + utf8.encode(lineFor(i)).length + 1);
+      }
+      expect(source.hasEarlier, isTrue);
+      expect(source.entries.map((entry) => entry.id), [
+        for (final entry in source.entries) offsets[nOf(entry)],
+      ]);
       source.dispose();
     });
 
