@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
 import 'package:flutter/material.dart';
@@ -44,7 +46,7 @@ class EditTagPrompt extends StatelessWidget {
   });
 
   final String? tag;
-  final ValueSetter<String> onSubmit;
+  final FutureOr<void> Function(String value) onSubmit;
   final ActionController? actionController;
   final String? title;
 

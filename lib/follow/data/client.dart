@@ -5,6 +5,12 @@ import 'package:e1547/identity/identity.dart';
 import 'package:e1547/query/query.dart';
 import 'package:e1547/shared/shared.dart';
 
+class FollowTagsTakenException implements Exception {
+  const FollowTagsTakenException(this.tags);
+
+  final String tags;
+}
+
 class FollowClient {
   FollowClient({
     required GeneratedDatabase database,
@@ -71,6 +77,12 @@ class FollowClient {
     String? title,
     FollowType? type,
   }) async {
+    if (tags?.nullWhenEmpty case final String tags) {
+      final Follow? taken = await getByTags(tags: tags);
+      if (taken != null && taken.id != id) {
+        throw FollowTagsTakenException(tags);
+      }
+    }
     await repository.transaction(() async {
       await ((repository.update(
         repository.followsTable,

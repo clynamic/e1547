@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:e1547/shared/shared.dart';
 import 'package:e1547/tag/tag.dart';
 import 'package:flutter/material.dart';
@@ -53,7 +55,7 @@ class PromptFilterList extends StatefulWidget {
 
   final QueryMap tags;
   final ValueSetter<QueryMap>? onChanged;
-  final ValueSetter<QueryMap>? onSubmit;
+  final FutureOr<void> Function(QueryMap value)? onSubmit;
   final List<FilterConfig> filters;
   final ActionController? controller;
   final Widget? submitIcon;
@@ -70,10 +72,10 @@ class _PromptFilterListState extends State<PromptFilterList> {
     widget.onChanged?.call(tags);
   }
 
-  void onSubmit(QueryMap tags) {
+  FutureOr<void> onSubmit(QueryMap tags) {
     setState(() => this.tags = tags);
     onChanged(tags);
-    widget.onSubmit?.call(tags);
+    return widget.onSubmit?.call(tags);
   }
 
   @override
