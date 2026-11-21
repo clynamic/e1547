@@ -75,7 +75,7 @@ void main() {
       expect(stored?.eTag, '"new"');
     });
 
-    test('over capacity gives up the least recently touched', () async {
+    test('over capacity removes the least recently touched', () async {
       var when = DateTime(2021);
       for (final key in ['old', 'middle', 'new']) {
         await repository.insert(
@@ -89,7 +89,7 @@ void main() {
       expect(over.map((e) => e.key), ['old']);
     });
 
-    test('old objects are the ones nothing touched', () async {
+    test('old objects are the ones not touched recently', () async {
       await repository.insert(
         object('stale', touched: DateTime(2020)),
         setTouchedToNow: false,

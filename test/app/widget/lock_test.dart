@@ -88,7 +88,7 @@ void main() {
 
   Finder inside() => find.text('inside').hitTestable();
 
-  testWidgets('a wrong PIN says so and the right one opens the app', (
+  testWidgets('a wrong PIN shows a warning and the right one opens the app', (
     tester,
   ) async {
     settings.appPin.value = '1234';
@@ -104,21 +104,23 @@ void main() {
     expect(inside(), findsOneWidget);
   });
 
-  testWidgets('a PIN typed on a keyboard opens the app, with Backspace taking '
-      'a digit back', (tester) async {
-    settings.appPin.value = '1234';
-    await show(tester);
+  testWidgets(
+    'a PIN typed on a keyboard opens the app, with Backspace removing a digit',
+    (tester) async {
+      settings.appPin.value = '1234';
+      await show(tester);
 
-    await tester.sendKeyEvent(LogicalKeyboardKey.digit1);
-    await tester.sendKeyEvent(LogicalKeyboardKey.digit9);
-    await tester.sendKeyEvent(LogicalKeyboardKey.backspace);
-    await tester.sendKeyEvent(LogicalKeyboardKey.digit2);
-    await tester.sendKeyEvent(LogicalKeyboardKey.numpad3);
-    await tester.sendKeyEvent(LogicalKeyboardKey.numpad4);
-    await tester.pumpAndSettle();
+      await tester.sendKeyEvent(LogicalKeyboardKey.digit1);
+      await tester.sendKeyEvent(LogicalKeyboardKey.digit9);
+      await tester.sendKeyEvent(LogicalKeyboardKey.backspace);
+      await tester.sendKeyEvent(LogicalKeyboardKey.digit2);
+      await tester.sendKeyEvent(LogicalKeyboardKey.numpad3);
+      await tester.sendKeyEvent(LogicalKeyboardKey.numpad4);
+      await tester.pumpAndSettle();
 
-    expect(inside(), findsOneWidget);
-  });
+      expect(inside(), findsOneWidget);
+    },
+  );
 
   testWidgets('a wide window has the title beside the keys, which keep their '
       'width', (tester) async {
@@ -148,27 +150,29 @@ void main() {
     expect(title.center.dx, closeTo(250, 1));
   });
 
-  testWidgets('a short wide screen puts the title beside the keys and keeps '
-      'every key on it', (tester) async {
-    tester.view.physicalSize = const Size(800, 360);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
-    settings.appPin.value = '1234';
-    await show(tester);
+  testWidgets(
+    'a short wide screen has the title beside the keys and every key on it',
+    (tester) async {
+      tester.view.physicalSize = const Size(800, 360);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      settings.appPin.value = '1234';
+      await show(tester);
 
-    final Rect title = tester.getRect(find.text('Enter your PIN'));
-    final Rect one = tester.getRect(find.text('1'));
-    final Rect zero = tester.getRect(find.text('0'));
-    expect(title.right, lessThan(one.left));
-    expect(one.top, greaterThanOrEqualTo(0));
-    expect(zero.bottom, lessThanOrEqualTo(360));
+      final Rect title = tester.getRect(find.text('Enter your PIN'));
+      final Rect one = tester.getRect(find.text('1'));
+      final Rect zero = tester.getRect(find.text('0'));
+      expect(title.right, lessThan(one.left));
+      expect(one.top, greaterThanOrEqualTo(0));
+      expect(zero.bottom, lessThanOrEqualTo(360));
 
-    await type(tester, '1234');
+      await type(tester, '1234');
 
-    expect(inside(), findsOneWidget);
-  });
+      expect(inside(), findsOneWidget);
+    },
+  );
 
-  testWidgets('a screen too small for either layout shrinks the pad to fit', (
+  testWidgets('the pad shrinks to fit a screen too small for either layout', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(320, 380);
@@ -188,7 +192,7 @@ void main() {
     expect(inside(), findsOneWidget);
   });
 
-  testWidgets('Escape leaves the PIN chooser with nothing chosen', (
+  testWidgets('Escape closes the PIN chooser with nothing chosen', (
     tester,
   ) async {
     String? chosen = 'unset';
@@ -214,8 +218,7 @@ void main() {
   });
 
   testWidgets(
-    'a canceled fingerprint falls back to the PIN pad, whose fingerprint key '
-    'asks again',
+    'a canceled fingerprint falls back to the PIN pad, whose fingerprint key prompts again',
     (tester) async {
       settings.appPin.value = '1234';
       settings.biometricAuth.value = true;
@@ -234,7 +237,7 @@ void main() {
     },
   );
 
-  testWidgets('a canceled fingerprint lock waits with Unlock', (tester) async {
+  testWidgets('a canceled fingerprint lock shows Unlock', (tester) async {
     settings.biometricAuth.value = true;
     auth.failure = LocalAuthExceptionCode.userCanceled;
     await show(tester);
@@ -250,7 +253,9 @@ void main() {
     expect(inside(), findsOneWidget);
   });
 
-  testWidgets('too many tries offers the phone screen lock', (tester) async {
+  testWidgets('offers the phone screen lock after too many tries', (
+    tester,
+  ) async {
     settings.biometricAuth.value = true;
     auth.failure = LocalAuthExceptionCode.temporaryLockout;
     await show(tester);
@@ -301,7 +306,7 @@ void main() {
     expect(find.text('Enter your PIN'), findsOneWidget);
   });
 
-  testWidgets('a trip away shorter than the relock time keeps it open', (
+  testWidgets('the app stays open after less than the relock time away', (
     tester,
   ) async {
     settings.appPin.value = '1234';
@@ -313,38 +318,39 @@ void main() {
     expect(inside(), findsOneWidget);
   });
 
-  testWidgets('choosing a PIN asks twice and starts over on a mismatch', (
-    tester,
-  ) async {
-    String? chosen;
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Builder(
-          builder: (context) => TextButton(
-            onPressed: () async => chosen = await choosePin(context),
-            child: const Text('go'),
+  testWidgets(
+    'choosing a PIN takes two entries and starts over on a mismatch',
+    (tester) async {
+      String? chosen;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => TextButton(
+              onPressed: () async => chosen = await choosePin(context),
+              child: const Text('go'),
+            ),
           ),
         ),
-      ),
-    );
-    await tester.tap(find.text('go'));
-    await tester.pumpAndSettle();
+      );
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
 
-    expect(find.text('Create a PIN'), findsOneWidget);
-    await type(tester, '1234');
-    expect(find.text('Confirm your PIN'), findsOneWidget);
-    await type(tester, '5678');
+      expect(find.text('Create a PIN'), findsOneWidget);
+      await type(tester, '1234');
+      expect(find.text('Confirm your PIN'), findsOneWidget);
+      await type(tester, '5678');
 
-    expect(find.text('The two did not match'), findsOneWidget);
-    expect(find.text('Create a PIN'), findsOneWidget);
+      expect(find.text('The two did not match'), findsOneWidget);
+      expect(find.text('Create a PIN'), findsOneWidget);
 
-    await type(tester, '2468');
-    await type(tester, '2468');
+      await type(tester, '2468');
+      await type(tester, '2468');
 
-    expect(chosen, '2468');
-  });
+      expect(chosen, '2468');
+    },
+  );
 
-  testWidgets('a fingerprint the phone cannot read offers the screen lock', (
+  testWidgets('offers the screen lock for an unreadable fingerprint', (
     tester,
   ) async {
     settings.biometricAuth.value = true;
@@ -360,7 +366,7 @@ void main() {
     expect(find.text('Use screen lock'), findsOneWidget);
   });
 
-  testWidgets('a long fingerprint lockout offers the screen lock', (
+  testWidgets('offers the screen lock after a long fingerprint lockout', (
     tester,
   ) async {
     settings.biometricAuth.value = true;

@@ -47,7 +47,7 @@ void main() {
     },
   );
 
-  test('keys asked for in the same turn share one load', () async {
+  test('keys requested in the same turn share one load', () async {
     final List<String?> values = await Future.wait([
       loader.fetch(1),
       loader.fetch(2),
@@ -60,7 +60,7 @@ void main() {
     expect(values, ['item 1', 'item 2', 'item 3']);
   });
 
-  test('keys asked once a load started go into the next load', () async {
+  test('keys requested once a load started go into the next load', () async {
     final Completer<void> gate = Completer();
     loader = loaderOf((keys) async {
       await gate.future;
@@ -79,7 +79,7 @@ void main() {
     ]);
   });
 
-  test('a key a load leaves out is null and not asked for again', () async {
+  test('a key missing from a load is null and not requested again', () async {
     expect(await loader.fetch(9), isNull);
     expect(await loader.fetch(9), isNull);
     await expectLater(loader.require(9), throwsA(isA<QueryMissingException>()));
@@ -89,27 +89,30 @@ void main() {
     ]);
   });
 
-  test('a failed load fails its keys and lets them be asked again', () async {
-    int calls = 0;
-    loader = loaderOf((keys) async {
-      calls++;
-      if (calls == 1) throw StateError('offline');
-      return {for (final int key in keys) key: 'item $key'};
-    });
+  test(
+    'a failed load fails its keys and lets them be requested again',
+    () async {
+      int calls = 0;
+      loader = loaderOf((keys) async {
+        calls++;
+        if (calls == 1) throw StateError('offline');
+        return {for (final int key in keys) key: 'item $key'};
+      });
 
-    await expectLater(
-      Future.wait([loader.fetch(1), loader.fetch(2)]),
-      throwsStateError,
-    );
-    expect(await loader.fetch(1), 'item 1');
+      await expectLater(
+        Future.wait([loader.fetch(1), loader.fetch(2)]),
+        throwsStateError,
+      );
+      expect(await loader.fetch(1), 'item 1');
 
-    expect(loads, [
-      [1, 2],
-      [1],
-    ]);
-  });
+      expect(loads, [
+        [1, 2],
+        [1],
+      ]);
+    },
+  );
 
-  test('a key that loaded is loaded again when asked again', () async {
+  test('a key that loaded is loaded again when requested again', () async {
     await loader.fetch(1);
     server.remove(1);
 

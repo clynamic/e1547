@@ -16,7 +16,7 @@ void main() {
 
   tearDown(() => env.dispose());
 
-  displayTest('a topic opened by number waits as its own page', (tester) async {
+  displayTest('a topic opened by number loads as its own page', (tester) async {
     final Map<String, Object?> recorded = loadFixtureList('topics.json').first;
     final int id = recorded['id']! as int;
 

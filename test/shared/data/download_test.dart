@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart';
 
 void main() {
-  test('a folder picked on internal storage reads as its path there', () {
+  test('a folder picked on internal storage shows as its path there', () {
     expect(
       FileDownloader.displayPath(
         'content://com.android.externalstorage.documents/tree/'
@@ -22,7 +22,7 @@ void main() {
     );
   });
 
-  test('internal storage itself reads by name', () {
+  test('internal storage itself shows by name', () {
     expect(
       FileDownloader.displayPath(
         'content://com.android.externalstorage.documents/tree/primary%3A',
@@ -31,7 +31,7 @@ void main() {
     );
   });
 
-  test('a folder on another volume reads with that volume in front', () {
+  test('a folder on another volume shows with that volume in front', () {
     expect(
       FileDownloader.displayPath(
         'content://com.android.externalstorage.documents/tree/'
@@ -41,7 +41,7 @@ void main() {
     );
   });
 
-  test('a folder picked in the downloads list reads as its path', () {
+  test('a folder picked in the downloads list shows as its path', () {
     expect(
       FileDownloader.displayPath(
         'content://com.android.providers.downloads.documents/tree/'
@@ -51,7 +51,7 @@ void main() {
     );
   });
 
-  test('a desktop folder reads as it was picked', () {
+  test('a desktop folder shows as it was picked', () {
     for (final String path in [
       r'C:\Users\tester\Pictures',
       '/home/tester/100% done',

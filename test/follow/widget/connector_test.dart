@@ -127,7 +127,7 @@ void main() {
     expect(updated.thumbnail, isNotNull);
   });
 
-  displayTest('visiting a follow takes its latest from posts it shows', (
+  displayTest('visiting a follow sets its latest from the posts shown', (
     tester,
   ) async {
     traits.value = traits.value.copyWith(denylist: ['tag_114']);

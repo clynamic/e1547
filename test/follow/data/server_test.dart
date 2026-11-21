@@ -66,7 +66,7 @@ void main() {
     await fake.stop();
   });
 
-  test('a sync brings follows with new posts into the unseen list', () async {
+  test('a sync adds follows with new posts to the unseen list', () async {
     await client.follows.create(tags: 'tag_1', type: FollowType.update);
     final follow = (await client.follows.getByTags(tags: 'tag_1'))!;
     addTearDown(() => client.follows.delete(follow.id));

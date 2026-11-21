@@ -37,7 +37,7 @@ void main() {
     (Icons.arrow_upward, 'upvote'),
     (Icons.arrow_downward, 'downvote'),
   ]) {
-    displayTest('a comment $verb the site refuses says so and stays off', (
+    displayTest('a failed comment $verb shows an error and stays off', (
       tester,
     ) async {
       await tester.pumpWidget(

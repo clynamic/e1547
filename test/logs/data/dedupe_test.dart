@@ -113,7 +113,7 @@ void main() {
       expect(emitted.last.attributes['count'], 7);
     });
 
-    test('opens a fresh window once the old one lapses', () {
+    test('opens a fresh window once the old one ends', () {
       for (int i = 0; i < 9; i++) {
         dedupe.add(at(0));
       }
@@ -124,7 +124,7 @@ void main() {
       expect(emitted[3].event, 'test.event');
     });
 
-    test('says nothing when there was nothing to suppress', () {
+    test('reports nothing when nothing was suppressed', () {
       dedupe.add(at(0));
       dedupe.flush(DateTime(2026, 1, 1, 0, 0, 20));
       expect(emitted.length, 1);

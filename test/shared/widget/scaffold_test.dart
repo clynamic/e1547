@@ -56,7 +56,7 @@ void main() {
     expect(fab(tester).right, moreOrLessEquals(1700 - drawerWidth - fabMargin));
   });
 
-  testWidgets('a start fab hugs the edge while the drawer is an overlay', (
+  testWidgets('a start fab is at the edge while the drawer is an overlay', (
     tester,
   ) async {
     await show(
@@ -68,7 +68,9 @@ void main() {
     expect(fab(tester).left, moreOrLessEquals(fabMargin));
   });
 
-  testWidgets('an end fab ignores an inline start drawer', (tester) async {
+  testWidgets('an end fab keeps its place beside an inline start drawer', (
+    tester,
+  ) async {
     await show(
       tester,
       width: 1300,

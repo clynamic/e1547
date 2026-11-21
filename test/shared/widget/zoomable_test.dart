@@ -227,7 +227,7 @@ void main() {
   double shiftX() => zoom.transformation.value.getTranslation().x;
 
   testWidgets(
-    'a zoomed image at its edge hands an outward swipe to the pages',
+    'a zoomed image at its edge passes an outward swipe to the pages',
     (tester) async {
       await pumpPages(tester);
       await zoomTo(tester, -800);
@@ -572,21 +572,23 @@ void main() {
     expect(shiftX(), closeTo(-430, 0.01));
     expect(zoom.transformation.value.getTranslation().y, closeTo(-350, 0.01));
   });
-  testWidgets('a zoomed image narrower than the screen hands sideways swipes '
-      'to the pages', (tester) async {
-    await pumpPages(tester, content: const Size(800, 1600));
-    zoom.transformation.value = Matrix4.identity()
-      ..translateByDouble(-200, -150, 0, 1)
-      ..scaleByDouble(1.5, 1.5, 1, 1);
-    await tester.pump();
+  testWidgets(
+    'a zoomed image narrower than the screen passes sideways swipes to the pages',
+    (tester) async {
+      await pumpPages(tester, content: const Size(800, 1600));
+      zoom.transformation.value = Matrix4.identity()
+        ..translateByDouble(-200, -150, 0, 1)
+        ..scaleByDouble(1.5, 1.5, 1, 1);
+      await tester.pump();
 
-    final TestGesture finger = await swipe(tester, [const Offset(-500, 0)]);
-    expect(pages.page, greaterThan(1.5));
-    await finger.up();
-    await tester.pumpAndSettle();
+      final TestGesture finger = await swipe(tester, [const Offset(-500, 0)]);
+      expect(pages.page, greaterThan(1.5));
+      await finger.up();
+      await tester.pumpAndSettle();
 
-    expect(pages.page, 2);
-  });
+      expect(pages.page, 2);
+    },
+  );
 
   testWidgets('a pinch stops at the deepest zoom', (tester) async {
     await pump(tester);

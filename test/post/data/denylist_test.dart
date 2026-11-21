@@ -257,7 +257,7 @@ void main() {
   });
 
   group('conformance', () {
-    test('a line is read without regard to case', () {
+    test('a line matches regardless of case', () {
       final post = samplePost(
         rating: Rating.e,
         tags: {

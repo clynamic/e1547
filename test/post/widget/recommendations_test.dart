@@ -72,17 +72,16 @@ void main() {
       .map((e) => e.post.id)
       .toList();
 
-  displayTest(
-    'artist recommendations list what the server finds, in its order',
-    (tester) async {
-      addWorks({41: [], 42: [], 43: [], 44: []});
+  displayTest('artist recommendations list the server results in their order', (
+    tester,
+  ) async {
+    addWorks({41: [], 42: [], 43: [], 44: []});
 
-      await show(tester, work(41));
+    await show(tester, work(41));
 
-      expect(find.text('From the artist'), findsOneWidget);
-      expect(tiles(tester), [42, 43, 44]);
-    },
-  );
+    expect(find.text('From the artist'), findsOneWidget);
+    expect(tiles(tester), [42, 43, 44]);
+  });
 
   displayTest(
     'artist recommendations show only the posts that fit their width',
@@ -229,21 +228,26 @@ void main() {
     );
   });
 
-  displayTest('a post whose artist tags name no artist has no '
-      'recommendations', (tester) async {
-    addWorks({41: [], 42: []});
+  displayTest(
+    'a post without artists in its artist tags has no recommendations',
+    (tester) async {
+      addWorks({41: [], 42: []});
 
-    await show(
-      tester,
-      samplePost(
-        id: 41,
-        tags: const {
-          'artist': ['conditional_dnp'],
-        },
-      ),
-    );
+      await show(
+        tester,
+        samplePost(
+          id: 41,
+          tags: const {
+            'artist': ['conditional_dnp'],
+          },
+        ),
+      );
 
-    expect(find.byType(ArtistRecommendationsRow), findsNothing);
-    expect(env.fake.requests.where((e) => e.path.contains('similar')), isEmpty);
-  });
+      expect(find.byType(ArtistRecommendationsRow), findsNothing);
+      expect(
+        env.fake.requests.where((e) => e.path.contains('similar')),
+        isEmpty,
+      );
+    },
+  );
 }

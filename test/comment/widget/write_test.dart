@@ -20,30 +20,31 @@ void main() {
 
   tearDown(() => env.dispose());
 
-  displayTest('a comment the site refuses says so and is not reported sent', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      env.app(
-        Scaffold(
-          body: Builder(
-            builder: (context) => TextButton(
-              onPressed: () => writeComment(context: context, postId: 999999),
-              child: const Text('write'),
+  displayTest(
+    'a comment that fails to send shows an error and is not reported sent',
+    (tester) async {
+      await tester.pumpWidget(
+        env.app(
+          Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => writeComment(context: context, postId: 999999),
+                child: const Text('write'),
+              ),
             ),
           ),
         ),
-      ),
-    );
-    await tester.tap(find.text('write'));
-    await tester.pumpAndSettle();
-    final DTextEditor editor = tester.widget(find.byType(DTextEditor));
-    final String? error = await tester.runAsync<String?>(
-      () async => editor.onSubmitted('a comment'),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.tap(find.text('write'));
+      await tester.pumpAndSettle();
+      final DTextEditor editor = tester.widget(find.byType(DTextEditor));
+      final String? error = await tester.runAsync<String?>(
+        () async => editor.onSubmitted('a comment'),
+      );
+      await tester.pumpAndSettle();
 
-    expect(error, 'Failed to send comment!');
-    expect(find.text('Comment sent!'), findsNothing);
-  });
+      expect(error, 'Failed to send comment!');
+      expect(find.text('Comment sent!'), findsNothing);
+    },
+  );
 }

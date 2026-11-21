@@ -50,18 +50,20 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('a prompt sheet rests at 60% of the screen and a drag up opens '
-      'it fully', (tester) async {
-    await open(tester, pinned: true);
-    final double screen = tester.getSize(find.byType(MaterialApp)).height;
+  testWidgets(
+    'a prompt sheet opens at 60% of the screen and a drag up opens it fully',
+    (tester) async {
+      await open(tester, pinned: true);
+      final double screen = tester.getSize(find.byType(MaterialApp)).height;
 
-    expect(sheetTop(tester), screen * 0.4);
+      expect(sheetTop(tester), screen * 0.4);
 
-    await expand(tester);
+      await expand(tester);
 
-    expect(sheetTop(tester), 0);
-    expect(find.text('line 0'), findsOneWidget);
-  });
+      expect(sheetTop(tester), 0);
+      expect(find.text('line 0'), findsOneWidget);
+    },
+  );
 
   testWidgets('a pinned header stays while the content scrolls under it', (
     tester,

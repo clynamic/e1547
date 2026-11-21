@@ -24,7 +24,7 @@ void main() {
   }
 
   test(
-    'posts by the same artist read the files, flags and tags of a post',
+    'posts by the same artist have the files, flags and tags of a post',
     () async {
       final Map<String, Object?> recorded = env.fake.state.posts.first;
 

@@ -25,7 +25,7 @@ void main() {
     ),
   );
 
-  testWidgets('scrolling hands the mask a new shader', (tester) async {
+  testWidgets('scrolling gives the mask a new shader', (tester) async {
     await show(tester);
     await tester.pump();
     final before = tester.widget<ShaderMask>(find.byType(ShaderMask));

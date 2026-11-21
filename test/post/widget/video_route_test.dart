@@ -110,39 +110,40 @@ void main() {
     expect(player.state.playing, isFalse);
   });
 
-  testWidgets('a fullscreen video keeps playing when its detail returns', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      app(
-        PostVideoRoute(
-          post: first,
-          child: Builder(
-            builder: (context) => TextButton(
-              onPressed: () {
-                PostVideoRoute.of(context).keepPlaying();
-                Navigator.of(
-                  context,
-                ).push(MaterialPageRoute(builder: (_) => fullscreen(first)));
-              },
-              child: const Text('open'),
+  testWidgets(
+    'a fullscreen video keeps playing when its detail is shown again',
+    (tester) async {
+      await tester.pumpWidget(
+        app(
+          PostVideoRoute(
+            post: first,
+            child: Builder(
+              builder: (context) => TextButton(
+                onPressed: () {
+                  PostVideoRoute.of(context).keepPlaying();
+                  Navigator.of(
+                    context,
+                  ).push(MaterialPageRoute(builder: (_) => fullscreen(first)));
+                },
+                child: const Text('open'),
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
 
-    await tester.tap(find.text('open'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
 
-    final player = playerOf(tester, first);
-    await player.play();
+      final player = playerOf(tester, first);
+      await player.play();
 
-    await tester.tap(find.text('close'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('close'));
+      await tester.pumpAndSettle();
 
-    expect(player.state.playing, isTrue);
-  });
+      expect(player.state.playing, isTrue);
+    },
+  );
 
   testWidgets('a route rebuilt with another post leases that post\'s video', (
     tester,

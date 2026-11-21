@@ -172,7 +172,7 @@ void main() {
     expect(sheet.center.dx, 600);
   });
 
-  testWidgets('an open keyboard lifts the sheet above it', (tester) async {
+  testWidgets('the sheet moves above an open keyboard', (tester) async {
     tester.view.viewInsets = FakeViewPadding(
       bottom: 250 * tester.view.devicePixelRatio,
     );
@@ -220,9 +220,7 @@ void main() {
     expect(find.text('typing'), findsNothing);
   });
 
-  testWidgets('the sheet writes in the text style of the app theme', (
-    tester,
-  ) async {
+  testWidgets('the sheet uses the text style of the app theme', (tester) async {
     final ThemeData theme = ThemeData(brightness: Brightness.dark);
     await open(
       tester,

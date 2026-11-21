@@ -61,7 +61,7 @@ void main() {
       expect(body, bytes);
     });
 
-    test('passes the headers the cache asks for', () async {
+    test('passes the headers the cache requests', () async {
       respond = (request) => request.response
         ..statusCode = 200
         ..close();

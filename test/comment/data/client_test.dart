@@ -34,7 +34,7 @@ void main() {
     expect(comment.hidden, recorded['is_hidden']);
   });
 
-  test('creates a comment with the params the server permits', () async {
+  test('creates a comment with only the permitted params', () async {
     final postId = loadFixtureList('posts.json').first['id']! as int;
 
     await client.create(postId: postId, content: 'hello');

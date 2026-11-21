@@ -38,7 +38,7 @@ void main() {
     expect(fake.requests.last.query, containsPair('search[type]', 'deletion'));
   });
 
-  test('creates a flag with the params the server permits', () async {
+  test('creates a flag with only the permitted params', () async {
     final postId = loadFixtureList('posts.json').first['id']! as int;
 
     await client.create(postId, 'inferior', parent: 42);

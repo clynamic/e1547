@@ -59,7 +59,7 @@ void main() {
     ),
   );
 
-  testWidgets('a list whose next page failed offers to retry under its items', (
+  testWidgets('a list whose next page failed shows a retry under its items', (
     tester,
   ) async {
     int retries = 0;
@@ -83,7 +83,7 @@ void main() {
     expect(retries, 1);
   });
 
-  testWidgets('a list with no further pages says so under its items', (
+  testWidgets('a list with no further pages shows its end under its items', (
     tester,
   ) async {
     await showList(

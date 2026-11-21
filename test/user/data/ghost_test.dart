@@ -3,7 +3,7 @@ import 'package:e1547/user/user.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('a user ghost reads the same every time for its index', () {
+  test('a user ghost is the same every time for its index', () {
     expect(const UserGhost(3).about, const UserGhost(3).about);
     expect(const UserGhost(3).name, const UserGhost(3).name);
   });
@@ -14,7 +14,7 @@ void main() {
     }, hasLength(greaterThan(1)));
   });
 
-  test('a user ghost refuses to be copied or stored', () {
+  test('a user ghost throws when copied or stored', () {
     expect(
       () => const UserGhost().copyWith,
       throwsA(isA<GhostsAreIntangibleError>()),

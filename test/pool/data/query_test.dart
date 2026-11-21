@@ -14,7 +14,7 @@ void main() {
 
   tearDown(() => env.dispose());
 
-  test('pools asked for at once come in one request', () async {
+  test('pools requested at once load in one request', () async {
     final List<int> ids = loadFixtureList(
       'pools.json',
     ).map((e) => e['id']! as int).take(2).toList();

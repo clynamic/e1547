@@ -171,7 +171,7 @@ void main() {
     }
   }
 
-  displayTest('a pushed gallery drops the posts its list denies', (
+  displayTest('a pushed gallery drops the denied posts of its list', (
     tester,
   ) async {
     traits.value = traits.value.copyWith(denylist: ['tag_47']);
@@ -247,7 +247,7 @@ void main() {
     expect(find.text('Post is blacklisted'), findsOneWidget);
   });
 
-  displayTest('a blacklisted post offers show', (tester) async {
+  displayTest('a blacklisted post has a show button', (tester) async {
     seedDeniedChild();
     final filter = PostFilter(client);
     addTearDown(filter.dispose);
@@ -266,7 +266,7 @@ void main() {
     expect(find.text('hide'), findsOneWidget);
   });
 
-  displayTest('the hide button leaves with the blacklist off', (tester) async {
+  displayTest('the hide button is gone with the blacklist off', (tester) async {
     traits.value = traits.value.copyWith(denylist: ['tag_2']);
     final filter = PostFilter(client)..denying = false;
     addTearDown(filter.dispose);
@@ -634,7 +634,9 @@ void main() {
     expect(find.text('open'), findsOneWidget);
   });
 
-  displayTest('a loading detail ignores a tap on its image', (tester) async {
+  displayTest('a loading detail stays open on a tap on its image', (
+    tester,
+  ) async {
     await pushLoadingDetail(tester);
 
     await tester.tap(find.byType(PostDetailImageDisplay), warnIfMissed: false);

@@ -28,7 +28,7 @@ void main() {
     ),
   );
 
-  testWidgets('a bubble left out through a resize returns to its edge', (
+  testWidgets('a bubble moved offscreen by a resize returns to its edge', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(width, 800);

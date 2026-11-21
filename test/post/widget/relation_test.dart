@@ -85,7 +85,7 @@ void main() {
       );
     });
 
-    displayTest('names the artists of a cached parent', (tester) async {
+    displayTest('shows the artists of a cached parent', (tester) async {
       env.client.posts.postCache.set(
         samplePost(
           id: 20,
@@ -212,7 +212,7 @@ void main() {
   });
 
   group('PoolDisplay', () {
-    displayTest('names a cached pool and its size', (tester) async {
+    displayTest('shows a cached pool and its size', (tester) async {
       env.client.pools.poolCache.set(
         samplePool(id: 30, name: 'sample_pool', postIds: const [21, 22, 23]),
       );

@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('LoggingDioInterceptor.describeReason', () {
-    test('reads the reason an error response gives', () {
+    test('reads the reason of an error response', () {
       expect(
         LoggingDioInterceptor.describeReason({
           'success': false,
@@ -29,7 +29,7 @@ void main() {
       expect(LoggingDioInterceptor.describeReason({'posts': []}), null);
     });
 
-    test('caps a reason that runs long', () {
+    test('caps a long reason', () {
       final String result = LoggingDioInterceptor.describeReason({
         'reason': 'x' * 500,
       })!;

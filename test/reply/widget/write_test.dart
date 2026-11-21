@@ -20,30 +20,31 @@ void main() {
 
   tearDown(() => env.dispose());
 
-  displayTest('a reply the site refuses says so and is not reported sent', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      env.app(
-        Scaffold(
-          body: Builder(
-            builder: (context) => TextButton(
-              onPressed: () => writeReply(context: context, topicId: 999999),
-              child: const Text('write'),
+  displayTest(
+    'a reply that fails to send shows an error and is not reported sent',
+    (tester) async {
+      await tester.pumpWidget(
+        env.app(
+          Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => writeReply(context: context, topicId: 999999),
+                child: const Text('write'),
+              ),
             ),
           ),
         ),
-      ),
-    );
-    await tester.tap(find.text('write'));
-    await tester.pumpAndSettle();
-    final DTextEditor editor = tester.widget(find.byType(DTextEditor));
-    final String? error = await tester.runAsync<String?>(
-      () async => editor.onSubmitted('a reply'),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.tap(find.text('write'));
+      await tester.pumpAndSettle();
+      final DTextEditor editor = tester.widget(find.byType(DTextEditor));
+      final String? error = await tester.runAsync<String?>(
+        () async => editor.onSubmitted('a reply'),
+      );
+      await tester.pumpAndSettle();
 
-    expect(error, 'Failed to send reply!');
-    expect(find.text('Reply sent!'), findsNothing);
-  });
+      expect(error, 'Failed to send reply!');
+      expect(find.text('Reply sent!'), findsNothing);
+    },
+  );
 }

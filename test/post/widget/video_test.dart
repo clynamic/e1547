@@ -17,18 +17,18 @@ void main() {
       );
 
   group('videoSeekTarget', () {
-    test('holds at the start when the offset reaches past it', () {
+    test('holds at the start for an offset past it', () {
       expect(seek(step - const Duration(seconds: 1), -step), Duration.zero);
     });
 
-    test('holds at the end when the offset reaches past it', () {
+    test('holds at the end for an offset past it', () {
       expect(
         seek(duration - step + const Duration(seconds: 1), step),
         duration,
       );
     });
 
-    test('holds where it is when there is nowhere left to go', () {
+    test('holds at either end for an offset past it', () {
       expect(seek(Duration.zero, -step), Duration.zero);
       expect(seek(duration, step), duration);
     });

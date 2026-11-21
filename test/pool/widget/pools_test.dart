@@ -24,7 +24,7 @@ void main() {
 
   tearDown(() => env.dispose());
 
-  displayTest('a double tap on the bar brings the pool list back to its top', (
+  displayTest('a double tap on the bar scrolls the pool list to its top', (
     tester,
   ) async {
     await tester.runAsync(() => tester.pumpWidget(env.app(const PoolsPage())));

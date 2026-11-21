@@ -41,7 +41,9 @@ Finder tileOf(String event) =>
 
 void main() {
   group('LogPage follows the newest entry', () {
-    testWidgets('holds the read position while entries arrive', (tester) async {
+    testWidgets('holds the scroll position while entries are added', (
+      tester,
+    ) async {
       final source = FakeLogSource();
       for (int i = 0; i < 40; i++) {
         source.add('entry $i');
@@ -60,7 +62,9 @@ void main() {
       expect(find.text('entry fresh'), findsNothing);
     });
 
-    testWidgets('shows what waited once scrolled back', (tester) async {
+    testWidgets('shows entries added while away once scrolled back', (
+      tester,
+    ) async {
       final source = FakeLogSource();
       for (int i = 0; i < 40; i++) {
         source.add('entry $i');

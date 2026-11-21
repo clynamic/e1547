@@ -77,9 +77,7 @@ void main() {
     expect(shownPost(tester), 31);
   });
 
-  displayTest('a child of a cached family opens without waiting', (
-    tester,
-  ) async {
+  displayTest('a child of a cached family opens at once', (tester) async {
     await showFamily(tester);
 
     await tester.tap(
@@ -93,7 +91,7 @@ void main() {
     await env.settle(tester, animating: true);
   });
 
-  displayTest('a child the search leaves out opens alone', (tester) async {
+  displayTest('a child missing from the search opens alone', (tester) async {
     await showFamily(tester, deleted: {32});
 
     await openChild(tester, 32);

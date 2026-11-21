@@ -44,7 +44,7 @@ void main() {
   Iterable<FakeRequest> postRequests() =>
       env.fake.requests.where((e) => e.path == '/posts.json');
 
-  displayTest('avatars shown together come in one post request', (
+  displayTest('avatars shown together load in one post request', (
     tester,
   ) async {
     final List<int> ids = recorded()
@@ -78,7 +78,7 @@ void main() {
     expect(urls(tester).single, endsWith('/data/avatars/7.jpg?t=$id'));
   });
 
-  displayTest('avatars of users shown together come in one user request', (
+  displayTest('avatars of users shown together load in one user request', (
     tester,
   ) async {
     final List<int> posts = recorded()
@@ -129,7 +129,7 @@ void main() {
     expect(find.byIcon(Icons.warning_amber), findsNothing);
   });
 
-  displayTest('an avatar without an image still answers a tap', (tester) async {
+  displayTest('an avatar without an image still handles a tap', (tester) async {
     int taps = 0;
 
     await show(tester, [

@@ -39,7 +39,7 @@ void main() {
   List<int> recordedIds() =>
       loadFixtureList('posts.json').map((e) => e['id']! as int).toList();
 
-  test('posts asked for by id at once come in one request', () async {
+  test('posts requested by id at once load in one request', () async {
     final List<int> ids = recordedIds().take(3).toList();
     env.fake.requests.clear();
 
@@ -52,7 +52,7 @@ void main() {
     expect(env.fake.requests.map((e) => e.path), ['/posts.json']);
   });
 
-  test('a post already in the cache is not asked for', () async {
+  test('a post already in the cache is not requested', () async {
     final int id = recordedIds().first;
     env.client.posts.postCache.set(samplePost(id: id, preview: 'kept'));
     env.fake.requests.clear();

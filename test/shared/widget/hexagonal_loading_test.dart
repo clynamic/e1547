@@ -52,32 +52,32 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   });
 
-  testWidgets(
-    'a refresh that brings a note holds it above the list to be read',
-    (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: PullToRefresh.noted(
-              onRefresh: () async {
-                await Future<void>.delayed(const Duration(milliseconds: 200));
-                return const RefreshNote('Up to date');
-              },
-              child: ListView(
-                children: [
-                  for (int i = 0; i < 40; i++)
-                    SizedBox(height: 48, child: Text('line $i')),
-                ],
-              ),
+  testWidgets('a refresh with a note shows it above the list for a while', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: PullToRefresh.noted(
+            onRefresh: () async {
+              await Future<void>.delayed(const Duration(milliseconds: 200));
+              return const RefreshNote('Up to date');
+            },
+            child: ListView(
+              children: [
+                for (int i = 0; i < 40; i++)
+                  SizedBox(height: 48, child: Text('line $i')),
+              ],
             ),
           ),
         ),
-      );
+      ),
+    );
 
-      await tester.sendKeyEvent(LogicalKeyboardKey.f5);
-      await frames(tester, 30);
-      final Finder note = find.text('Up to date');
-      final Rect rested = tester.getRect(note);
+    await tester.sendKeyEvent(LogicalKeyboardKey.f5);
+    await frames(tester, 30);
+    final Finder note = find.text('Up to date');
+    final Rect rested = tester.getRect(note);
 
     expect(rested.top, greaterThanOrEqualTo(0));
     expect(
@@ -93,8 +93,7 @@ void main() {
 
     expect(note, findsNothing);
 
-      await tester.pump(const Duration(seconds: 3));
-      await tester.pump(const Duration(seconds: 1));
-    },
-  );
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pump(const Duration(seconds: 1));
+  });
 }

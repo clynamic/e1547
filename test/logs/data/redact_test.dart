@@ -35,7 +35,7 @@ void main() {
       expect(redactor.isSecret('tags'), isFalse);
     });
 
-    test('reaches into nested maps', () {
+    test('redacts keys in nested maps', () {
       final LogEntry result = redactor.apply(
         entryWith({
           'headers': {'Cookie': 'session=1', 'Accept': 'json'},
@@ -96,7 +96,7 @@ void main() {
       expect(result.error!.type, 'StateError');
     });
 
-    test('stringifies values it cannot look inside', () {
+    test('stringifies values that are not plain data', () {
       final LogEntry result = redactor.apply(
         entryWith({'thing': Uri.parse('https://e621.net/x.json?login=tester')}),
       );

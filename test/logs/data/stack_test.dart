@@ -25,7 +25,7 @@ void main() {
       ]);
     });
 
-    test('caps long traces and says how much it dropped', () {
+    test('caps long traces and counts the lines it dropped', () {
       final List<String> result = compactor.compact([
         for (int i = 0; i < 60; i++) '#$i      f$i (package:e1547/a.dart:$i:1)',
       ]);

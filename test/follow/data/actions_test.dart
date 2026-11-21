@@ -27,7 +27,7 @@ void main() {
       expect(updated.thumbnail, '/preview/2');
     });
 
-    test('prefers the newest post that has a thumbnail', () {
+    test('uses the newest post that has a thumbnail', () {
       final updated = bookmark.withUnseen([
         samplePost(id: 2, preview: '/preview/2'),
         samplePost(id: 3, preview: '/preview/3'),

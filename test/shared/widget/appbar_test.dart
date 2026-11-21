@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets(
-    'a skeleton page answers its back button and ignores its actions',
+    'a skeleton page handles its back button and blocks its actions',
     (tester) async {
       int backs = 0;
       int actions = 0;

@@ -29,9 +29,7 @@ void main() {
   Color? colorOf(WidgetTester tester, IconData icon) =>
       tester.widget<Icon>(find.byIcon(icon)).color;
 
-  displayTest('a favorite the site refuses says so and stays off', (
-    tester,
-  ) async {
+  displayTest('a failed favorite shows an error and stays off', (tester) async {
     await tapOn(
       tester,
       FavoriteButton(post: samplePost(id: 999999)),
@@ -45,9 +43,7 @@ void main() {
     expect(colorOf(tester, Icons.favorite), isNot(Colors.pinkAccent));
   });
 
-  displayTest('an upvote the site refuses says so and stays off', (
-    tester,
-  ) async {
+  displayTest('a failed upvote shows an error and stays off', (tester) async {
     await tapOn(
       tester,
       LikeDisplay(post: samplePost(id: 999999)),
@@ -58,9 +54,7 @@ void main() {
     expect(colorOf(tester, Icons.arrow_upward), isNull);
   });
 
-  displayTest('a downvote the site refuses says so and stays off', (
-    tester,
-  ) async {
+  displayTest('a failed downvote shows an error and stays off', (tester) async {
     await tapOn(
       tester,
       LikeDisplay(post: samplePost(id: 999999)),
@@ -71,7 +65,7 @@ void main() {
     expect(colorOf(tester, Icons.arrow_downward), isNull);
   });
 
-  displayTest('a feed tile vote the site refuses says so and stays off', (
+  displayTest('a failed feed tile vote shows an error and stays off', (
     tester,
   ) async {
     await tapOn(

@@ -14,7 +14,7 @@ void main() {
 
   tearDown(() => env.dispose());
 
-  displayTest('a profile shows the name its summary knows while it loads', (
+  displayTest('a profile shows the name from its summary while it loads', (
     tester,
   ) async {
     final Map<String, Object?> recorded = loadFixtureList('users.json').first;

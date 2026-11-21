@@ -78,14 +78,14 @@ void main() {
     expect(filter.denies(post), false);
   });
 
-  test('an allowed entry lifts the block', () {
+  test('an allowed entry removes the block', () {
     filter.enable('bad_tag');
 
     expect(filter.blocks(post), false);
     expect(filter.denies(post), false);
   });
 
-  test('a post whose tags change is judged by its new tags', () {
+  test('a post whose tags change is filtered by its new tags', () {
     final Post clean = samplePost(
       id: 8,
       tags: const {

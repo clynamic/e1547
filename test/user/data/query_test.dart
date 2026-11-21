@@ -17,7 +17,7 @@ void main() {
   List<int> recorded() =>
       loadFixtureList('users.json').map((e) => e['id']! as int).toList();
 
-  test('user summaries asked for at once come in one request', () async {
+  test('user summaries requested at once load in one request', () async {
     final List<int> ids = recorded().take(2).toList();
     env.fake.requests.clear();
 

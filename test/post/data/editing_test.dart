@@ -12,7 +12,7 @@ void main() {
   ).copyWith(description: 'old', sources: const ['https://a']);
 
   group('PostEdit.applyTo', () {
-    test('keeps the category of tags it did not touch', () {
+    test('keeps the category of tags it did not change', () {
       final edit = PostEdit.fromPost(post).copyWith(tags: const ['solo']);
 
       expect(edit.applyTo(post).tags, {
