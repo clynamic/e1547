@@ -28,7 +28,7 @@ class TagListActions extends StatelessWidget {
             valueListenable: client.traits,
             builder: (context, traits, child) {
               final Follow? follow = followState.data?.firstWhereOrNull(
-                (f) => f.tags == tag,
+                (f) => f.tags.toLowerCase() == tag.toLowerCase(),
               );
               final bool hasFollow = follow != null;
 

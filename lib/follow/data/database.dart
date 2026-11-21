@@ -49,7 +49,12 @@ class FollowRepository extends DatabaseAccessor<GeneratedDatabase>
   StreamFuture<Follow?> getByTags(String tags, int identity) =>
       (select(followsTable)
             ..where((tbl) => _identityQuery(tbl, identity))
-            ..where((tbl) => tbl.tags.equals(tags)))
+            ..where(
+              (tbl) => tbl.tags.regexp(
+                '^${RegExp.escape(tags)}\$',
+                caseSensitive: false,
+              ),
+            ))
           .watchSingleOrNull()
           .future;
 

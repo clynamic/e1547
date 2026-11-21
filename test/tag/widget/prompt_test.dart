@@ -1,3 +1,4 @@
+import 'package:e1547/follow/follow.dart';
 import 'package:e1547/tag/tag.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -71,5 +72,17 @@ void main() {
     final Rect name = tester.getRect(find.text('fox'));
     final Rect action = tester.getRect(find.text('Follow'));
     expect(action.top, greaterThanOrEqualTo(name.bottom));
+  });
+
+  displayTest('a tag followed in another case shows as followed', (
+    tester,
+  ) async {
+    await tester.runAsync(
+      () => env.client.follows.create(tags: 'Fox', type: FollowType.update),
+    );
+
+    await open(tester);
+
+    expect(find.text('Unfollow'), findsOneWidget);
   });
 }

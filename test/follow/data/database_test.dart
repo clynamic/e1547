@@ -31,4 +31,10 @@ void main() {
       expect(await repository.length(identity: identity), 1);
     });
   });
+
+  test('finds a follow by its tags in any case', () async {
+    await repository.add(const FollowRequest(tags: 'Cat'), identity);
+
+    expect((await repository.getByTags('cat', identity))?.tags, 'Cat');
+  });
 }
