@@ -95,6 +95,10 @@ class _FollowNotificationConnectorState
     if (!PlatformCapabilities.hasNotifications) return;
     final Future<FlutterLocalNotificationsPlugin> notifications =
         NotificationHandler.of(context).notifications;
+    final FollowRepository repository = context
+        .read<Client>()
+        .follows
+        .repository;
     bool wasNotifying =
         previousFollows != null &&
         previousFollows!.where((e) => e.type == FollowType.notify).isNotEmpty;
@@ -117,7 +121,7 @@ class _FollowNotificationConnectorState
           ?.requestNotificationsPermission();
       if (!(result ?? true)) return;
     }
-    registerFollowBackgroundTask(follows);
+    registerFollowBackgroundTask(repository);
   }
 
   Future<void> sendNotifications(List<Follow> follows, int identity) async {

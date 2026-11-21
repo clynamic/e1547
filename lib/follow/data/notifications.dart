@@ -22,9 +22,7 @@ Future<void> runFollowUpdates({
 }) async {
   // this ensures continued scheduling on iOS.
   FollowRepository allFollows = FollowRepository(database: storage.sqlite);
-  registerFollowBackgroundTask(
-    await allFollows.all(types: [FollowType.notify]),
-  );
+  registerFollowBackgroundTask(allFollows);
 
   List<Identity> identities = await IdentityClient(
     database: storage.sqlite,
@@ -52,9 +50,7 @@ Future<void> runFollowUpdates({
     );
   }
 
-  registerFollowBackgroundTask(
-    await allFollows.all(types: [FollowType.notify]),
-  );
+  registerFollowBackgroundTask(allFollows);
 }
 
 Future<void> runClientFollowUpdate({

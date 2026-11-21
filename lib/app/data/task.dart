@@ -33,9 +33,9 @@ CancelToken createBackgroundCancelToken(String task) {
   return cancelToken;
 }
 
-Future<void> registerFollowBackgroundTask(List<Follow> follows) async {
+Future<void> registerFollowBackgroundTask(FollowRepository follows) async {
   if (!PlatformCapabilities.hasBackgroundWorker) return;
-  if (follows.where((e) => e.type == FollowType.notify).isEmpty) {
+  if ((await follows.all(types: [FollowType.notify])).isEmpty) {
     _logger.debug('Unregistered {task}', {'task': followsBackgroundTaskKey});
     return Workmanager().cancelByUniqueName(followsBackgroundTaskKey);
   }
