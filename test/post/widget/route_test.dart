@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:drift/native.dart';
 import 'package:e1547/app/app.dart';
 import 'package:e1547/client/client.dart';
@@ -27,6 +28,7 @@ void main() {
   late AppDatabase sqlite;
   late Settings settings;
   late VideoService videos;
+  int inFlight = 0;
 
   setUpAll(() async {
     await initializeTestApp();
@@ -63,6 +65,23 @@ void main() {
             ),
           ),
         sqlite: sqlite,
+      ),
+    );
+    inFlight = 0;
+    client.dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          inFlight++;
+          handler.next(options);
+        },
+        onResponse: (response, handler) {
+          inFlight--;
+          handler.next(response);
+        },
+        onError: (error, handler) {
+          inFlight--;
+          handler.next(error);
+        },
       ),
     );
   });
@@ -131,9 +150,11 @@ void main() {
       await tester.pump();
       // The gallery queries as it opens, so that request has to land before
       // the tree is torn down.
-      await Future<void>.delayed(const Duration(milliseconds: 100));
-      await tester.pump();
-      await Future<void>.delayed(const Duration(milliseconds: 100));
+      for (int round = 0; round < 100; round++) {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        await tester.pump();
+        if (round >= 5 && inFlight == 0) break;
+      }
     });
     await tester.pump();
   }
