@@ -117,7 +117,10 @@ class DriftQueryStorage extends StorageInterface {
         expiresAt: query.expiry,
       ),
     );
-    _estimatedEntries = (_estimatedEntries ?? await repository.count()) + 1;
+    _estimatedEntries = switch (_estimatedEntries) {
+      final int entries => entries + 1,
+      null => await repository.count(),
+    };
     await _evict();
   });
 
