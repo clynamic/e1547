@@ -60,7 +60,7 @@ class LockScreen extends StatefulWidget {
   const LockScreen({
     super.key,
     required this.child,
-    this.relockAfter = const Duration(seconds: 30),
+    this.relockAfter = const Duration(hours: 1),
   });
 
   final Widget child;

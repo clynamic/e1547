@@ -62,7 +62,7 @@ void main() {
 
   Future<void> show(
     WidgetTester tester, {
-    Duration relockAfter = const Duration(seconds: 30),
+    Duration relockAfter = const Duration(hours: 1),
   }) async {
     await tester.pumpWidget(
       Provider<Settings>.value(
