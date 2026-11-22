@@ -142,5 +142,6 @@ This is a passion project. If you enjoy using it, I am glad you do!
 
 #### Additional thanks to
 
+- [aza0](https://github.com/purrfecto114-lgtm) for extensive bug hunting.
 - [Miyoyo](https://github.com/miyoyo) for performance optimisations.
 - [Perlatus](https://github.com/perlatus) for writing the original code base.
