@@ -92,6 +92,8 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  integration_test:
+    sdk: flutter
   # test/_support/fake_e621.dart
   shelf: ^1.4.2
   shelf_router: ^1.1.4

@@ -1,0 +1,58 @@
+name: End to End
+
+on:
+  push:
+    branches: [e2e-ci]
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios-simulator:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - name: setup actions
+        uses: actions/checkout@v7
+
+      - name: parse flutter version
+        run: |
+          export FLUTTER_VERSION=$(./.github/workflows/get_flutter_version.sh)
+          echo "FLUTTER_VERSION=$FLUTTER_VERSION" >> $GITHUB_ENV
+
+      - name: setup flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: get flutter dependencies
+        run: flutter pub get
+
+      - name: boot simulator
+        run: |
+          UDID=$(xcrun simctl list devices available -j | jq -r '[.devices | to_entries[] | select(.key | contains("iOS")) | .value[] | select(.name | startswith("iPhone"))] | last | .udid')
+          echo "SIMULATOR_UDID=$UDID" >> $GITHUB_ENV
+          xcrun simctl list devices available | grep "$UDID"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID"
+
+      - name: run end to end tests
+        timeout-minutes: 20
+        run: flutter test integration_test -d "$SIMULATOR_UDID" --reporter expanded
+
+      - name: collect crash logs
+        if: failure()
+        run: |
+          mkdir -p crash
+          cp ~/Library/Logs/DiagnosticReports/*.ips crash/ 2>/dev/null || true
+          xcrun simctl spawn "$SIMULATOR_UDID" log show --last 30m --style compact --predicate 'process == "Runner"' > crash/runner.log || true
+
+      - name: upload crash logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ios-crash
+          path: crash
