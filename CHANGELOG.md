@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [21.2.1+109] - 2026-11-24
 ### Fixed
 - Old e6 API compatibility
 
@@ -1002,7 +1002,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Fixed
 - API client bindings
 
-[Unreleased]: https://github.com/clragon/e1547/compare/21.2.0+108...HEAD
+[21.2.1+109]: https://github.com/clragon/e1547/compare/21.2.0+108...21.2.1+109
 [21.2.0+108]: https://github.com/clragon/e1547/compare/21.1.2+106...21.2.0+108
 [21.1.2+106]: https://github.com/clragon/e1547/compare/21.1.1+105...21.1.2+106
 [21.1.1+105]: https://github.com/clragon/e1547/compare/21.1.0+104...21.1.1+105

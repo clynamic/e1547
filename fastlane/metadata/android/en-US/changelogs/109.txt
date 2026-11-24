@@ -1,0 +1,2 @@
+### Fixed
+- Old e6 API compatibility
